@@ -1,0 +1,98 @@
+* {
+    box-sizing: border-box;
+    padding: 0px;
+    margin: 0px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    background: #3c98bd;
+    background: linear-gradient(90deg, rgba(60,152,189,1) 0%, rgba(151,219,181,1) 50%, rgba(225,240,235,1) 100%);
+}
+
+.container {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: white;
+    text-align: center;
+    border-radius: 20px;
+    width: 500px;
+    height: 340px;
+}
+
+.container2 {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: white;
+    text-align: center;
+    border-radius: 20px;
+    width: 400px;
+    height: 280px;
+}
+
+.container h1, .container2 h1 {
+    margin-top: 30px;
+}
+
+.container input, .container2 input {
+    width: 300px;
+    height: 35px;
+    margin: 10px;
+    border-radius: 50px;
+    background-color: #f1f1f1;
+    border: none;
+    padding: 10px;
+}
+
+.entrar, .cadastrar {
+    background: #3c98bd;
+    color: black;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.entrar:hover, .cadastrar:hover {
+    color: white;
+    background: #2c7a98;
+    transition: .5s;
+}
+
+.iconelogin {
+    margin-top: 22px;
+    font-size: 28px;
+    color: #db4437;
+}
+
+.iconesign {
+    margin-top: 230px;
+    font-size: 28px;
+    color: #db4437;
+}
+
+header {
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+}
+
+header img {
+    margin: 15px 0 0 20px;
+    width: 200px;
+}
+
+header a {
+    position: absolute;
+    top: 25px;
+    right: 30px;
+    text-decoration: none;
+    color: #2c7a98;
+    font-weight: bold;
+}
+
+header a:hover {
+    text-decoration: underline;
+}
