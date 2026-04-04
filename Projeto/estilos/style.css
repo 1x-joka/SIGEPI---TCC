@@ -12,7 +12,7 @@ body {
     justify-content: center;
     align-items: center;
     background: #3c98bd;
-    background: linear-gradient(90deg, rgba(60,152,189,1) 0%, rgba(151,219,181,1) 50%, rgba(225,240,235,1) 100%);
+    background: linear-gradient(90deg, #3c98bd 0%, #97dbb5 50%, #e1f0eb 100%);
 }
 
 .container {
