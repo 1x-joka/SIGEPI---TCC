@@ -1,13 +1,13 @@
 # SIGEPI – Sistema Web de Gerenciamento de Equipamentos de Proteção Individual
 
-> Trabalho de Conclusão de Curso — Técnico em Desenvolvimento de Sistemas
+> Trabalho de Conclusão de Curso — Técnico em Desenvolvimento de Sistemas  
 > Escola Técnica Estadual Ilza Nascimento Pintus — São José dos Campos, 2026
 
 ---
 
 ## 📋 Sobre o Projeto
 
-O **SIGEPI** é uma aplicação web responsiva e mobile desenvolvida para otimizar o gerenciamento de Equipamentos de Proteção Individual (EPIs) em empresas de diferentes portes e setores.
+O **SIGEPI** é uma aplicação web responsiva desenvolvida para otimizar o gerenciamento de Equipamentos de Proteção Individual (EPIs) em empresas de diferentes portes e setores.
 
 Segundo pesquisa da plataforma Flash, 48% das empresas brasileiras ainda utilizam planilhas eletrônicas para controlar dados de seus colaboradores. No contexto dos EPIs, isso resulta em registros desatualizados, falta de rastreabilidade e risco de descumprimento da NR-6. O SIGEPI surge como solução digital para substituir esses processos manuais.
 
@@ -100,13 +100,13 @@ Acesse em: `http://localhost:3000`
 
 ## 🎨 Protótipo
 
-> 🔗 Link do protótipo no Figma será adicionado em breve.
+> 🔗 [Visualizar protótipo no Figma](https://www.figma.com/design/DDS2raMUfaX0Cw292iuYP5/Prototipa%C3%A7%C3%A3o-do-SIGEPI?node-id=14-16&t=QGWUwhOPTXNjq9C6-1)
 
 ---
 
 ## 📚 Documentação
 
-A documentação completa do projeto está na pasta `Documentação`, incluindo:
+A documentação completa do projeto está na pasta `/docs`, incluindo:
 
 - Regras de negócio
 - Requisitos funcionais e não funcionais
