@@ -15,14 +15,14 @@ Segundo pesquisa da plataforma Flash, 48% das empresas brasileiras ainda utiliza
 
 ## ✨ Funcionalidades
 
-- 🔐 **Autenticação** com criptografia de senhas e validação por CAPTCHA
-- 👷 **Cadastro de funcionários** e controle por empresa e setor
-- 🦺 **Cadastro e gestão de EPIs** com categorias e validade
-- 📦 **Controle de estoque** com alertas automáticos de reposição
-- 📋 **Registro de entregas e devoluções** com histórico completo
-- 📊 **Dashboard** com indicadores visuais e EPIs mais utilizados
-- 📄 **Geração de relatórios** exportáveis em PDF
-- 📱 **Progressive Web App (PWA)** para uso em dispositivos móveis
+- **Autenticação** com criptografia de senhas e validação por CAPTCHA
+- **Cadastro de funcionários** e controle por empresa e setor
+- **Cadastro e gestão de EPIs** com categorias e validade
+- **Controle de estoque** com alertas automáticos de reposição
+- **Registro de entregas e devoluções** com histórico completo
+- **Dashboard** com indicadores visuais e EPIs mais utilizados
+- **Geração de relatórios** exportáveis em PDF
+- **Progressive Web App (PWA)** para uso em dispositivos móveis
 
 ---
 
