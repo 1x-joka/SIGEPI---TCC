@@ -100,7 +100,7 @@ Acesse em: `http://localhost:3000`
 
 ## 🎨 Protótipo
 
-> 🔗 [Visualizar protótipo no Figma](https://www.figma.com/design/DDS2raMUfaX0Cw292iuYP5/Prototipa%C3%A7%C3%A3o-do-SIGEPI?node-id=14-16&t=QGWUwhOPTXNjq9C6-1)
+> 🔗 [Visualizar protótipo no Figma](https://www.figma.com/design/DDS2raMUfaX0Cw292iuYP5/Prototipa%C3%A7%C3%A3o-do-SIGEPI?node-id=0-1&t=oVStPrEXnrAm0S5V-1)
 
 ---
 
