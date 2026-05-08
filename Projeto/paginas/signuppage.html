@@ -1,31 +1,109 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../estilos/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <title>Sign Up</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up — SIGEPI</title>
+  <link rel="stylesheet" href="../estilos/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+    .page-center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .signup-card {
+      background: white;
+      border-radius: 20px;
+      padding: 36px 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      text-align: center;
+    }
+    .signup-card h1 { font-size: 26px; font-weight: 700; margin-bottom: 24px; color: var(--text-dark); }
+    .form-group { text-align: left; margin-bottom: 12px; }
+    .btn-cadastrar { width: 100%; margin-top: 8px; padding: 12px; font-size: 15px; }
+    .google-btn { margin-top: 16px; font-size: 28px; color: #db4437; cursor: pointer; transition: transform 0.2s; display: inline-block; }
+    .google-btn:hover { transform: scale(1.1); }
+  </style>
 </head>
 <body>
-    <header>
-        <a href="loginpage.html">Login</a>
-        <div class="img">
-            <img src="../imagens/logo.png" alt="LOGO">
-        </div>
-    </header>
-    <div class="container">
-        <h1>Sign Up</h1>
-
-        <form>
-            <input type="text" name="name" placeholder="Nome" class="name" title="Preencha seu nome completo" required>
-            <input type="email" name="email" placeholder="Email" class="email" title="Preencha seu email" required>
-            <input type="password" name="password" placeholder="Senha" class="password" title="Insira sua senha" required>
-            <input type="button" class="cadastrar" value="Cadastrar">
-        </form>
- 
-       <a href="" id="google" class="iconesign"> <i class="fa-brands fa-google"></i></a>
+  <header class="header">
+    <div class="logo-wrap">
+      <span class="logo-title">SIGEPI</span>
+      <span class="logo-sub">Gerenciador de EPI Online</span>
     </div>
+    <a href="loginpage.html" class="header-link">Login</a>
+  </header>
+
+  <div class="page-center">
+    <div class="signup-card">
+      <h1>Sign Up</h1>
+
+      <div class="form-group">
+        <label>Nome Completo <span class="req">*</span></label>
+        <input type="text" placeholder="Digite seu nome completo" id="nome">
+        <span class="error-msg" id="nome-error">Campo obrigatório.</span>
+      </div>
+
+      <div class="form-group">
+        <label>Email <span class="req">*</span></label>
+        <input type="email" placeholder="Digite seu email" id="email">
+        <span class="error-msg" id="email-error">E-mail inválido.</span>
+      </div>
+
+      <div class="form-group">
+        <label>Senha <span class="req">*</span></label>
+        <input type="password" placeholder="Digite sua senha (min 8 dígitos)" id="senha">
+        <span class="error-msg" id="senha-error">Mínimo 8 caracteres.</span>
+      </div>
+
+      <div class="form-group">
+        <label>CPF <span class="req">*</span></label>
+        <input type="text" placeholder="Digite seu CPF" id="cpf" maxlength="14">
+        <span class="error-msg" id="cpf-error">CPF inválido.</span>
+      </div>
+
+      <button class="btn btn-primary btn-cadastrar" onclick="cadastrar()">Cadastrar</button>
+
+      <div>
+        <i class="fa-brands fa-google google-btn" title="Cadastrar com Google"></i>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Máscara CPF
+    document.getElementById('cpf').addEventListener('input', function() {
+      let v = this.value.replace(/\D/g, '');
+      v = v.replace(/(\d{3})(\d)/, '$1.$2');
+      v = v.replace(/(\d{3})(\d)/, '$1.$2');
+      v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      this.value = v;
+    });
+
+    function cadastrar() {
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const senha = document.getElementById('senha').value;
+      const cpf = document.getElementById('cpf').value.trim();
+      let valid = true;
+
+      if (!nome) { document.getElementById('nome-error').classList.add('show'); valid = false; }
+      else document.getElementById('nome-error').classList.remove('show');
+
+      if (!email || !email.includes('@')) { document.getElementById('email-error').classList.add('show'); valid = false; }
+      else document.getElementById('email-error').classList.remove('show');
+
+      if (senha.length < 8) { document.getElementById('senha-error').classList.add('show'); valid = false; }
+      else document.getElementById('senha-error').classList.remove('show');
+
+      if (cpf.length < 11) { document.getElementById('cpf-error').classList.add('show'); valid = false; }
+      else document.getElementById('cpf-error').classList.remove('show');
+
+      if (valid) {
+        // Em produção: POST /api/cadastro
+        window.location.href = 'termos.html';
+      }
+    }
+  </script>
 </body>
 </html>

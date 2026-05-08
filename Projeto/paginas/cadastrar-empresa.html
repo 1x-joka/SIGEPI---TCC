@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastrar Empresa — SIGEPI</title>
+  <link rel="stylesheet" href="../estilos/style.css">
+  <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+    .page-center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px 24px; }
+    .card-empresa {
+      background: white;
+      border-radius: 20px;
+      padding: 36px 48px;
+      width: 100%;
+      max-width: 720px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    .card-empresa h1 { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 28px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .logo-upload-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      grid-row: span 2;
+    }
+    .logo-preview {
+      width: 100px; height: 100px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 2px solid var(--border);
+      display: none;
+    }
+    .logo-placeholder {
+      width: 100px; height: 100px;
+      border-radius: 12px;
+      border: 2px dashed var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    .btn-logo { padding: 8px 20px; font-size: 13px; }
+    .auto-field {
+      background: #f0f0f0;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .btn-cadastrar { width: 100%; margin-top: 24px; padding: 12px; font-size: 15px; }
+    .footer-msg {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 16px;
+    }
+    .footer-msg a { color: var(--nav-link); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo-wrap">
+      <span class="logo-title">SIGEPI</span>
+      <span class="logo-sub">Gerenciador de EPI Online</span>
+    </div>
+    <div class="header-right">
+      Admin
+      <div class="avatar-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-center">
+    <div class="card-empresa">
+      <h1>Cadastrar Empresa</h1>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nome da Empresa <span class="req">*</span></label>
+          <input type="text" placeholder="Digite o nome da empresa" id="nome">
+        </div>
+
+        <div class="form-group">
+          <label>Email Corporativo <span class="req">*</span></label>
+          <input type="email" placeholder="Email Corporativo" id="email">
+        </div>
+
+        <div class="form-group">
+          <label>CNPJ <span class="req">*</span></label>
+          <input type="text" placeholder="Digite o CNPJ da empresa" id="cnpj" maxlength="18">
+        </div>
+
+        <div class="form-group">
+          <label>Código da Empresa (auto)</label>
+          <input type="text" class="auto-field" value="" id="codigo" placeholder="Gerado automaticamente" readonly>
+        </div>
+
+        <div class="form-group">
+          <label>Nome do Responsável <span class="req">*</span></label>
+          <input type="text" placeholder="Digite o nome do responsável da empresa" id="responsavel">
+        </div>
+
+        <div class="logo-upload-area">
+          <div class="logo-placeholder" id="logo-placeholder">Logo</div>
+          <img class="logo-preview" id="logo-preview" src="" alt="Logo">
+          <button class="btn btn-primary btn-logo" onclick="document.getElementById('logo-input').click()">
+            Adicionar Logo
+          </button>
+          <input type="file" id="logo-input" accept="image/*" style="display:none" onchange="previewLogo(event)">
+        </div>
+
+        <div class="form-group">
+          <label>Setor Inicial <span class="req">*</span></label>
+          <input type="text" placeholder="Digite o setor inicial" id="setor">
+        </div>
+
+        <div class="form-group">
+          <label>Telefone Corporativo <span class="req">*</span></label>
+          <input type="tel" placeholder="Digite o telefone corporativo" id="telefone">
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-cadastrar" onclick="cadastrarEmpresa()">Cadastrar</button>
+
+      <p class="footer-msg">
+        Compartilhe o Código com seus funcionários para que eles possam
+        <a href="entrar-empresa.html">entrar na empresa</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Máscara CNPJ
+    document.getElementById('cnpj').addEventListener('input', function() {
+      let v = this.value.replace(/\D/g, '');
+      v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+      v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+      v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+      v = v.replace(/(\d{4})(\d)/, '$1-$2');
+      this.value = v;
+    });
+
+    // Gerar código aleatório
+    document.getElementById('codigo').value = Math.floor(1000000000 + Math.random() * 9000000000);
+
+    function previewLogo(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          document.getElementById('logo-preview').src = e.target.result;
+          document.getElementById('logo-preview').style.display = 'block';
+          document.getElementById('logo-placeholder').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function cadastrarEmpresa() {
+      // Em produção: POST /api/empresa
+      window.location.href = 'setores-empresa.html';
+    }
+  </script>
+</body>
+</html>

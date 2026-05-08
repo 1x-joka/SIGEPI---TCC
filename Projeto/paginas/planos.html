@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planos — SIGEPI</title>
+  <link rel="stylesheet" href="../estilos/style.css">
+  <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+    .page-center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px 24px; }
+    .card-planos {
+      background: white;
+      border-radius: 20px;
+      padding: 36px 48px;
+      width: 100%;
+      max-width: 800px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    .card-planos h1 { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 6px; }
+    .card-planos p { text-align: center; color: var(--text-muted); font-size: 14px; margin-bottom: 28px; }
+    .planos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .plano-card {
+      border-radius: 16px;
+      padding: 24px 20px;
+      background: linear-gradient(160deg, #cdffd8, #94b9ff);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .plano-card:hover { transform: scale(1.03); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+    .plano-card.selected { box-shadow: 0 0 0 3px var(--nav-link); }
+    .plano-card.premium { background: linear-gradient(160deg, #94b9ff, #cdffd8); }
+    .plano-card.premium:hover .plano-titulo { background: linear-gradient(90deg, #f7d060, #c8962e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .plano-titulo { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+    .plano-item { font-size: 13px; margin-bottom: 6px; color: #333; }
+    .plano-preco { font-size: 22px; font-weight: 700; margin-top: 16px; }
+    .btn-selecionar { width: 100%; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo-wrap">
+      <span class="logo-title">SIGEPI</span>
+      <span class="logo-sub">Gerenciador de EPI Online</span>
+    </div>
+    <div class="header-right">
+      Admin
+      <div class="avatar-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-center">
+    <div class="card-planos">
+      <h1>Cadastrar Empresa</h1>
+      <p>Planos</p>
+
+      <div class="planos-grid">
+        <div class="plano-card" onclick="selecionarPlano(1)">
+          <div class="plano-titulo">Plano 1</div>
+          <div class="plano-item">→ Até 50 funcionários cadastrados</div>
+          <div class="plano-item">→ Até 20 tipos de EPIs</div>
+          <div class="plano-item">→ Controle de estoque e entregas</div>
+          <div class="plano-item">→ Histórico de Movimentações</div>
+          <div class="plano-item">→ 1 Administrador</div>
+          <div class="plano-preco">R$89,90</div>
+          <button class="btn btn-outline btn-selecionar">Selecionar</button>
+        </div>
+
+        <div class="plano-card" onclick="selecionarPlano(2)">
+          <div class="plano-titulo">Plano 2</div>
+          <div class="plano-item">→ Até 200 funcionários cadastrados</div>
+          <div class="plano-item">→ EPIs Ilimitados</div>
+          <div class="plano-item">→ Tudo do Plano 1</div>
+          <div class="plano-item">→ Dashboard com gráficos</div>
+          <div class="plano-item">→ Geração de relatórios em PDF</div>
+          <div class="plano-item">→ Alertas automáticos de validade e estoque</div>
+          <div class="plano-item">→ Até 3 Administradores</div>
+          <div class="plano-preco">R$169,90</div>
+          <button class="btn btn-outline btn-selecionar">Selecionar</button>
+        </div>
+
+        <div class="plano-card premium" onclick="selecionarPlano(3)">
+          <div class="plano-titulo">Plano 3</div>
+          <div class="plano-item">→ Funcionários Ilimitados</div>
+          <div class="plano-item">→ EPIs Ilimitados</div>
+          <div class="plano-item">→ Tudo do Plano 2</div>
+          <div class="plano-item">→ Administradores Ilimitados</div>
+          <div class="plano-item">→ Suporte prioritário</div>
+          <div class="plano-item">→ Acesso PWA (mobile)</div>
+          <div class="plano-item">→ Exportação completa de histórico</div>
+          <div class="plano-preco">R$210,90</div>
+          <button class="btn btn-outline btn-selecionar">Selecionar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function selecionarPlano(num) {
+      document.querySelectorAll('.plano-card').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('.plano-card')[num - 1].classList.add('selected');
+      // Em produção: salvar plano escolhido e redirecionar para pagamento
+      setTimeout(() => window.location.href = 'pagamento.html', 300);
+    }
+  </script>
+</body>
+</html>
