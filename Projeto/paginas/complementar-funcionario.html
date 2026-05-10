@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Informações Complementares — SIGEPI</title>
+  <link rel="stylesheet" href="../estilos/style.css">
+  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
+</head>
+<body class="layout-flex">
+  <header class="header">
+    <div class="logo-wrap">
+      <span class="logo-title">SIGEPI</span>
+      <span class="logo-sub">Gerenciador de EPI Online</span>
+    </div>
+    <div class="header-right">
+      Funcionário
+      <div class="avatar-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-center">
+    <div class="card-complementar">
+      <h1>Preencha com informações complementares</h1>
+
+      <div class="complementar-form">
+        <div class="form-group">
+          <label>Setor <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select id="setor">
+              <option value="">Selecione seu setor</option>
+              <option>Pintura</option>
+              <option>Acabamento</option>
+              <option>Metalurgia</option>
+              <option>Construção Civil</option>
+              <option>Elétrica</option>
+            </select>
+          </div>
+          <span class="error-msg" id="setor-error">Selecione um setor.</span>
+        </div>
+
+        <div class="form-group">
+          <label>Data de Nascimento <span class="req">*</span></label>
+          <input type="date" id="nascimento">
+          <span class="error-msg" id="nasc-error">Informe sua data de nascimento.</span>
+        </div>
+
+        <button class="btn btn-primary btn-full" style="padding:12px; font-size:15px; margin-top:8px;" onclick="avancar()">Avançar</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Funcionários — SIGEPI</title>
+  <link rel="stylesheet" href="../estilos/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
+</head>
+<body class="layout-flex">
+  <header class="header">
+    <div class="logo-wrap">
+      <span class="logo-title">SIGEPI</span>
+      <span class="logo-sub">Gerenciador de EPI Online</span>
+    </div>
+    <div class="header-right">
+      Admin
+      <div class="avatar-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+      <div class="dropdown-menu">
+        <a href="secao-empresa.html">🏢 Empresa</a>
+        <a href="secao-plano.html">📋 Plano Atual</a>
+        <a href="secao-setores.html">🏗️ Setores</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-area">
+    <div class="content-card">
+      <nav class="inner-nav">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="epis.html">EPIs</a>
+        <a href="funcionarios.html" class="active">Funcionários</a>
+        <a href="historico.html">Histórico</a>
+      </nav>
+
+      <div class="func-body">
+        <h2 class="page-title" style="padding:0 0 16px;">Funcionários</h2>
+
+        <div class="filter-bar" style="padding:0 0 16px;">
+          <input type="text" placeholder="Buscar funcionário..." id="busca" oninput="filtrar()" style="max-width:200px;">
+          <div class="select-wrap" style="min-width:160px;">
+            <select id="filtro-status" onchange="filtrar()">
+              <option value="">Filtrar por Status</option>
+              <option value="OK">OK</option>
+              <option value="IRREGULAR">IRREGULAR</option>
+              <option value="VENCIDO">VENCIDO</option>
+              <option value="SEM EPI">SEM EPI</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-area" style="padding:0;">
+          <table id="tabela-func">
+            <thead>
+              <tr>
+                <th>Nome do Funcionário</th>
+                <th>Setor</th>
+                <th>EPIs</th>
+                <th>Status</th>
+                <th>Solicitação</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-func">
+              <tr data-status="OK" data-nome="Davi Delmondes Machado" data-setor="Pintura" data-cpf="123.456.789-00" data-epis="3">
+                <td>Davi Delmondes Machado</td>
+                <td>Pintura</td>
+                <td>3</td>
+                <td>OK</td>
+                <td>---</td>
+              </tr>
+              <tr class="row-yellow" data-status="IRREGULAR" data-nome="Joaquim Pereira Lima" data-setor="Acabamento" data-cpf="987.654.321-00" data-epis="3">
+                <td>Joaquim Pereira Lima</td>
+                <td>Acabamento</td>
+                <td>3</td>
+                <td>IRREGULAR</td>
+                <td>Luva de Raspa/Couro</td>
+              </tr>
+              <tr class="row-red" data-status="VENCIDO" data-nome="Igor de Oliveira Bernardo" data-setor="Pintura" data-cpf="111.222.333-00" data-epis="3">
+                <td>Igor de Oliveira Bernardo</td>
+                <td>Pintura</td>
+                <td>3</td>
+                <td>VENCIDO</td>
+                <td>Capacete</td>
+              </tr>
+              <tr class="row-red" data-status="SEM EPI" data-nome="João Pedro Bernardes Cardoso" data-setor="Acabamento" data-cpf="444.555.666-00" data-epis="0">
+                <td>João Pedro Bernardes Cardoso</td>
+                <td>Acabamento</td>
+                <td>0</td>
+                <td>SEM EPI</td>
+                <td>Óculos</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer">
+          <button class="btn btn-outline" onclick="abrirExcluir()">Excluir</button>
+          <button class="btn btn-primary" onclick="abrirVerificar()">Verificar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== POPUP VERIFICAR ===== -->
+  <div class="modal-overlay" id="modal-verificar" onclick="fecharSeOverlay(event, 'modal-verificar')">
+    <div class="modal" style="max-width:740px;">
+      <h2 id="titulo-verificar">Verificação dos EPIs de Joaquim Pereira Lima</h2>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:36px;"></th>
+              <th>Equipamento</th>
+              <th>Setor</th>
+              <th>Validade</th>
+              <th>Quantidade</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="row-red">
+              <td><input type="checkbox" id="chk-1" style="accent-color:var(--btn-primary); width:16px; height:16px;"></td>
+              <td>Capacete de Segurança</td>
+              <td>Construção Civil</td>
+              <td style="color:var(--text-red); font-weight:600;">25/12/2025</td>
+              <td><input type="number" value="1" min="1" style="width:70px; padding:4px 8px; text-align:center; background:var(--input-bg); border:none; border-radius:8px;"></td>
+              <td>---</td>
+            </tr>
+            <tr class="row-yellow">
+              <td><input type="checkbox" id="chk-2" style="accent-color:var(--btn-primary); width:16px; height:16px;"></td>
+              <td>Luva de Raspa/Couro</td>
+              <td>Construção Civil</td>
+              <td style="color:var(--text-yellow); font-weight:600;">01/01/2026</td>
+              <td><input type="number" value="1" min="1" style="width:70px; padding:4px 8px; text-align:center; background:var(--input-bg); border:none; border-radius:8px;"></td>
+              <td style="color:var(--text-yellow); font-weight:600;">Solicitado</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" id="chk-3" style="accent-color:var(--btn-primary); width:16px; height:16px;"></td>
+              <td>Botina de segurança com biqueira</td>
+              <td>Construção Civil</td>
+              <td>31/10/2026</td>
+              <td><input type="number" value="1" min="1" style="width:70px; padding:4px 8px; text-align:center; background:var(--input-bg); border:none; border-radius:8px;"></td>
+              <td>OK</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="reporSelecionados()">Repor Selecionados</button>
+        <button class="btn btn-primary" onclick="reporTodos()">Repor Todos</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== POPUP EXCLUIR ===== -->
+  <div class="modal-overlay" id="modal-excluir" onclick="fecharSeOverlay(event, 'modal-excluir')">
+    <div class="modal" style="max-width:520px;">
+      <h2 id="titulo-excluir">Exclusão de Joaquim Pereira Lima</h2>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+        <div class="form-group">
+          <label>Nome Completo</label>
+          <input type="text" id="excluir-nome" readonly class="readonly-field">
+        </div>
+        <div class="form-group">
+          <label>CPF</label>
+          <input type="text" id="excluir-cpf" readonly class="readonly-field">
+        </div>
+        <div class="form-group">
+          <label>Setor</label>
+          <div class="select-wrap">
+            <select id="excluir-setor" disabled style="background:#f0f0f0; color:var(--text-muted);">
+              <option>Acabamento</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>EPIs ativos</label>
+          <input type="text" id="excluir-epis" readonly class="readonly-field">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:8px;">
+        <label>Motivo <span class="req">*</span></label>
+        <div class="select-wrap">
+          <select id="motivo-exclusao" onchange="toggleOutroMotivo()">
+            <option value="">Selecione o motivo</option>
+            <option>Demissão</option>
+            <option>Transferência</option>
+            <option>Desligamento voluntário</option>
+            <option>Outro</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" id="outro-motivo-wrap" style="display:none; margin-bottom:16px;">
+        <label>Especifique <span class="req">*</span></label>
+        <input type="text" id="outro-motivo" placeholder="Descreva o motivo">
+      </div>
+
+      <div class="checkbox-row" style="margin-top:12px;">
+        <input type="checkbox" id="chk-confirmar-exclusao" onchange="toggleBtnInativar()">
+        <label for="chk-confirmar-exclusao">Confirmo que desejo inativar este funcionário e estou ciente que o histórico será preservado</label>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-danger" id="btn-inativar" disabled onclick="inativarFuncionario()">Inativar</button>
+        <button class="btn btn-outline" onclick="fecharModal('modal-excluir')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

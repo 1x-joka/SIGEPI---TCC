@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EPIs — SIGEPI</title>
+  <link rel="stylesheet" href="../estilos/style.css">
+  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
+</head>
+<body class="layout-flex">
+  <header class="header">
+    <div class="logo-wrap">
+      <span class="logo-title">SIGEPI</span>
+      <span class="logo-sub">Gerenciador de EPI Online</span>
+    </div>
+    <div class="header-right">
+      Admin
+      <div class="avatar-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+      <div class="dropdown-menu">
+        <a href="secao-empresa.html">🏢 Empresa</a>
+        <a href="secao-plano.html">📋 Plano Atual</a>
+        <a href="secao-setores.html">🏗️ Setores</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-area">
+    <div class="content-card">
+      <nav class="inner-nav">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="epis.html" class="active">EPIs</a>
+        <a href="funcionarios.html">Funcionários</a>
+        <a href="historico.html">Histórico</a>
+      </nav>
+
+      <div style="padding:20px 28px;">
+        <h2 style="font-size:26px; font-weight:700; margin-bottom:16px;">EPIs</h2>
+
+        <!-- Filtro -->
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+          <input type="text" id="busca-epi" placeholder="Buscar EPI..." oninput="filtrarEpis()" style="max-width:220px;">
+          <button class="btn btn-primary" onclick="filtrarEpis()" style="padding:10px 20px;">Filtrar</button>
+        </div>
+
+        <!-- Tabela -->
+        <div style="overflow-x:auto;">
+          <table id="tabela-epis">
+            <thead>
+              <tr>
+                <th>Equipamento</th>
+                <th>CA</th>
+                <th>Setor</th>
+                <th>Quantidade</th>
+                <th>Limite Mínimo</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Capacete de Segurança</td>
+                <td>498</td>
+                <td>Elétrica</td>
+                <td>120</td>
+                <td>40</td>
+                <td>OK</td>
+              </tr>
+              <tr class="row-red">
+                <td>Luva de Segurança Nitrílica</td>
+                <td>16312</td>
+                <td>Automotivo</td>
+                <td>50</td>
+                <td>100</td>
+                <td>BAIXO</td>
+              </tr>
+              <tr>
+                <td>Óculos de Proteção Incolor</td>
+                <td>9722</td>
+                <td>Construção Civil</td>
+                <td>150</td>
+                <td>50</td>
+                <td>OK</td>
+              </tr>
+              <tr>
+                <td>Botina de Segurança com Biqueira</td>
+                <td>17317</td>
+                <td>Metalurgia</td>
+                <td>80</td>
+                <td>30</td>
+                <td>OK</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Rodapé -->
+        <div class="table-footer">
+          <button class="btn btn-primary" onclick="abrirModal('modal-cadastrar')">Cadastrar</button>
+          <button class="btn btn-primary" onclick="abrirModal('modal-retirar')">Retirar do Estoque</button>
+          <button class="btn btn-primary" onclick="abrirModal('modal-adicionar')">Adicionar ao Estoque</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== POPUP: CADASTRO DE EPI ===== -->
+  <div class="modal-overlay" id="modal-cadastrar" onclick="fecharSeOverlay(event,'modal-cadastrar')">
+    <div class="modal" style="max-width:700px;">
+      <h2>Cadastro de EPI</h2>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px 28px;">
+
+        <!-- Coluna esquerda -->
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div class="form-group">
+            <label>Nome do EPI <span class="req">*</span></label>
+            <input type="text" id="cad-nome" placeholder="Digite o nome do EPI">
+            <span class="error-msg" id="cad-nome-err">Campo obrigatório.</span>
+          </div>
+          <div class="form-group">
+            <label>Descrição</label>
+            <textarea id="cad-desc" placeholder="Descrição" style="min-height:120px; border-radius:12px;"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Certificado de Aprovação (CA) <span class="req">*</span></label>
+            <input type="text" id="cad-ca" placeholder="Digite o CA">
+            <span class="error-msg" id="cad-ca-err">CA obrigatório (3 a 6 dígitos).</span>
+          </div>
+          <div class="form-group">
+            <label>Validade <span class="req">*</span></label>
+            <input type="date" id="cad-validade">
+            <span class="error-msg" id="cad-val-err">Data obrigatória.</span>
+          </div>
+        </div>
+
+        <!-- Coluna direita -->
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div class="form-group">
+            <label>Quantidade Inicial <span class="req">*</span></label>
+            <input type="number" id="cad-qtd" placeholder="Digite a quantidade inicial" min="1">
+            <span class="error-msg" id="cad-qtd-err">Quantidade obrigatória.</span>
+          </div>
+          <div class="form-group">
+            <label>Limite Mínimo <span class="req">*</span></label>
+            <input type="number" id="cad-limite" placeholder="Digite o limite mínimo" min="1">
+            <span class="error-msg" id="cad-lim-err">Limite obrigatório.</span>
+          </div>
+          <div class="form-group">
+            <label>Categoria <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="cad-cat">
+                <option value="">Selecione a categoria</option>
+                <option>Proteção da Cabeça</option>
+                <option>Proteção dos Olhos</option>
+                <option>Proteção Respiratória</option>
+                <option>Proteção das Mãos</option>
+                <option>Proteção dos Pés</option>
+                <option>Proteção Auditiva</option>
+                <option>Proteção do Corpo</option>
+              </select>
+            </div>
+            <span class="error-msg" id="cad-cat-err">Selecione uma categoria.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" style="padding:12px 36px;" onclick="cadastrarEPI()">Cadastrar</button>
+        <button class="btn btn-outline" onclick="fecharModal('modal-cadastrar')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== POPUP: ADICIONAR AO ESTOQUE ===== -->
+  <div class="modal-overlay" id="modal-adicionar" onclick="fecharSeOverlay(event,'modal-adicionar')">
+    <div class="modal" style="max-width:460px;">
+      <h2>Adicionando ao Estoque</h2>
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="form-group">
+          <label>EPI <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select id="add-epi">
+              <option value="">Selecione o EPI</option>
+              <option>Capacete de Segurança</option>
+              <option>Luva de Segurança Nitrílica</option>
+              <option>Óculos de Proteção Incolor</option>
+              <option>Botina de Segurança com Biqueira</option>
+            </select>
+          </div>
+          <span class="error-msg" id="add-epi-err">Selecione um EPI.</span>
+        </div>
+        <div class="form-group">
+          <label>Quantidade a adicionar <span class="req">*</span></label>
+          <input type="number" id="add-qtd" placeholder="Digite a quantidade a adicionar" min="1">
+          <span class="error-msg" id="add-qtd-err">Quantidade obrigatória.</span>
+        </div>
+        <div class="form-group">
+          <label>Data de validade do novo lote <span class="req">*</span></label>
+          <input type="date" id="add-validade">
+          <span class="error-msg" id="add-val-err">Data obrigatória.</span>
+        </div>
+        <div class="form-group">
+          <label>Observação</label>
+          <input type="text" id="add-obs" placeholder="Obs.:">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" style="padding:12px 36px;" onclick="adicionarEstoque()">Adicionar ao Estoque</button>
+        <button class="btn btn-outline" onclick="fecharModal('modal-adicionar')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== POPUP: RETIRAR DO ESTOQUE ===== -->
+  <div class="modal-overlay" id="modal-retirar" onclick="fecharSeOverlay(event,'modal-retirar')">
+    <div class="modal" style="max-width:460px;">
+      <h2>Retirando do Estoque</h2>
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="form-group">
+          <label>EPI <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select id="ret-epi">
+              <option value="">Selecione o EPI</option>
+              <option>Capacete de Segurança</option>
+              <option>Luva de Segurança Nitrílica</option>
+              <option>Óculos de Proteção Incolor</option>
+              <option>Botina de Segurança com Biqueira</option>
+            </select>
+          </div>
+          <span class="error-msg" id="ret-epi-err">Selecione um EPI.</span>
+        </div>
+        <div class="form-group">
+          <label>Quantidade a retirar <span class="req">*</span></label>
+          <input type="number" id="ret-qtd" placeholder="Digite a quantidade a retirar" min="1">
+          <span class="error-msg" id="ret-qtd-err">Quantidade obrigatória.</span>
+        </div>
+        <div class="form-group">
+          <label>Motivo <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select id="ret-motivo">
+              <option value="">Selecione o motivo</option>
+              <option>Descarte</option>
+              <option>Perda</option>
+              <option>Dano</option>
+              <option>Vencimento</option>
+            </select>
+          </div>
+          <span class="error-msg" id="ret-mot-err">Selecione um motivo.</span>
+        </div>
+        <div class="form-group">
+          <label>Observação</label>
+          <input type="text" id="ret-obs" placeholder="Obs.:">
+        </div>
+        <span class="error-msg" id="ret-estoque-err" style="font-size:13px;">Quantidade superior ao estoque disponível.</span>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" style="padding:12px 36px;" onclick="retirarEstoque()">Retirar do Estoque</button>
+        <button class="btn btn-outline" onclick="fecharModal('modal-retirar')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

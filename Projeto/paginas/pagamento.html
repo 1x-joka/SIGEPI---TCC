@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagamento — SIGEPI</title>
+  <link rel="stylesheet" href="../estilos/style.css">
+  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
+</head>
+<body class="layout-flex">
+  <header class="header">
+    <div class="logo-wrap">
+      <span class="logo-title">SIGEPI</span>
+      <span class="logo-sub">Gerenciador de EPI Online</span>
+    </div>
+    <div class="header-right">
+      Admin
+      <div class="avatar-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-center">
+    <div class="card-pagamento">
+      <h1>Tela de Pagamento</h1>
+
+      <div class="pagamento-grid">
+        <!-- Formulário -->
+        <div class="pagamento-form">
+          <div class="form-group">
+            <label>Número do Cartão <span class="req">*</span></label>
+            <input type="text" id="num-cartao" placeholder="Digite o número do seu cartão" maxlength="19">
+            <span class="error-msg" id="num-error">Número inválido.</span>
+          </div>
+          <div class="form-group">
+            <label>Nome no Cartão <span class="req">*</span></label>
+            <input type="text" id="nome-cartao" placeholder="Digite o nome que está no seu cartão">
+            <span class="error-msg" id="nome-error">Campo obrigatório.</span>
+          </div>
+          <div class="form-group">
+            <label>Validade do Cartão <span class="req">*</span></label>
+            <input type="text" id="validade" placeholder="mm/dd" maxlength="5">
+            <span class="error-msg" id="val-error">Formato inválido (mm/dd).</span>
+          </div>
+          <div class="form-group">
+            <label>CVV <span class="req">*</span></label>
+            <input type="text" id="cvv" placeholder="Digite o CVV do cartão" maxlength="4">
+            <span class="error-msg" id="cvv-error">CVV inválido.</span>
+          </div>
+        </div>
+
+        <!-- Resumo do plano -->
+        <div class="pagamento-resumo">
+          <h3>Plano Escolhido</h3>
+          <div class="resumo-plano-nome">Plano 3</div>
+          <div class="resumo-item">--> Funcionários Ilimitados</div>
+          <div class="resumo-item">--> EPIs Ilimitados</div>
+          <div class="resumo-item">--> Tudo do Plano 2</div>
+          <div class="resumo-item">--> Administradores Ilimitados</div>
+          <div class="resumo-item">--> Suporte prioritário</div>
+          <div class="resumo-item">--> Acesso PWA (mobile)</div>
+          <div class="resumo-item">--> Exportação completa de histórico</div>
+          <div class="resumo-preco">R$210,90</div>
+        </div>
+      </div>
+
+      <div class="pagamento-actions">
+        <button class="btn btn-primary" style="padding:12px 32px; font-size:15px;" onclick="confirmarPagamento()">Confirmar Pagamento</button>
+        <button class="btn btn-outline" style="padding:12px 32px;" onclick="window.location.href='planos.html'">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

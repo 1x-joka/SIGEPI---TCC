@@ -5,25 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Entrar na Empresa — SIGEPI</title>
   <link rel="stylesheet" href="../estilos/style.css">
-  <style>
-    body { display: flex; flex-direction: column; min-height: 100vh; }
-    .page-center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
-    .card-entrar {
-      background: white;
-      border-radius: 20px;
-      padding: 40px 48px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-      text-align: center;
-    }
-    .card-entrar h1 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-    .card-entrar p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
-    .form-group { text-align: left; margin-bottom: 16px; }
-    .btn-entrar { width: 100%; padding: 12px; font-size: 15px; }
-  </style>
+  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
 </head>
-<body>
+<body class="layout-flex">
   <header class="header">
     <div class="logo-wrap">
       <span class="logo-title">SIGEPI</span>
@@ -42,36 +26,13 @@
       <h1>Entrar na Empresa</h1>
       <p>Código da Empresa</p>
 
-      <div class="form-group">
+      <div class="form-group" style="text-align:left; margin-bottom:16px;">
         <input type="text" placeholder="Digite o código da empresa" id="codigo">
         <span class="error-msg" id="codigo-error">Código não encontrado. Verifique e tente novamente.</span>
       </div>
 
-      <button class="btn btn-primary btn-entrar" onclick="entrarEmpresa()">Entrar</button>
+      <button class="btn btn-primary btn-full" style="padding:12px; font-size:15px;" onclick="entrarEmpresa()">Entrar</button>
     </div>
   </div>
-
-  <script>
-    function entrarEmpresa() {
-      const codigo = document.getElementById('codigo').value.trim();
-      const erro = document.getElementById('codigo-error');
-
-      if (!codigo) {
-        erro.textContent = 'Digite o código da empresa.';
-        erro.classList.add('show');
-        return;
-      }
-
-      // Em produção: GET /api/empresa/:codigo
-      // Simulação: qualquer código válido redireciona
-      if (codigo.length >= 4) {
-        erro.classList.remove('show');
-        window.location.href = 'complementar-funcionario.html';
-      } else {
-        erro.textContent = 'Código não encontrado. Verifique e tente novamente.';
-        erro.classList.add('show');
-      }
-    }
-  </script>
 </body>
 </html>

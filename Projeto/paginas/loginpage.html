@@ -6,50 +6,9 @@
   <title>Login — SIGEPI</title>
   <link rel="stylesheet" href="../estilos/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <style>
-    body { display: flex; flex-direction: column; min-height: 100vh; }
-    .header { padding: 16px 32px; }
-    .page-center {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-    .login-card {
-      background: white;
-      border-radius: 20px;
-      padding: 36px 40px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-      text-align: center;
-    }
-    .login-card h1 {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 28px;
-      color: var(--text-dark);
-    }
-    .form-group { text-align: left; margin-bottom: 14px; }
-    .btn-entrar {
-      width: 100%;
-      margin-top: 8px;
-      padding: 12px;
-      font-size: 15px;
-    }
-    .google-btn {
-      margin-top: 16px;
-      font-size: 28px;
-      color: #db4437;
-      cursor: pointer;
-      transition: transform 0.2s;
-      display: inline-block;
-    }
-    .google-btn:hover { transform: scale(1.1); }
-  </style>
+  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
 </head>
-<body>
+<body class="layout-flex">
   <header class="header">
     <div class="logo-wrap">
       <span class="logo-title">SIGEPI</span>
@@ -62,46 +21,23 @@
     <div class="login-card">
       <h1>Login</h1>
 
-      <div class="form-group">
+      <div class="form-group form-group-login">
         <label>Email <span class="req">*</span></label>
         <input type="email" placeholder="Digite seu Email" id="email">
         <span class="error-msg" id="email-error">E-mail ou senha incorretos.</span>
       </div>
 
-      <div class="form-group">
+      <div class="form-group form-group-login">
         <label>Senha <span class="req">*</span></label>
         <input type="password" placeholder="Digite sua senha" id="senha">
       </div>
 
-      <button class="btn btn-primary btn-entrar" onclick="fazerLogin()">Entrar</button>
+      <button class="btn btn-primary btn-full" style="margin-top:8px; padding:12px; font-size:15px;" onclick="fazerLogin()">Entrar</button>
 
       <div>
         <i class="fa-brands fa-google google-btn" title="Entrar com Google"></i>
       </div>
     </div>
   </div>
-
-  <script>
-    function fazerLogin() {
-      const email = document.getElementById('email').value;
-      const senha = document.getElementById('senha').value;
-      const erro = document.getElementById('email-error');
-
-      if (!email || !senha) {
-        erro.textContent = 'Preencha todos os campos.';
-        erro.classList.add('show');
-        return;
-      }
-
-      // Simulação: redireciona para home
-      // Em produção: fazer requisição POST /api/login
-      erro.classList.remove('show');
-      window.location.href = 'home.html';
-    }
-
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') fazerLogin();
-    });
-  </script>
 </body>
 </html>
