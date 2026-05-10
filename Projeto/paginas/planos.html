@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Planos — SIGEPI</title>
   <link rel="stylesheet" href="../estilos/style.css">
-  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
 </head>
 <body class="layout-flex">
   <header class="header">
@@ -66,5 +65,14 @@
       </div>
     </div>
   </div>
+
+  <script>
+    function selecionarPlano(num) {
+      document.querySelectorAll('.plano-card').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('.plano-card')[num - 1].classList.add('selected');
+      // Em produção: salvar plano e redirecionar
+      setTimeout(() => window.location.href = 'pagamento.html', 300);
+    }
+  </script>
 </body>
 </html>

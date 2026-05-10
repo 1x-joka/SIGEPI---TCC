@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seção Setores — SIGEPI</title>
   <link rel="stylesheet" href="../estilos/style.css">
-  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
+  <script src="../scripts/script.js" defer></script>
 </head>
 <body class="layout-flex">
   <header class="header">
@@ -22,31 +22,26 @@
   </header>
 
   <div class="page-center">
-    <div class="card-secao" style="max-width:560px;">
+    <div class="card-secao card-secao--setores">
       <h1>Seção Setores</h1>
-
       <div class="setores-table-wrap">
         <table id="tabela-setores">
           <thead>
             <tr>
-              <th style="text-align:left; padding-left:16px;">Nome do Setor</th>
+              <th class="th-left">Nome do Setor</th>
               <th>Ações</th>
             </tr>
           </thead>
-          <tbody id="tbody-setores">
-            <!-- Populado via JS -->
-          </tbody>
+          <tbody id="tbody-setores"></tbody>
         </table>
-        <span class="error-msg" id="setor-dup-error" style="margin-top:8px;">Este setor já está cadastrado.</span>
+        <span class="error-msg" id="setor-dup-error">Este setor já está cadastrado.</span>
       </div>
-
       <div class="add-setor-row">
-        <input type="text" id="novo-setor" placeholder="Nome do Novo Setor" style="flex:1;">
-        <button class="btn btn-primary" style="padding:10px 18px; white-space:nowrap;" onclick="adicionarSetor()">+ Adicionar</button>
+        <input type="text" id="novo-setor" placeholder="Nome do Novo Setor">
+        <button class="btn btn-primary btn-add-setor" onclick="adicionarSetorSecao()">+ Adicionar</button>
       </div>
-
-      <div class="secao-actions" style="margin-top:24px;">
-        <button class="btn btn-primary" style="padding:12px 40px;" onclick="window.history.back()">Voltar</button>
+      <div class="secao-actions secao-actions--mt">
+        <button class="btn btn-primary btn-lg" onclick="window.history.back()">Voltar</button>
       </div>
     </div>
   </div>

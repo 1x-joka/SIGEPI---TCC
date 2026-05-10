@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seção Plano Atual — SIGEPI</title>
   <link rel="stylesheet" href="../estilos/style.css">
-  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
+  <script src="../scripts/script.js" defer></script>
 </head>
 <body class="layout-flex">
   <header class="header">
@@ -21,11 +21,10 @@
     </div>
   </header>
 
-  <!-- TELA PRINCIPAL: Seção Plano -->
+  <!-- TELA PLANO -->
   <div class="page-center" id="tela-plano">
-    <div class="card-secao" style="max-width:600px;">
+    <div class="card-secao card-secao--sm">
       <h1>Seção Plano Atual</h1>
-
       <div class="secao-grid">
         <div class="form-group">
           <label>Nome do Plano Atual:</label>
@@ -44,35 +43,25 @@
           <input type="text" value="01/04/2027" readonly class="readonly-field">
         </div>
       </div>
-
       <div class="secao-actions">
-        <button class="btn btn-outline" style="padding:12px 28px; border-color:var(--text-dark); color:var(--text-dark);" onclick="mostrarCancelar()">Cancelar Plano</button>
-        <button class="btn btn-primary" style="padding:12px 28px;" onclick="window.history.back()">Voltar</button>
+        <button class="btn btn-outline btn-lg" onclick="mostrarCancelar()">Cancelar Plano</button>
+        <button class="btn btn-primary btn-lg" onclick="window.history.back()">Voltar</button>
       </div>
     </div>
   </div>
 
-  <!-- TELA CANCELAMENTO (substitui a principal, fiel ao protótipo) -->
-  <div class="page-center" id="tela-cancelar" style="display:none;">
-    <div style="background:white; border-radius:20px; padding:48px 56px; width:100%; max-width:560px; box-shadow:0 8px 32px rgba(0,0,0,0.12); text-align:center;">
-
-      <h2 style="font-size:22px; font-weight:700; margin-bottom:8px; line-height:1.4;">
-        Seu plano ficará ativo<br>até 01/04/2027
-      </h2>
-      <h3 style="font-size:20px; font-weight:600; color:var(--text-body); margin-bottom:28px;">
-        Reembolso de até 7 dias
-      </h3>
-
-      <div class="checkbox-row" style="text-align:left; margin-bottom:28px;">
+  <!-- TELA CANCELAMENTO -->
+  <div class="page-center oculto" id="tela-cancelar">
+    <div class="cancelamento-card">
+      <h2 class="cancelamento-titulo">Seu plano ficará ativo<br>até 01/04/2027</h2>
+      <h3 class="cancelamento-reembolso">Reembolso de até 7 dias</h3>
+      <div class="checkbox-row checkbox-row--mt">
         <input type="checkbox" id="chk-cancelar" onchange="toggleBtnCancelar()">
         <label for="chk-cancelar">Confirmo que desejo cancelar meu plano e estou ciente das condições</label>
       </div>
-
-      <div style="display:flex; gap:12px; justify-content:center;">
-        <button class="btn btn-outline" id="btn-confirmar-cancelar" disabled onclick="confirmarCancelamento()" style="padding:12px 28px; min-width:200px;">
-          Confirmar Cancelamento
-        </button>
-        <button class="btn btn-primary" style="padding:12px 28px; min-width:120px;" onclick="voltarPlano()">Voltar</button>
+      <div class="cancelamento-acoes">
+        <button class="btn btn-outline" id="btn-confirmar-cancelar" disabled onclick="confirmarCancelamento()">Confirmar Cancelamento</button>
+        <button class="btn btn-primary" onclick="voltarPlano()">Voltar</button>
       </div>
     </div>
   </div>

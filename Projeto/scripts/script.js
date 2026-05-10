@@ -103,7 +103,7 @@ function verificarCheckboxes() {
 
 function aceitar() {
   // Em produção: registrar aceite com timestamp e versão dos termos
-  window.location.href = 'home.html';
+  window.location.href = 'loginpage.html';
 }
 
 function recusar() {
@@ -693,15 +693,40 @@ function adicionarSetorSecao() {
 
 
 // ============================================================
+//  DROPDOWN — abre/fecha via click, não hover
+// ============================================================
+
+function iniciarDropdown() {
+  const headerRight = document.querySelector('.header-right');
+  const dropdown    = document.querySelector('.dropdown-menu');
+  if (!headerRight || !dropdown) return;
+
+  headerRight.addEventListener('click', function (e) {
+    const aberto = dropdown.classList.contains('aberto');
+    dropdown.classList[aberto ? 'remove' : 'add']('aberto');
+    e.stopPropagation();
+  });
+
+  document.addEventListener('click', function () {
+    if (dropdown) dropdown.classList.remove('aberto');
+  });
+}
+
+
+// ============================================================
 //  INICIALIZAÇÃO — executa ao carregar cada página
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function () {
 
+  // Dropdown via click
+  iniciarDropdown();
+
   // Máscaras
   iniciarMascaraCPF();
   iniciarMascaraCNPJ();
   iniciarMascarasCartao();
+  iniciarMascaraTelefone();
 
   // Funcionários: seleção de linha
   selecionarFuncionario();

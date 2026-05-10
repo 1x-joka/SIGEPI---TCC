@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Entrar na Empresa — SIGEPI</title>
   <link rel="stylesheet" href="../estilos/style.css">
-  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
+  <script src="../scripts/script.js" defer></script>
 </head>
 <body class="layout-flex">
   <header class="header">
@@ -25,13 +25,11 @@
     <div class="card-entrar">
       <h1>Entrar na Empresa</h1>
       <p>Código da Empresa</p>
-
-      <div class="form-group" style="text-align:left; margin-bottom:16px;">
+      <div class="form-group form-group--entrar">
         <input type="text" placeholder="Digite o código da empresa" id="codigo">
         <span class="error-msg" id="codigo-error">Código não encontrado. Verifique e tente novamente.</span>
       </div>
-
-      <button class="btn btn-primary btn-full" style="padding:12px; font-size:15px;" onclick="entrarEmpresa()">Entrar</button>
+      <button class="btn btn-primary btn-full btn-xl" onclick="entrarEmpresa()">Entrar</button>
     </div>
   </div>
 </body>

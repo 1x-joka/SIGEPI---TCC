@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Histórico — SIGEPI</title>
   <link rel="stylesheet" href="../estilos/style.css">
-  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
+  <script src="../scripts/script.js" defer></script>
 </head>
 <body class="layout-flex">
   <header class="header">
@@ -36,141 +36,50 @@
       </nav>
 
       <div class="historico-body">
-        <h2 class="page-title" style="padding:0 0 16px;">Histórico</h2>
-
-        <!-- Filtros -->
-        <div class="filter-bar" style="padding:0 0 16px; flex-wrap:wrap; gap:10px;">
-          <div class="select-wrap" style="min-width:170px;">
-            <select id="filtro-tipo" onchange="filtrar()">
+        <h2 class="page-title historico-titulo">Histórico</h2>
+        <div class="filter-bar">
+          <div class="select-wrap select-wrap--filtro-tipo">
+            <select id="filtro-tipo" onchange="filtrarHistorico()">
               <option value="">Tipos</option>
-              <option>Entrega</option>
-              <option>Devolução</option>
-              <option>Reposição</option>
-              <option>Entrada Estoque</option>
-              <option>Retirada Estoque</option>
-              <option>Cadastro EPI</option>
-              <option>Exclusão EPI</option>
-              <option>Cadastro Funcionário</option>
-              <option>Exclusão Funcionário</option>
-              <option>Solicitação</option>
-              <option>Solicitação Aprovada</option>
-              <option>Solicitação Recusada</option>
-              <option>Cadastro Empresa</option>
+              <option>Entrega</option><option>Devolução</option><option>Reposição</option>
+              <option>Entrada Estoque</option><option>Retirada Estoque</option>
+              <option>Cadastro EPI</option><option>Exclusão EPI</option>
+              <option>Cadastro Funcionário</option><option>Exclusão Funcionário</option>
+              <option>Solicitação</option><option>Solicitação Aprovada</option>
+              <option>Solicitação Recusada</option><option>Cadastro Empresa</option>
               <option>Alteração Plano</option>
             </select>
           </div>
-          <div class="select-wrap" style="min-width:150px;">
-            <select id="filtro-setor" onchange="filtrar()">
+          <div class="select-wrap select-wrap--filtro-setor">
+            <select id="filtro-setor" onchange="filtrarHistorico()">
               <option value="">Setor</option>
-              <option>Pintura</option>
-              <option>Acabamento</option>
-              <option>Metalurgia</option>
-              <option>Construção</option>
+              <option>Pintura</option><option>Acabamento</option>
+              <option>Metalurgia</option><option>Construção</option>
             </select>
           </div>
-          <input type="date" id="filtro-inicio" onchange="filtrar()" style="max-width:150px;">
-          <input type="date" id="filtro-fim" onchange="filtrar()" style="max-width:150px;">
+          <input type="date" id="filtro-inicio" onchange="filtrarHistorico()" class="input-data-filtro">
+          <input type="date" id="filtro-fim" onchange="filtrarHistorico()" class="input-data-filtro">
         </div>
-
-        <div style="overflow-x:auto;">
+        <div class="table-overflow">
           <table id="tabela-hist">
             <thead>
               <tr>
-                <th>Data</th>
-                <th>Tipo</th>
-                <th>Descrição</th>
-                <th>Equipamento</th>
-                <th>Funcionário</th>
-                <th>Setor</th>
-                <th>Quantidade</th>
-                <th>Responsável</th>
+                <th>Data</th><th>Tipo</th><th>Descrição</th><th>Equipamento</th>
+                <th>Funcionário</th><th>Setor</th><th>Quantidade</th><th>Responsável</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td><strong>10/04/2026</strong></td>
-                <td>Entrega</td>
-                <td>EPI entregue ao funcionário</td>
-                <td>Capacete Classe B</td>
-                <td>Davi Silva</td>
-                <td>Pintura</td>
-                <td>1</td>
-                <td>Samuel Farias</td>
-              </tr>
-              <tr>
-                <td><strong>08/04/2026</strong></td>
-                <td>Entrada Estoque</td>
-                <td>Adicionado ao estoque</td>
-                <td>Óculos de Proteção</td>
-                <td>---</td>
-                <td>---</td>
-                <td>50</td>
-                <td>André Lopes</td>
-              </tr>
-              <tr>
-                <td><strong>07/04/2026</strong></td>
-                <td>Retirada Estoque</td>
-                <td>Retirado do estoque</td>
-                <td>Botina com Biqueira</td>
-                <td>---</td>
-                <td>---</td>
-                <td>10</td>
-                <td>Laura Beatriz</td>
-              </tr>
-              <tr>
-                <td><strong>06/04/2026</strong></td>
-                <td>Cadastro EPI</td>
-                <td>Novo EPI cadastrado</td>
-                <td>Máscara PFF2</td>
-                <td>---</td>
-                <td>---</td>
-                <td>60</td>
-                <td>Alice Vitória</td>
-              </tr>
-              <tr>
-                <td><strong>04/04/2026</strong></td>
-                <td>Exclusão Funcionário</td>
-                <td>Funcionário removido do sistema</td>
-                <td>---</td>
-                <td>Carlos Mendes</td>
-                <td>Acabamento</td>
-                <td>---</td>
-                <td>Lucas Gabriel</td>
-              </tr>
-              <tr>
-                <td><strong>03/04/2026</strong></td>
-                <td>Solicitação</td>
-                <td>Funcionário solicitou reposição</td>
-                <td>Luvas Nitrílicas</td>
-                <td>Igor Souza</td>
-                <td>Metalurgia</td>
-                <td>2</td>
-                <td>Júlia Fernandez</td>
-              </tr>
-              <tr>
-                <td><strong>01/04/2026</strong></td>
-                <td>Solicitação Recusada</td>
-                <td>Solicitação recusada pelo admin</td>
-                <td>Protetor Auditivo</td>
-                <td>João Pedro</td>
-                <td>Construção</td>
-                <td>1</td>
-                <td>Gael Antônio</td>
-              </tr>
-              <tr>
-                <td><strong>31/03/2026</strong></td>
-                <td>Cadastro Empresa</td>
-                <td>Empresa cadastrada no sistema</td>
-                <td>---</td>
-                <td>---</td>
-                <td>---</td>
-                <td>---</td>
-                <td>Ana Beatriz Silva</td>
-              </tr>
+              <tr><td><strong>10/04/2026</strong></td><td>Entrega</td><td>EPI entregue ao funcionário</td><td>Capacete Classe B</td><td>Davi Silva</td><td>Pintura</td><td>1</td><td>Samuel Farias</td></tr>
+              <tr><td><strong>08/04/2026</strong></td><td>Entrada Estoque</td><td>Adicionado ao estoque</td><td>Óculos de Proteção</td><td>---</td><td>---</td><td>50</td><td>André Lopes</td></tr>
+              <tr><td><strong>07/04/2026</strong></td><td>Retirada Estoque</td><td>Retirado do estoque</td><td>Botina com Biqueira</td><td>---</td><td>---</td><td>10</td><td>Laura Beatriz</td></tr>
+              <tr><td><strong>06/04/2026</strong></td><td>Cadastro EPI</td><td>Novo EPI cadastrado</td><td>Máscara PFF2</td><td>---</td><td>---</td><td>60</td><td>Alice Vitória</td></tr>
+              <tr><td><strong>04/04/2026</strong></td><td>Exclusão Funcionário</td><td>Funcionário removido do sistema</td><td>---</td><td>Carlos Mendes</td><td>Acabamento</td><td>---</td><td>Lucas Gabriel</td></tr>
+              <tr><td><strong>03/04/2026</strong></td><td>Solicitação</td><td>Funcionário solicitou reposição</td><td>Luvas Nitrílicas</td><td>Igor Souza</td><td>Metalurgia</td><td>2</td><td>Júlia Fernandez</td></tr>
+              <tr><td><strong>01/04/2026</strong></td><td>Solicitação Recusada</td><td>Solicitação recusada pelo admin</td><td>Protetor Auditivo</td><td>João Pedro</td><td>Construção</td><td>1</td><td>Gael Antônio</td></tr>
+              <tr><td><strong>31/03/2026</strong></td><td>Cadastro Empresa</td><td>Empresa cadastrada no sistema</td><td>---</td><td>---</td><td>---</td><td>---</td><td>Ana Beatriz Silva</td></tr>
             </tbody>
           </table>
         </div>
-
         <div class="table-footer">
           <button class="btn btn-primary" onclick="exportarPDF()">Exportar PDF</button>
         </div>

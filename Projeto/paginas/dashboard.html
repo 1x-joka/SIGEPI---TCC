@@ -6,7 +6,7 @@
   <title>Dashboard — SIGEPI</title>
   <link rel="stylesheet" href="../estilos/style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
+  <script src="../scripts/script.js" defer></script>
 </head>
 <body class="layout-flex">
   <header class="header">
@@ -35,21 +35,15 @@
         <a href="funcionarios.html">Funcionários</a>
         <a href="historico.html">Histórico</a>
       </nav>
-
       <div class="dashboard-body">
-        <!-- KPI -->
         <div class="kpi-card">
           <div class="label">EPIs Entregues</div>
           <div class="value">30</div>
         </div>
-
-        <!-- Tabela compra -->
         <div class="tabela-compra">
           <h3>EPIs com necessidade de compra</h3>
           <table>
-            <thead>
-              <tr><th>EPI</th><th>CA</th><th>Qtd suger</th></tr>
-            </thead>
+            <thead><tr><th>EPI</th><th>CA</th><th>Qtd suger</th></tr></thead>
             <tbody>
               <tr><td>Botina com Biqueira</td><td>41849</td><td>11</td></tr>
               <tr><td>Protetor Auditivo</td><td>45249</td><td>7</td></tr>
@@ -58,31 +52,25 @@
             </tbody>
           </table>
         </div>
-
-        <!-- Status CA -->
         <div class="status-ca">
           <h3>Status de CA</h3>
           <div class="status-item">
             <span class="s-label">VÁLIDO</span>
-            <span class="s-val" style="color:#2e7d32">✅ 7</span>
+            <span class="s-val s-val--verde">✅ 7</span>
           </div>
           <div class="status-item">
             <span class="s-label">A VENCER</span>
-            <span class="s-val" style="color:#f5a623">⚠️ 0</span>
+            <span class="s-val s-val--amarelo">⚠️ 0</span>
           </div>
           <div class="status-item">
             <span class="s-label">VENCIDO</span>
-            <span class="s-val" style="color:#e53935">❌ 3</span>
+            <span class="s-val s-val--vermelho">❌ 3</span>
           </div>
         </div>
-
-        <!-- Gráfico barras -->
         <div class="grafico-barras">
           <h3>4 EPIs mais entregues no ano</h3>
           <canvas id="chartBarras" height="120"></canvas>
         </div>
-
-        <!-- Gráfico linha -->
         <div class="grafico-linha">
           <h3>EPIs entregues durante o ano</h3>
           <canvas id="chartLinha" height="100"></canvas>
@@ -90,5 +78,24 @@
       </div>
     </div>
   </div>
+
+  <script>
+    new Chart(document.getElementById('chartBarras'), {
+      type: 'bar',
+      data: {
+        labels: ['Óculos de Proteção', 'Botina Tipo B', 'Respirador PFF2', 'Protetor Auditivo'],
+        datasets: [{ data: [36, 11, 9, 7], backgroundColor: '#4ea8c9', borderRadius: 4 }]
+      },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+    new Chart(document.getElementById('chartLinha'), {
+      type: 'line',
+      data: {
+        labels: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
+        datasets: [{ data: [3,2,4,2,4,2,1,3,2,1,1,4], borderColor: '#333', backgroundColor: 'transparent', pointBackgroundColor: '#333', tension: 0.1 }]
+      },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    });
+  </script>
 </body>
 </html>

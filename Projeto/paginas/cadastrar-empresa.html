@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cadastrar Empresa — SIGEPI</title>
   <link rel="stylesheet" href="../estilos/style.css">
-  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
+  <script src="../scripts/script.js" defer></script>
 </head>
 <body class="layout-flex">
   <header class="header">
@@ -24,55 +24,43 @@
   <div class="page-center">
     <div class="card-empresa">
       <h1>Cadastrar Empresa</h1>
-
       <div class="form-grid">
         <div class="form-group">
           <label>Nome da Empresa <span class="req">*</span></label>
           <input type="text" placeholder="Digite o nome da empresa" id="nome">
         </div>
-
         <div class="form-group">
           <label>Email Corporativo <span class="req">*</span></label>
           <input type="email" placeholder="Email Corporativo" id="email">
         </div>
-
         <div class="form-group">
           <label>CNPJ <span class="req">*</span></label>
           <input type="text" placeholder="Digite o CNPJ da empresa" id="cnpj" maxlength="18">
         </div>
-
         <div class="form-group">
           <label>Código da Empresa (auto)</label>
           <input type="text" class="auto-field" id="codigo" placeholder="Gerado automaticamente" readonly>
         </div>
-
         <div class="form-group">
           <label>Nome do Responsável <span class="req">*</span></label>
           <input type="text" placeholder="Digite o nome do responsável" id="responsavel">
         </div>
-
         <div class="logo-upload-area">
           <div class="logo-placeholder" id="logo-placeholder">Logo</div>
-          <img class="logo-preview" id="logo-preview" src="" alt="Logo">
-          <button class="btn btn-primary" style="padding:8px 20px; font-size:13px;" onclick="document.getElementById('logo-input').click()">
-            Adicionar Logo
-          </button>
-          <input type="file" id="logo-input" accept="image/*" style="display:none" onchange="previewLogo(event)">
+          <img class="logo-preview" id="logo-preview" src="#" alt="Logo">
+          <button class="btn btn-primary btn-logo" onclick="document.getElementById('logo-input').click()">Adicionar Logo</button>
+          <input type="file" id="logo-input" accept="image/*" class="input-file-hidden" onchange="previewLogo(event)">
         </div>
-
         <div class="form-group">
           <label>Setor Inicial <span class="req">*</span></label>
           <input type="text" placeholder="Digite o setor inicial" id="setor">
         </div>
-
         <div class="form-group">
           <label>Telefone Corporativo <span class="req">*</span></label>
           <input type="tel" placeholder="Digite o telefone corporativo" id="telefone">
         </div>
       </div>
-
-      <button class="btn btn-primary btn-full" style="margin-top:24px; padding:12px; font-size:15px;" onclick="cadastrarEmpresa()">Cadastrar</button>
-
+      <button class="btn btn-primary btn-full btn-xl" onclick="cadastrarEmpresa()">Cadastrar</button>
       <p class="footer-msg">
         Compartilhe o Código com seus funcionários para que eles possam
         <a href="entrar-empresa.html">entrar na empresa</a>

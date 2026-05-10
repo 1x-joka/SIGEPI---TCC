@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pagamento — SIGEPI</title>
   <link rel="stylesheet" href="../estilos/style.css">
-  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
+  <script src="../scripts/script.js" defer></script>
 </head>
 <body class="layout-flex">
   <header class="header">
@@ -24,9 +24,7 @@
   <div class="page-center">
     <div class="card-pagamento">
       <h1>Tela de Pagamento</h1>
-
       <div class="pagamento-grid">
-        <!-- Formulário -->
         <div class="pagamento-form">
           <div class="form-group">
             <label>Número do Cartão <span class="req">*</span></label>
@@ -49,8 +47,6 @@
             <span class="error-msg" id="cvv-error">CVV inválido.</span>
           </div>
         </div>
-
-        <!-- Resumo do plano -->
         <div class="pagamento-resumo">
           <h3>Plano Escolhido</h3>
           <div class="resumo-plano-nome">Plano 3</div>
@@ -64,10 +60,9 @@
           <div class="resumo-preco">R$210,90</div>
         </div>
       </div>
-
       <div class="pagamento-actions">
-        <button class="btn btn-primary" style="padding:12px 32px; font-size:15px;" onclick="confirmarPagamento()">Confirmar Pagamento</button>
-        <button class="btn btn-outline" style="padding:12px 32px;" onclick="window.location.href='planos.html'">Cancelar</button>
+        <button class="btn btn-primary btn-lg" onclick="confirmarPagamento()">Confirmar Pagamento</button>
+        <button class="btn btn-outline btn-lg" onclick="window.location.href='planos.html'">Cancelar</button>
       </div>
     </div>
   </div>

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meus Equipamentos — SIGEPI</title>
   <link rel="stylesheet" href="../estilos/style.css">
-  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
+  <script src="../scripts/script.js" defer></script>
 </head>
 <body class="layout-flex">
   <header class="header">
@@ -24,66 +24,53 @@
   <div class="main-area">
     <div class="content-card">
       <div class="meus-eq-body">
-        <h2 class="page-title" style="padding:0 0 20px;">Meus Equipamentos</h2>
+        <h2 class="meus-eq-titulo">Meus Equipamentos</h2>
 
         <div class="alert-banner" id="banner-alerta">
           <span>⚠</span>
           <span id="banner-texto">Alerta! Equipamentos estão irregulares</span>
         </div>
 
-        <div style="overflow-x:auto;">
+        <div class="table-overflow">
           <table>
             <thead>
-              <tr>
-                <th>Equipamento</th>
-                <th>Setor</th>
-                <th>Quantidade</th>
-                <th>Validade</th>
-                <th>Status</th>
-              </tr>
+              <tr><th>Equipamento</th><th>Setor</th><th>Quantidade</th><th>Validade</th><th>Status</th></tr>
             </thead>
             <tbody id="tbody-equipamentos">
               <tr class="row-red">
-                <td>Máscara respiratória</td>
-                <td>Pintura</td>
-                <td>1</td>
-                <td style="color:var(--text-red); font-weight:600;">20/02/2026</td>
-                <td style="color:var(--text-red); font-weight:600;">IRREGULAR</td>
+                <td>Máscara respiratória</td><td>Pintura</td><td>1</td>
+                <td class="td-validade-red">20/02/2026</td>
+                <td class="td-status-red">IRREGULAR</td>
               </tr>
               <tr class="row-red">
-                <td>Óculos de Proteção</td>
-                <td>Pintura</td>
-                <td>1</td>
+                <td>Óculos de Proteção</td><td>Pintura</td><td>1</td>
                 <td>---</td>
-                <td style="color:var(--text-red); font-weight:600;">SEM EPI</td>
+                <td class="td-status-red">SEM EPI</td>
               </tr>
               <tr>
-                <td>Luvas nitrílicas (par)</td>
-                <td>Pintura</td>
-                <td>1</td>
-                <td>10/05/2026</td>
-                <td>OK</td>
+                <td>Luvas nitrílicas (par)</td><td>Pintura</td><td>1</td>
+                <td>10/05/2026</td><td>OK</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div class="table-footer" style="flex-direction:column; align-items:flex-start; gap:6px;">
+        <div class="table-footer table-footer--col">
           <button class="btn btn-primary" id="btn-solicitar" onclick="abrirSolicitar()">Solicitar</button>
-          <span id="aviso-pendente" style="font-size:13px; font-weight:600; color:var(--text-body); display:none;">Você já possui solicitações pendentes</span>
+          <span class="aviso-pendente" id="aviso-pendente">Você já possui solicitações pendentes</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- POPUP -->
+  <!-- POPUP SOLICITAÇÃO -->
   <div class="modal-overlay" id="modal-solicitar" onclick="fecharSeOverlay(event,'modal-solicitar')">
-    <div class="modal" style="max-width:660px;">
+    <div class="modal modal--solicitar">
 
-      <!-- ETAPA 1: seleção de quantidades -->
+      <!-- ETAPA 1 -->
       <div id="etapa-1">
         <h2>Solicitar EPIs</h2>
-        <div style="overflow-x:auto;">
+        <div class="table-overflow">
           <table>
             <thead>
               <tr><th>Equipamento</th><th>Setor</th><th>Quantidade</th><th>Validade</th><th>Status</th></tr>
@@ -91,21 +78,20 @@
             <tbody>
               <tr class="row-red">
                 <td>Máscara Respiratória</td><td>Pintura</td>
-                <td><input type="number" value="1" min="1" id="qtd-0" style="width:64px;padding:4px 8px;background:var(--input-bg);border:none;border-radius:8px;text-align:center;"></td>
-                <td style="color:var(--text-red);font-weight:600;">20/02/2026</td>
-                <td style="color:var(--text-red);font-weight:600;">IRREGULAR</td>
+                <td><input type="number" value="1" min="1" id="qtd-0" class="input-qtd-solicitar"></td>
+                <td class="td-validade-red">20/02/2026</td>
+                <td class="td-status-red">IRREGULAR</td>
               </tr>
               <tr class="row-red">
                 <td>Óculos de Proteção</td><td>Pintura</td>
-                <td><input type="number" value="2" min="1" id="qtd-1" style="width:64px;padding:4px 8px;background:var(--input-bg);border:none;border-radius:8px;text-align:center;"></td>
+                <td><input type="number" value="2" min="1" id="qtd-1" class="input-qtd-solicitar"></td>
                 <td>---</td>
-                <td style="color:var(--text-red);font-weight:600;">SEM EPI</td>
+                <td class="td-status-red">SEM EPI</td>
               </tr>
               <tr>
                 <td>Luvas Nitrílicas (par)</td><td>Pintura</td>
-                <td><input type="number" value="3" min="1" id="qtd-2" style="width:64px;padding:4px 8px;background:var(--input-bg);border:none;border-radius:8px;text-align:center;"></td>
-                <td>15/06/2026</td>
-                <td>OK</td>
+                <td><input type="number" value="3" min="1" id="qtd-2" class="input-qtd-solicitar"></td>
+                <td>15/06/2026</td><td>OK</td>
               </tr>
             </tbody>
           </table>
@@ -116,10 +102,10 @@
         </div>
       </div>
 
-      <!-- ETAPA 2: justificativa por EPI -->
-      <div id="etapa-2" style="display:none;">
-        <h2 id="titulo-epi-atual" style="text-align:left; font-size:20px; margin-bottom:20px;"></h2>
-        <textarea id="justificativa" placeholder="Digite aqui sua justificativa..." style="width:100%; min-height:220px; border:2px solid #333; border-radius:8px; padding:16px; font-family:var(--font); font-size:14px; background:white; resize:vertical; outline:none;"></textarea>
+      <!-- ETAPA 2 -->
+      <div id="etapa-2" class="oculto">
+        <h2 id="titulo-epi-atual" class="modal-titulo-esquerda"></h2>
+        <textarea id="justificativa" placeholder="Digite aqui sua justificativa..." class="textarea-justificativa"></textarea>
         <span class="error-msg" id="just-error">Por favor, informe a justificativa.</span>
         <div class="modal-footer">
           <button class="btn btn-primary" id="btn-proximo" onclick="proximoEpi()">Solicitar</button>
@@ -127,12 +113,10 @@
         </div>
       </div>
 
-      <!-- ETAPA 3: confirmação enviada -->
-      <div id="etapa-3" style="display:none;">
-        <div style="border:2px solid #ccc; border-radius:12px; padding:48px 32px; text-align:center; margin-bottom:8px;">
-          <p style="font-size:18px; color:#333; line-height:1.7;">
-            Sua solicitação foi enviada! O prazo para recebimento do equipamento é de até <strong>3 dias úteis</strong>
-          </p>
+      <!-- ETAPA 3 -->
+      <div id="etapa-3" class="oculto">
+        <div class="confirmacao-box">
+          <p>Sua solicitação foi enviada! O prazo para recebimento do equipamento é de até <strong>3 dias úteis</strong></p>
         </div>
         <div class="modal-footer">
           <button class="btn btn-primary" onclick="finalizarSolicitacao()">Avançar</button>

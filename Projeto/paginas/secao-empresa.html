@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seção Empresa — SIGEPI</title>
   <link rel="stylesheet" href="../estilos/style.css">
-  <script src="../scripts/script.js" defer></script> <!-- defer para carregar o js depois de ler o HTML-->
+  <script src="../scripts/script.js" defer></script>
 </head>
 <body class="layout-flex">
   <header class="header">
@@ -24,10 +24,8 @@
   <div class="page-center">
     <div class="card-secao">
       <h1>Seção Empresa</h1>
-
       <div class="secao-grid">
-        <!-- Coluna esquerda -->
-        <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="secao-col">
           <div class="form-group">
             <label>Nome da Empresa:</label>
             <input type="text" value="Texto Estático – não editável pois está no contrato" readonly class="readonly-field">
@@ -45,9 +43,7 @@
             <input type="text" id="responsavel" value="Joaquim Pereira Lima">
           </div>
         </div>
-
-        <!-- Coluna direita -->
-        <div style="display:flex; flex-direction:column; gap:16px; align-items:stretch;">
+        <div class="secao-col--stretch">
           <div class="form-group">
             <label>Email Corporativo:</label>
             <input type="email" id="email" value="jokaautopeças@hotmail.com">
@@ -56,24 +52,19 @@
             <label>Telefone Corporativo:</label>
             <input type="tel" id="telefone" value="+55 (12) 98802-0200">
           </div>
-
-          <!-- Logo -->
           <div class="logo-secao-wrap">
-            <div class="logo-secao-img" id="logo-placeholder-secao">
-              <img id="logo-secao-preview" src="" alt="Logo" style="width:86px; height:86px; border-radius:10px; object-fit:cover; display:none;">
-              <span id="logo-secao-txt" style="font-size:12px; color:var(--text-muted);">Logo</span>
+            <div class="logo-secao-wrap">
+              <img id="logo-secao-preview" class="logo-secao-preview" src="" alt="Logo">
+              <span id="logo-secao-txt" class="logo-secao-txt">Logo</span>
             </div>
-            <button class="btn btn-primary" style="padding:8px 20px; font-size:13px;" onclick="document.getElementById('logo-secao-input').click()">
-              Alterar Logo
-            </button>
-            <input type="file" id="logo-secao-input" accept="image/*" style="display:none" onchange="previewLogoSecao(event)">
+            <button class="btn btn-primary btn-logo" onclick="document.getElementById('logo-secao-input').click()">Alterar Logo</button>
+            <input type="file" id="logo-secao-input" accept="image/*" class="input-file-hidden" onchange="previewLogoSecao(event)">
           </div>
         </div>
       </div>
-
       <div class="secao-actions">
-        <button class="btn btn-primary" style="padding:12px 32px;" onclick="salvarAlteracoes()">Salvar Alterações</button>
-        <button class="btn btn-primary" style="padding:12px 32px;" onclick="window.history.back()">Voltar</button>
+        <button class="btn btn-primary btn-lg" onclick="salvarAlteracoes()">Salvar Alterações</button>
+        <button class="btn btn-primary btn-lg" onclick="window.history.back()">Voltar</button>
       </div>
     </div>
   </div>
