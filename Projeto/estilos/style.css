@@ -1684,3 +1684,11 @@ input[type="number"]::-webkit-outer-spin-button {
 .oculto {
   display: none;
 }
+
+/* ===== CORREÇÕES DE CLASSES NÃO USADAS NO HTML ===== */
+
+.epis-body,
+.func-body,
+.historico-body {
+  padding: 20px 28px;
+}

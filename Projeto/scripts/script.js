@@ -16,13 +16,17 @@ function fecharSeOverlay(event, id) {
 
 function toggleVisivel(id, mostrar) {
   const el = document.getElementById(id);
-  if (!el) return;
+  if (!el){
+    return;
+  }
   el.style.display = mostrar ? '' : 'none';
 }
 
 function setErro(id, mostrar) {
   const el = document.getElementById(id);
-  if (!el) return;
+  if (!el){
+    return;
+  }
   el.classList[mostrar ? 'add' : 'remove']('show');
 }
 
@@ -35,7 +39,9 @@ function fazerLogin() {
   const email = document.getElementById('email')?.value;
   const senha = document.getElementById('senha')?.value;
   const erro  = document.getElementById('email-error');
-  if (!erro) return;
+  if (!erro){
+    return;
+  }
 
   if (!email || !senha) {
     erro.textContent = 'Preencha todos os campos.';
@@ -61,7 +67,9 @@ document.addEventListener('keydown', function (e) {
 
 function iniciarMascaraCPF() {
   const cpfInput = document.getElementById('cpf');
-  if (!cpfInput) return;
+  if (!cpfInput){
+    return;
+  }
   cpfInput.addEventListener('input', function () {
     let v = this.value.replace(/\D/g, '');
     v = v.replace(/(\d{3})(\d)/, '$1.$2');
@@ -72,20 +80,32 @@ function iniciarMascaraCPF() {
 }
 
 function cadastrar() {
-  const nome  = document.getElementById('nome')?.value.trim();
+  const nome = document.getElementById('nome')?.value.trim();
   const email = document.getElementById('email')?.value.trim();
   const senha = document.getElementById('senha')?.value;
-  const cpf   = document.getElementById('cpf')?.value.trim();
+  const cpf = document.getElementById('cpf')?.value.trim();
   let valid = true;
 
-  setErro('nome-error',  !nome);                          if (!nome)  valid = false;
-  setErro('email-error', !email || !email.includes('@')); if (!email || !email.includes('@')) valid = false;
-  setErro('senha-error', senha.length < 8);               if (senha.length < 8) valid = false;
-  setErro('cpf-error',   cpf.replace(/\D/g,'').length < 11); if (cpf.replace(/\D/g,'').length < 11) valid = false;
+  setErro('nome-error',  !nome);
+  if (!nome){
+    valid = false;
+  }
+  setErro('email-error', !email || !email.includes('@'));
+  if (!email || !email.includes('@')){
+    valid = false;
+  }
+  setErro('senha-error', senha.length < 8);
+  if (senha.length < 8){
+    valid = false;
+  }
+  setErro('cpf-error', cpf.replace(/\D/g,'').length < 11);
+    if (cpf.replace(/\D/g,'').length < 11){
+      valid = false;
+    }
 
   if (valid) {
     // Em produção: POST /api/cadastro
-    window.location.href = 'home.html';
+    window.location.href = 'loginpage.html';
   }
 }
 
@@ -98,7 +118,9 @@ function verificarCheckboxes() {
   const t = document.getElementById('chk-termos')?.checked;
   const l = document.getElementById('chk-lgpd')?.checked;
   const btn = document.getElementById('btn-aceitar');
-  if (btn) btn.disabled = !(t && l);
+  if (btn){
+    btn.disabled = !(t && l);
+  }
 }
 
 function aceitar() {
@@ -118,8 +140,10 @@ function recusar() {
 
 function entrarEmpresa() {
   const codigo = document.getElementById('codigo')?.value.trim();
-  const erro   = document.getElementById('codigo-error');
-  if (!erro) return;
+  const erro = document.getElementById('codigo-error');
+  if (!erro){
+    return;
+  }
 
   if (!codigo) {
     erro.textContent = 'Digite o código da empresa.';
@@ -144,7 +168,9 @@ function entrarEmpresa() {
 
 function iniciarMascaraCNPJ() {
   const cnpjInput = document.getElementById('cnpj');
-  if (!cnpjInput) return;
+  if (!cnpjInput){
+    return;
+  }
   cnpjInput.addEventListener('input', function () {
     let v = this.value.replace(/\D/g, '');
     v = v.replace(/^(\d{2})(\d)/,         '$1.$2');
@@ -162,13 +188,19 @@ function iniciarMascaraCNPJ() {
 
 function previewLogo(event) {
   const file = event.target.files[0];
-  if (!file) return;
+  if (!file){
+    return;
+  }
   const reader = new FileReader();
   reader.onload = e => {
-    const preview     = document.getElementById('logo-preview');
+    const preview = document.getElementById('logo-preview');
     const placeholder = document.getElementById('logo-placeholder');
-    if (preview)     { preview.src = e.target.result; preview.style.display = 'block'; }
-    if (placeholder)   placeholder.style.display = 'none';
+    if (preview) {
+      preview.src = e.target.result; preview.style.display = 'block';
+    }
+    if (placeholder) {
+      placeholder.style.display = 'none';
+    }
   };
   reader.readAsDataURL(file);
 }
@@ -188,9 +220,13 @@ const setoresLista = [];
 function adicionarSetor() {
   const input = document.getElementById('input-setor');
   const erro  = document.getElementById('setor-error');
-  if (!input) return;
+  if (!input) {
+    return
+  };
   const nome = input.value.trim();
-  if (!nome) return;
+  if (!nome){
+    return
+  };
 
   if (setoresLista.includes(nome.toLowerCase())) {
     erro?.classList.add('show');
@@ -209,7 +245,9 @@ function removerSetor(idx) {
 
 function renderSetoresEmpresa() {
   const lista = document.getElementById('setores-lista');
-  if (!lista) return;
+  if (!lista){
+    return;
+  }
   lista.innerHTML = setoresLista.map((s, i) => `
     <div class="setor-item">
       <span class="nome">${s.charAt(0).toUpperCase() + s.slice(1)}</span>
@@ -234,7 +272,9 @@ function avancar() {
 function selecionarPlano(num) {
   document.querySelectorAll('.plano-card').forEach(c => c.classList.remove('selected'));
   const cards = document.querySelectorAll('.plano-card');
-  if (cards[num - 1]) cards[num - 1].classList.add('selected');
+  if (cards[num - 1]){
+    cards[num - 1].classList.add('selected');
+  }
   // Em produção: salvar plano escolhido
   setTimeout(() => window.location.href = 'pagamento.html', 300);
 }
@@ -247,7 +287,9 @@ function selecionarPlano(num) {
 function iniciarMascarasCartao() {
   const numCartao = document.getElementById('num-cartao');
   const validade  = document.getElementById('validade');
-  if (!numCartao || !validade) return;
+  if (!numCartao || !validade){
+    return;
+  }
 
   numCartao.addEventListener('input', function () {
     let v = this.value.replace(/\D/g, '').substring(0, 16);
@@ -269,10 +311,22 @@ function confirmarPagamento() {
   const cvv  = document.getElementById('cvv')?.value.trim();
   let valid = true;
 
-  setErro('num-error',  num.length < 16);             if (num.length < 16)              valid = false;
-  setErro('nome-error', !nome);                        if (!nome)                        valid = false;
-  setErro('val-error',  !/^\d{2}\/\d{2}$/.test(val)); if (!/^\d{2}\/\d{2}$/.test(val)) valid = false;
-  setErro('cvv-error',  cvv.length < 3);               if (cvv.length < 3)               valid = false;
+  setErro('num-error', num.length < 16);
+  if (num.length < 16){
+    valid = false;
+  }
+  setErro('nome-error', !nome);
+  if (!nome){
+    valid = false;
+  }
+  setErro('val-error',  !/^\d{2}\/\d{2}$/.test(val));
+  if (!/^\d{2}\/\d{2}$/.test(val)){
+    valid = false;
+  }
+  setErro('cvv-error',  cvv.length < 3);
+  if (cvv.length < 3){
+    valid = false;
+  }
 
   if (valid) {
     // Em produção: POST /api/pagamento via Stripe
@@ -290,8 +344,14 @@ function avancarComplementar() {
   const nasc  = document.getElementById('nascimento')?.value;
   let valid = true;
 
-  setErro('setor-error', !setor); if (!setor) valid = false;
-  setErro('nasc-error',  !nasc);  if (!nasc)  valid = false;
+  setErro('setor-error', !setor);
+  if (!setor) {
+    valid = false;
+  }
+  setErro('nasc-error',  !nasc); 
+  if (!nasc){
+    valid = false;
+  }
 
   if (valid) {
     // Em produção: PATCH /api/funcionarios/complementar
@@ -307,30 +367,50 @@ function avancarComplementar() {
 function filtrarEpis() {
   const busca = document.getElementById('busca-epi')?.value.toLowerCase();
   document.querySelectorAll('#tabela-epis tbody tr').forEach(tr => {
-    tr.style.display = tr.cells[0]?.textContent.toLowerCase().includes(busca) ? '' : 'none';
+  tr.style.display = tr.cells[0]?.textContent.toLowerCase().includes(busca) ? '' : 'none';
   });
 }
 
 function cadastrarEPI() {
   const nome = document.getElementById('cad-nome')?.value.trim();
-  const ca   = document.getElementById('cad-ca')?.value.trim();
-  const qtd  = document.getElementById('cad-qtd')?.value;
-  const lim  = document.getElementById('cad-limite')?.value;
-  const val  = document.getElementById('cad-validade')?.value;
-  const cat  = document.getElementById('cad-cat')?.value;
+  const ca = document.getElementById('cad-ca')?.value.trim();
+  const qtd = document.getElementById('cad-qtd')?.value;
+  const lim = document.getElementById('cad-limite')?.value;
+  const val = document.getElementById('cad-validade')?.value;
+  const cat = document.getElementById('cad-cat')?.value;
   const desc = document.getElementById('cad-desc')?.value.trim();
   let ok = true;
 
   const caInvalido = !ca || ca.length < 3 || ca.length > 6 || !/^\d+$/.test(ca);
-  setErro('cad-nome-err', !nome);        if (!nome)        ok = false;
-  setErro('cad-ca-err',   caInvalido);   if (caInvalido)   ok = false;
-  setErro('cad-qtd-err',  !qtd || qtd < 1); if (!qtd)     ok = false;
-  setErro('cad-lim-err',  !lim || lim < 1); if (!lim)     ok = false;
-  setErro('cad-val-err',  !val);         if (!val)         ok = false;
-  setErro('cad-cat-err',  !cat);         if (!cat)         ok = false;
+  setErro('cad-nome-err', !nome);
+  if (!nome){
+    ok = false;
+  }
+  setErro('cad-ca-err',   caInvalido);
+  if (caInvalido){
+    ok = false;
+  }
+  setErro('cad-qtd-err',  !qtd || qtd < 1);
+  if (!qtd){
+    ok = false;
+  }
+  setErro('cad-lim-err',  !lim || lim < 1);
+  if (!lim){
+    ok = false;
+  }
+  setErro('cad-val-err',  !val);
+  if (!val){
+    ok = false;
+  }
+  setErro('cad-cat-err',  !cat);
+  if (!cat){
+    ok = false;
+  }
 
   if (ok && !desc) {
-    if (!confirm('A descrição está vazia. Tem certeza que deseja continuar?')) return;
+    if (!confirm('A descrição está vazia. Tem certeza que deseja continuar?')){
+      return;
+    }
   }
 
   if (ok) {
@@ -345,9 +425,18 @@ function adicionarEstoque() {
   const val = document.getElementById('add-validade')?.value;
   let ok = true;
 
-  setErro('add-epi-err', !epi); if (!epi) ok = false;
-  setErro('add-qtd-err', !qtd || qtd < 1); if (!qtd) ok = false;
-  setErro('add-val-err', !val); if (!val) ok = false;
+  setErro('add-epi-err', !epi);
+  if (!epi){
+    ok = false;
+  }
+  setErro('add-qtd-err', !qtd || qtd < 1);
+  if (!qtd){
+    ok = false;
+  }
+  setErro('add-val-err', !val);
+  if (!val){
+    ok = false;
+  }
 
   if (ok) {
     // Em produção: POST /api/estoque/entrada
@@ -361,9 +450,18 @@ function retirarEstoque() {
   const mot = document.getElementById('ret-motivo')?.value;
   let ok = true;
 
-  setErro('ret-epi-err', !epi);           if (!epi)         ok = false;
-  setErro('ret-qtd-err', !qtd || qtd < 1); if (!qtd || qtd < 1) ok = false;
-  setErro('ret-mot-err', !mot);           if (!mot)         ok = false;
+  setErro('ret-epi-err', !epi);
+  if (!epi){
+    ok = false;
+  }
+  setErro('ret-qtd-err', !qtd || qtd < 1); 
+  if (!qtd || qtd < 1){
+    ok = false;
+  }
+  setErro('ret-mot-err', !mot); 
+  if (!mot){
+    ok = false;
+  }
 
   const estoques = {
     'Luva de Segurança Nitrílica': 50,
@@ -374,7 +472,9 @@ function retirarEstoque() {
   const disponivel = estoques[epi] ?? 999;
   const semEstoque = qtd > disponivel;
   setErro('ret-estoque-err', semEstoque);
-  if (semEstoque) ok = false;
+  if (semEstoque){
+    ok = false;
+  }
 
   if (ok) {
     // Em produção: POST /api/estoque/saida
@@ -390,13 +490,13 @@ function retirarEstoque() {
 let funcSelecionado = null;
 
 function filtrarFuncionarios() {
-  const busca  = document.getElementById('busca')?.value.toLowerCase();
+  const busca = document.getElementById('busca')?.value.toLowerCase();
   const status = document.getElementById('filtro-status')?.value;
   document.querySelectorAll('#tbody-func tr').forEach(tr => {
-    const nome  = tr.dataset.nome?.toLowerCase();
-    const st    = tr.dataset.status;
-    const okB   = !busca  || nome?.includes(busca);
-    const okS   = !status || st === status;
+    const nome = tr.dataset.nome?.toLowerCase();
+    const st = tr.dataset.status;
+    const okB = !busca  || nome?.includes(busca);
+    const okS = !status || st === status;
     tr.style.display = (okB && okS) ? '' : 'none';
   });
 }
@@ -408,10 +508,10 @@ function selecionarFuncionario() {
       document.querySelectorAll('#tbody-func tr').forEach(r => r.style.outline = '');
       tr.style.outline = '2px solid var(--btn-primary)';
       funcSelecionado = {
-        nome:  tr.dataset.nome,
+        nome: tr.dataset.nome,
         setor: tr.dataset.setor,
-        cpf:   tr.dataset.cpf,
-        epis:  tr.dataset.epis
+        cpf: tr.dataset.cpf,
+        epis: tr.dataset.epis
       };
     });
   });
@@ -420,7 +520,9 @@ function selecionarFuncionario() {
 function abrirVerificar() {
   const nome = funcSelecionado?.nome ?? 'Joaquim Pereira Lima';
   const titulo = document.getElementById('titulo-verificar');
-  if (titulo) titulo.textContent = 'Verificação dos EPIs de ' + nome;
+  if (titulo){
+    titulo.textContent = 'Verificação dos EPIs de ' + nome;
+  }
   abrirModal('modal-verificar');
 }
 
@@ -433,22 +535,30 @@ function abrirExcluir() {
   setEl('excluir-cpf',  f.cpf);
   setEl('excluir-epis', f.epis + ' EPI(s)');
   const chk = document.getElementById('chk-confirmar-exclusao');
-  if (chk) chk.checked = false;
+  if (chk){
+    chk.checked = false;
+  }
   const btn = document.getElementById('btn-inativar');
-  if (btn) btn.disabled = true;
+  if (btn){
+    btn.disabled = true;
+  }
   abrirModal('modal-excluir');
 }
 
 function toggleOutroMotivo() {
-  const val  = document.getElementById('motivo-exclusao')?.value;
+  const val = document.getElementById('motivo-exclusao')?.value;
   const wrap = document.getElementById('outro-motivo-wrap');
-  if (wrap) wrap.style.display = val === 'Outro' ? 'flex' : 'none';
+  if (wrap){
+    wrap.style.display = val === 'Outro' ? 'flex' : 'none';
+  }
 }
 
 function toggleBtnInativar() {
   const chk = document.getElementById('chk-confirmar-exclusao')?.checked;
   const btn = document.getElementById('btn-inativar');
-  if (btn) btn.disabled = !chk;
+  if (btn) {
+    btn.disabled = !chk;
+  }
 }
 
 function inativarFuncionario() {
@@ -459,7 +569,10 @@ function inativarFuncionario() {
 function reporSelecionados() {
   const ids = ['chk-1', 'chk-2', 'chk-3'];
   const selecionados = ids.filter(id => document.getElementById(id)?.checked);
-  if (selecionados.length === 0) { alert('Selecione ao menos um EPI.'); return; }
+  if (selecionados.length === 0) {
+    alert('Selecione ao menos um EPI.');
+    return;
+  }
   // Em produção: POST /api/reposicao com EPIs selecionados
   fecharModal('modal-verificar');
 }
@@ -475,11 +588,11 @@ function reporTodos() {
 // ============================================================
 
 function filtrarHistorico() {
-  const tipo  = document.getElementById('filtro-tipo')?.value;
+  const tipo = document.getElementById('filtro-tipo')?.value;
   const setor = document.getElementById('filtro-setor')?.value;
   document.querySelectorAll('#tabela-hist tbody tr').forEach(tr => {
-    const tds    = tr.querySelectorAll('td');
-    const tipoOk  = !tipo  || tds[1]?.textContent.trim() === tipo;
+    const tds = tr.querySelectorAll('td');
+    const tipoOk = !tipo  || tds[1]?.textContent.trim() === tipo;
     const setorOk = !setor || tds[5]?.textContent.trim() === setor;
     tr.style.display = (tipoOk && setorOk) ? '' : 'none';
   });
@@ -501,7 +614,9 @@ let epiAtualIdx = 0;
 let solicitacaoEnviada = false;
 
 function abrirSolicitar() {
-  if (solicitacaoEnviada) return;
+  if (solicitacaoEnviada){
+    return;
+  }
   epiAtualIdx = 0;
   justificativasSolicitacao.length = 0;
   mostrarEtapaSolic(1);
@@ -515,15 +630,22 @@ function irEtapa2() {
 
 function atualizarEtapa2() {
   const titulo = document.getElementById('titulo-epi-atual');
-  const just   = document.getElementById('justificativa');
-  if (titulo) titulo.textContent = episSolicitacao[epiAtualIdx];
-  if (just)   just.value = justificativasSolicitacao[epiAtualIdx] || '';
+  const just = document.getElementById('justificativa');
+  if (titulo){
+    titulo.textContent = episSolicitacao[epiAtualIdx];
+  }
+  if (just){
+    just.value = justificativasSolicitacao[epiAtualIdx] || '';
+  }
   setErro('just-error', false);
 }
 
 function proximoEpi() {
   const just = document.getElementById('justificativa')?.value.trim();
-  if (!just) { setErro('just-error', true); return; }
+  if (!just){
+    setErro('just-error', true);
+    return;
+  }
   justificativasSolicitacao[epiAtualIdx] = just;
   epiAtualIdx++;
   if (epiAtualIdx < episSolicitacao.length) {
@@ -541,7 +663,9 @@ function finalizarSolicitacao() {
   solicitacaoEnviada = true;
 
   const bannerTxt = document.getElementById('banner-texto');
-  if (bannerTxt) bannerTxt.textContent = 'Solicitações enviadas - aguardando aprovação';
+  if (bannerTxt){
+    bannerTxt.textContent = 'Solicitações enviadas - aguardando aprovação';
+  }
 
   const tbody = document.getElementById('tbody-equipamentos');
   if (tbody) {
@@ -556,15 +680,21 @@ function finalizarSolicitacao() {
   }
 
   const btn = document.getElementById('btn-solicitar');
-  if (btn) btn.disabled = true;
+  if (btn){
+    btn.disabled = true;
+  }
   const aviso = document.getElementById('aviso-pendente');
-  if (aviso) aviso.style.display = 'block';
+  if (aviso){
+    aviso.style.display = 'block';
+  }
 }
 
 function mostrarEtapaSolic(n) {
   [1, 2, 3].forEach(i => {
     const el = document.getElementById('etapa-' + i);
-    if (el) el.style.display = i === n ? '' : 'none';
+    if (el){
+      el.style.display = i === n ? '' : 'none';
+    }
   });
 }
 
@@ -579,9 +709,14 @@ function previewLogoSecao(event) {
   const reader = new FileReader();
   reader.onload = e => {
     const preview = document.getElementById('logo-secao-preview');
-    const txt     = document.getElementById('logo-secao-txt');
-    if (preview) { preview.src = e.target.result; preview.style.display = 'block'; }
-    if (txt)       txt.style.display = 'none';
+    const txt = document.getElementById('logo-secao-txt');
+    if (preview){
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+    }
+    if (txt){
+      txt.style.display = 'none';
+    }
   };
   reader.readAsDataURL(file);
 }
@@ -597,23 +732,29 @@ function salvarAlteracoes() {
 // ============================================================
 
 function mostrarCancelar() {
-  toggleVisivel('tela-plano',   false);
+  toggleVisivel('tela-plano', false);
   toggleVisivel('tela-cancelar', true);
   const chk = document.getElementById('chk-cancelar');
-  if (chk) chk.checked = false;
+  if (chk){
+    chk.checked = false;
+  }
   const btn = document.getElementById('btn-confirmar-cancelar');
-  if (btn) btn.disabled = true;
+  if (btn){
+    btn.disabled = true;
+  }
 }
 
 function voltarPlano() {
   toggleVisivel('tela-cancelar', false);
-  toggleVisivel('tela-plano',    true);
+  toggleVisivel('tela-plano', true);
 }
 
 function toggleBtnCancelar() {
   const chk = document.getElementById('chk-cancelar')?.checked;
   const btn = document.getElementById('btn-confirmar-cancelar');
-  if (btn) btn.disabled = !chk;
+  if (btn){
+    btn.disabled = !chk;
+  }
 }
 
 function confirmarCancelamento() {
@@ -627,9 +768,9 @@ function confirmarCancelamento() {
 // ============================================================
 
 let setoresSecao = [
-  { nome: 'Elétrica',             funcionarios: 2 },
-  { nome: 'Construção Civil',     funcionarios: 0 },
-  { nome: 'Mecânica Automotiva',  funcionarios: 1 }
+  {nome: 'Elétrica', funcionarios: 2},
+  {nome: 'Construção Civil', funcionarios: 0},
+  {nome: 'Mecânica Automotiva', funcionarios: 1}
 ];
 
 function renderSetoresSecao() {
@@ -654,10 +795,14 @@ function renderSetoresSecao() {
 }
 
 function confirmarExcluirSetor(i) {
-  const acao    = document.getElementById('acao-s-' + i);
+  const acao = document.getElementById('acao-s-' + i);
   const confirm = document.getElementById('confirm-s-' + i);
-  if (acao)    acao.style.display    = 'none';
-  if (confirm) confirm.style.display = 'flex';
+  if (acao){
+    acao.style.display = 'none';
+  }
+  if (confirm){
+    confirm.style.display = 'flex';
+  }
   if (setoresSecao[i].funcionarios > 0) {
     const aviso = document.getElementById('aviso-s-' + i);
     if (aviso) {
@@ -668,7 +813,9 @@ function confirmarExcluirSetor(i) {
 }
 
 function excluirSetorSecao(i) {
-  if (setoresSecao[i].funcionarios > 0) return;
+  if (setoresSecao[i].funcionarios > 0){
+    return;
+  }
   // Em produção: DELETE /api/setores/:id
   setoresSecao.splice(i, 1);
   renderSetoresSecao();
@@ -676,17 +823,24 @@ function excluirSetorSecao(i) {
 
 function adicionarSetorSecao() {
   const input = document.getElementById('novo-setor');
-  const erro  = document.getElementById('setor-dup-error');
-  if (!input) return;
+  const erro = document.getElementById('setor-dup-error');
+  if (!input){
+    return;
+  }
   const nome = input.value.trim();
-  if (!nome) return;
+  if (!nome){
+    return;
+  }
 
   const existe = setoresSecao.some(s => s.nome.toLowerCase() === nome.toLowerCase());
-  if (existe) { erro?.classList.add('show'); return; }
+  if (existe){
+    erro?.classList.add('show');
+    return;
+  }
   erro?.classList.remove('show');
 
   // Em produção: POST /api/setores
-  setoresSecao.push({ nome, funcionarios: 0 });
+  setoresSecao.push({nome, funcionarios: 0});
   renderSetoresSecao();
   input.value = '';
 }
@@ -698,8 +852,10 @@ function adicionarSetorSecao() {
 
 function iniciarDropdown() {
   const headerRight = document.querySelector('.header-right');
-  const dropdown    = document.querySelector('.dropdown-menu');
-  if (!headerRight || !dropdown) return;
+  const dropdown = document.querySelector('.dropdown-menu');
+  if (!headerRight || !dropdown){
+    return;
+  }
 
   headerRight.addEventListener('click', function (e) {
     const aberto = dropdown.classList.contains('aberto');
@@ -708,7 +864,9 @@ function iniciarDropdown() {
   });
 
   document.addEventListener('click', function () {
-    if (dropdown) dropdown.classList.remove('aberto');
+    if (dropdown){
+      dropdown.classList.remove('aberto');
+    }
   });
 }
 
