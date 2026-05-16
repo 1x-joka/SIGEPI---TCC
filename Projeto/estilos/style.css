@@ -1165,7 +1165,9 @@ tr.row-yellow td {
 .plano-card.premium:hover .plano-titulo {
   background: linear-gradient(90deg, #f7d060, #c8962e);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .plano-titulo {
