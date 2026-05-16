@@ -66,14 +66,5 @@
       </div>
     </div>
   </div>
-
-  <script>
-    function selecionarPlano(num) {
-      document.querySelectorAll('.plano-card').forEach(c => c.classList.remove('selected'));
-      document.querySelectorAll('.plano-card')[num - 1].classList.add('selected');
-      // Em produção: salvar plano e redirecionar
-      setTimeout(() => window.location.href = 'pagamento.html', 300);
-    }
-  </script>
 </body>
 </html>

@@ -79,6 +79,25 @@ function iniciarMascaraCPF() {
   });
 }
 
+function iniciarMascaraTelefone() {
+  const inputs = document.querySelectorAll('input[type="tel"]');
+  inputs.forEach(input => {
+    input.addEventListener('input', function () {
+      let v = this.value.replace(/\D/g, '').substring(0, 11);
+      if (v.length > 10) {
+        v = v.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+      } else if (v.length > 6) {
+        v = v.replace(/^(\d{2})(\d{4})(\d+)/, '($1) $2-$3');
+      } else if (v.length > 2) {
+        v = v.replace(/^(\d{2})(\d+)/, '($1) $2');
+      } else if (v.length > 0) {
+        v = v.replace(/^(\d+)/, '($1');
+      }
+      this.value = v;
+    });
+  });
+}
+
 function cadastrar() {
   const nome = document.getElementById('nome')?.value.trim();
   const email = document.getElementById('email')?.value.trim();
