@@ -192,10 +192,10 @@ function iniciarMascaraCNPJ() {
   }
   cnpjInput.addEventListener('input', function () {
     let v = this.value.replace(/\D/g, '');
-    v = v.replace(/^(\d{2})(\d)/,         '$1.$2');
+    v = v.replace(/^(\d{2})(\d)/, '$1.$2');
     v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-    v = v.replace(/\.(\d{3})(\d)/,         '.$1/$2');
-    v = v.replace(/(\d{4})(\d)/,           '$1-$2');
+    v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    v = v.replace(/(\d{4})(\d)/, '$1-$2');
     this.value = v;
   });
 
@@ -238,7 +238,7 @@ const setoresLista = [];
 
 function adicionarSetor() {
   const input = document.getElementById('input-setor');
-  const erro  = document.getElementById('setor-error');
+  const erro = document.getElementById('setor-error');
   if (!input) {
     return
   };
@@ -333,23 +333,23 @@ function cadastrarEPI() {
   if (!nome){
     ok = false;
   }
-  setErro('cad-ca-err',   caInvalido);
+  setErro('cad-ca-err', caInvalido);
   if (caInvalido){
     ok = false;
   }
-  setErro('cad-qtd-err',  !qtd || qtd < 1);
+  setErro('cad-qtd-err', !qtd || qtd < 1);
   if (!qtd){
     ok = false;
   }
-  setErro('cad-lim-err',  !lim || lim < 1);
+  setErro('cad-lim-err', !lim || lim < 1);
   if (!lim){
     ok = false;
   }
-  setErro('cad-val-err',  !val);
+  setErro('cad-val-err', !val);
   if (!val){
     ok = false;
   }
-  setErro('cad-cat-err',  !cat);
+  setErro('cad-cat-err', !cat);
   if (!cat){
     ok = false;
   }
