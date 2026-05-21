@@ -19,8 +19,8 @@ async function cadastrarEmpresa(req, res) {
 
     const [result] = await db.query(
       `INSERT INTO tb_empresa 
-        (nm_empresa, cnpj_empresa, responsavel_empresa, email_empresa, tel_empresa, st_empresa, st_cancelamento, dt_cadastro_empresa)
-       VALUES (?, ?, ?, ?, ?, 'A', 'N', CURDATE())`,
+        (nm_empresa, cnpj_empresa, responsavel_empresa, email_empresa, tel_empresa, st_empresa, dt_cadastro_empresa)
+       VALUES (?, ?, ?, ?, ?, 'A', CURDATE())`,
       [nome, cnpj, responsavel, email, telefone]
     );
 

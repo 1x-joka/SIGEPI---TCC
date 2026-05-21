@@ -280,79 +280,7 @@ function avancar() {
     alert('Adicione pelo menos um setor antes de continuar.');
     return;
   }
-  window.location.href = 'planos.html';
 }
-
-
-// ============================================================
-//  planos.html
-// ============================================================
-
-function selecionarPlano(num) {
-  document.querySelectorAll('.plano-card').forEach(c => c.classList.remove('selected'));
-  const cards = document.querySelectorAll('.plano-card');
-  if (cards[num - 1]){
-    cards[num - 1].classList.add('selected');
-  }
-  // Em produção: salvar plano escolhido
-  setTimeout(() => window.location.href = 'pagamento.html', 300);
-}
-
-
-// ============================================================
-//  pagamento.html
-// ============================================================
-
-function iniciarMascarasCartao() {
-  const numCartao = document.getElementById('num-cartao');
-  const validade  = document.getElementById('validade');
-  if (!numCartao || !validade){
-    return;
-  }
-
-  numCartao.addEventListener('input', function () {
-    let v = this.value.replace(/\D/g, '').substring(0, 16);
-    v = v.replace(/(\d{4})(?=\d)/g, '$1 ');
-    this.value = v;
-  });
-
-  validade.addEventListener('input', function () {
-    let v = this.value.replace(/\D/g, '').substring(0, 4);
-    if (v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2);
-    this.value = v;
-  });
-}
-
-function confirmarPagamento() {
-  const num  = document.getElementById('num-cartao')?.value.replace(/\s/g, '');
-  const nome = document.getElementById('nome-cartao')?.value.trim();
-  const val  = document.getElementById('validade')?.value.trim();
-  const cvv  = document.getElementById('cvv')?.value.trim();
-  let valid = true;
-
-  setErro('num-error', num.length < 16);
-  if (num.length < 16){
-    valid = false;
-  }
-  setErro('nome-error', !nome);
-  if (!nome){
-    valid = false;
-  }
-  setErro('val-error',  !/^\d{2}\/\d{2}$/.test(val));
-  if (!/^\d{2}\/\d{2}$/.test(val)){
-    valid = false;
-  }
-  setErro('cvv-error',  cvv.length < 3);
-  if (cvv.length < 3){
-    valid = false;
-  }
-
-  if (valid) {
-    // Em produção: POST /api/pagamento via Stripe
-    window.location.href = 'dashboard.html';
-  }
-}
-
 
 // ============================================================
 //  complementar-funcionario.html
@@ -744,43 +672,6 @@ function salvarAlteracoes() {
   // Em produção: PATCH /api/empresa
   window.history.back();
 }
-
-
-// ============================================================
-//  secao-plano.html
-// ============================================================
-
-function mostrarCancelar() {
-  toggleVisivel('tela-plano', false);
-  toggleVisivel('tela-cancelar', true);
-  const chk = document.getElementById('chk-cancelar');
-  if (chk){
-    chk.checked = false;
-  }
-  const btn = document.getElementById('btn-confirmar-cancelar');
-  if (btn){
-    btn.disabled = true;
-  }
-}
-
-function voltarPlano() {
-  toggleVisivel('tela-cancelar', false);
-  toggleVisivel('tela-plano', true);
-}
-
-function toggleBtnCancelar() {
-  const chk = document.getElementById('chk-cancelar')?.checked;
-  const btn = document.getElementById('btn-confirmar-cancelar');
-  if (btn){
-    btn.disabled = !chk;
-  }
-}
-
-function confirmarCancelamento() {
-  // Em produção: PATCH /api/empresa/cancelar-plano
-  window.location.href = 'dashboard.html';
-}
-
 
 // ============================================================
 //  secao-setores.html
