@@ -280,7 +280,6 @@ function avancar() {
     alert('Adicione pelo menos um setor antes de continuar.');
     return;
   }
-  window.location.href = 'planos.html';
 }
 
 // ============================================================

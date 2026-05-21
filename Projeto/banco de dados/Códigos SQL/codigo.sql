@@ -16,33 +16,19 @@ create table tb_endereco (
     foreign key (tb_cidade_cd_cidade) references tb_cidade(cd_cidade)
 );
 
-create table tb_plano (
-    id_plano int primary key auto_increment,
-    nm_plano varchar(45) not null,
-    valor_plano decimal(10,2) not null,
-    limite_funcionarios int,
-    limite_admins int
-);
-
 create table tb_empresa (
     cd_empresa int primary key auto_increment,
     nm_empresa varchar(45) not null,
     cnpj_empresa varchar(18),
-    st_empresa char(1), -- A (Ativa - empresa com plano vigente); I (Inativa - empresa cancelou ou o plano expirou)
+    st_empresa char(1) not null default 'A',
     dt_cadastro_empresa date,
     tb_endereco_cd_endereco int,
-    plano_empresa char(1),
-    dt_inicio_plano date,
-    dt_vencimento_plano date,
     responsavel_empresa varchar(45),
-    tb_plano_id_plano int,
     logo_empresa varchar(45),
     dt_contratacao date,
-    st_cancelamento char(1), -- N (não cancelado); S (cancelado); não usa-se A e I pois status de cancelamento não é um estado de atividade
     email_empresa varchar(255),
     tel_empresa varchar(20),
-    foreign key (tb_endereco_cd_endereco) references tb_endereco(cd_endereco),
-    foreign key (tb_plano_id_plano) references tb_plano(id_plano)
+    foreign key (tb_endereco_cd_endereco) references tb_endereco(cd_endereco)
 );
 
 create table tb_setor (
