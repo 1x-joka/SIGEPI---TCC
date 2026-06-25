@@ -912,9 +912,9 @@ tr.row-yellow td {
 .signup-card {
   background: white;
   border-radius: 20px;
-  padding: 36px 40px;
+  padding: 48px 56px;
   width: 100%;
-  max-width: 400px;
+  max-width: 480px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.12);
   text-align: center;
 }
@@ -946,9 +946,9 @@ tr.row-yellow td {
 .home-card {
   background: white;
   border-radius: 20px;
-  padding: 48px 60px;
+  padding: 56px 72px;
   width: 100%;
-  max-width: 420px;
+  max-width: 500px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.12);
   text-align: center;
 }
@@ -968,7 +968,7 @@ tr.row-yellow td {
   border-radius: 20px;
   padding: 40px 48px;
   width: 100%;
-  max-width: 420px;
+  max-width: 500px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.12);
   text-align: center;
 }
@@ -993,7 +993,7 @@ tr.row-yellow td {
   border-radius: 20px;
   padding: 36px 48px;
   width: 100%;
-  max-width: 720px;
+  max-width: 860px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.12);
 }
 
@@ -1066,7 +1066,7 @@ tr.row-yellow td {
   border-radius: 20px;
   padding: 40px 48px;
   width: 100%;
-  max-width: 480px;
+  max-width: 560px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.12);
   text-align: center;
 }
@@ -1225,7 +1225,7 @@ tr.row-yellow td {
   border-radius: 20px;
   padding: 40px 48px;
   width: 100%;
-  max-width: 420px;
+  max-width: 500px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.12);
   text-align: center;
 }
