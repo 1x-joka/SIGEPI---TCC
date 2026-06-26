@@ -91,8 +91,9 @@ Acesse em: `http://localhost:3000`
 | Planejamento e Documentação | ✅ Concluído |
 | Prototipação (Figma) | ✅ Concluído |
 | Modelagem do Banco de Dados | ✅ Concluído |
+| Desenvolvimento Front-end | ✅ Concluído |
 | Desenvolvimento Back-end | 🔄 Em andamento |
-| Desenvolvimento Front-end | 🔄 Em andamento |
+| Responsividade | 🔄 Em andamento |
 | Adaptação PWA | ⏳ Previsto |
 | Testes e Ajustes Finais | ⏳ Previsto |
 
