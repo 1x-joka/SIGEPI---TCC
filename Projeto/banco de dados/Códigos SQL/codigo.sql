@@ -96,7 +96,7 @@ create table tb_usuario (
 create table tb_funcionario (
     id_funcionario int primary key auto_increment,
     nm_funcionario varchar(45) not null,
-    sobrenome_funcionario varchar(60),
+    sobrenome_funcionario varchar(60) not null,
     dt_nascimento_funcionario date,
     st_funcionario char(1), -- A (Ativo - funcionário na empresa); I (Inativo - funcionário desligado/exclusão pelo admin) 
     dt_cadastro_funcionario date,
