@@ -116,7 +116,7 @@ create table tb_solicitacao (
     id_solicitacao int primary key auto_increment,
     dt_solicitacao date,
     st_solicitacao char(1), -- P (Pendente - aguardando aprovação do admin); A (Aprovada); R (Recusada)
-    des_motivo_solicitacao varchar(255),
+    desc_motivo_solicitacao varchar(255),
     dt_previsao date,
     tb_funcionario_id_funcionario int not null,
     tb_epi_id_epi int not null,
