@@ -33,7 +33,7 @@ async function cadastrarEmpresa(req, res) {
 
     if (setor) {
       await db.query(
-        'INSERT INTO tb_setor (nm_setor, tb_empresa_id_emprsa) VALUES (?, ?)',
+        'INSERT INTO tb_setor (nm_setor, tb_empresa_id_empresa) VALUES (?, ?)',
         [setor, id_empresa]
       );
     }
