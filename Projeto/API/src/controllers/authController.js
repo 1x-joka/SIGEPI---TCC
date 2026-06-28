@@ -1,8 +1,8 @@
 /* LOCAL QUE AS ROTAS SÃO CRIADAS PARA MELHOR VISIBILIDADE E MANUTENÇÃO */
 
-const db     = require('../config/db');
+const db = require('../config/db');
 const bcrypt = require('bcrypt');
-const jwt    = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 
 async function cadastrar(req, res) {
   const { nome, email, senha, cpf } = req.body;
@@ -69,7 +69,7 @@ async function login(req, res) {
       token,
       usuario: {
         id:   usuario.id_usuario,
-        nome: usuario.nome_usuario,
+        nome: usuario.nm_usuario,
         email: usuario.email_usuario
       }
     });

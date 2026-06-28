@@ -33,7 +33,9 @@ create table tb_empresa (
 
 create table tb_setor (
     id_setor int primary key auto_increment,
-    nm_setor varchar(45) not null
+    nm_setor varchar(45) not null,
+    tb_empresa_id_empresa int not null,
+    foreign key (tb_empresa_id_empresa) references tb_empresa(id_empresa)
 );
 
 create table tb_categoria (
@@ -165,5 +167,7 @@ delimiter ;
 alter table tb_usuario 
 modify tb_empresa_id_empresa int null;
 
-select * from tb_empresa;
-select * from tb_usuario;
+-- Declarando que existem dois tipos de usuários (admin e funcionários)
+insert into tb_tipousuario (nm_tipousuario)
+values
+('Administrador'), ('Funcionário');

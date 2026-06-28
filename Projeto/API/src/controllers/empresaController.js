@@ -9,7 +9,7 @@ async function cadastrarEmpresa(req, res) {
 
   try {
     const [existe] = await db.query(
-      'SELECT cd_empresa FROM tb_empresa WHERE cnpj_empresa = ?', [cnpj]
+      'SELECT id_empresa FROM tb_empresa WHERE cnpj_empresa = ?', [cnpj]
     );
     if (existe.length > 0) {
       return res.status(409).json({ erro: 'CNPJ já cadastrado.' });
@@ -24,23 +24,23 @@ async function cadastrarEmpresa(req, res) {
       [nome, cnpj, responsavel, email, telefone]
     );
 
-    const cd_empresa = result.insertId;
+    const id_empresa = result.insertId;
 
     await db.query(
-      'UPDATE tb_usuario SET tb_empresa_cd_empresa = ? WHERE id_usuario = ?',
-      [cd_empresa, req.usuario.id]
+      'UPDATE tb_usuario SET tb_empresa_id_empresa = ?, tb_tipousuario_id_tipousuario = 1 WHERE id_usuario = ?',
+      [id_empresa, req.usuario.id]
     );
 
     if (setor) {
       await db.query(
-        'INSERT INTO tb_setor (nm_setor) VALUES (?)',
-        [setor]
+        'INSERT INTO tb_setor (nm_setor, tb_empresa_id_emprsa) VALUES (?, ?)',
+        [setor, id_empresa]
       );
     }
 
     return res.status(201).json({
       mensagem: 'Empresa cadastrada com sucesso.',
-      cd_empresa,
+      id_empresa,
       codigo
     });
 

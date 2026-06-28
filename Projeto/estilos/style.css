@@ -26,6 +26,12 @@
   --radius-btn: 50px;
   --radius-input: 50px;
   --font: 'Poppins', sans-serif;
+
+  color-scheme: light; /* Definindo o tema do site de acordo com o sistema do navegador do usuário */
+}
+
+html {
+  scroll-behavior: smooth; /* Ao clicar em uma seção a scrollagem será suave */
 }
 
 body {
@@ -45,10 +51,12 @@ body.layout-flex {
 
 .page-center {
   flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px 24px;
+  padding: 24px;
+  overflow-y: auto; /* Se faltar espaço na tela, o scroll fica no modal, não na tela completa (muito bom para telas pequenas/mobile) */
 }
 
 .page-center--top {
@@ -85,8 +93,8 @@ body.layout-flex {
 }
 
 .logo-sub {
-  font-size: 11px;
-  color: #2a6a85;
+  font-size: 13px;
+  color: #0f2630;
   font-weight: 300;
 }
 
@@ -105,7 +113,7 @@ body.layout-flex {
   font-weight: 600;
   color: var(--text-dark);
   text-decoration: none;
-  font-size: 15px;
+  font-size: 17px;
 }
 
 .header-link:hover {
@@ -220,7 +228,7 @@ body.layout-flex {
 }
 
 .form-group label {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--text-body);
 }
@@ -394,6 +402,7 @@ select.select-readonly {
 }
 
 .btn-primary:hover {
+  transition: .4s;
   background: var(--btn-primary-hover);
   color: white;
 }
