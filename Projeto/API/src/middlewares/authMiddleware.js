@@ -31,4 +31,12 @@ async function autenticar(req, res, next) {
   }
 }
 
-module.exports = { autenticar };
+// Bloqueia rotas que exigem empresa quando o usuário ainda não tem uma vinculada
+function exigirEmpresa(req, res, next) {
+  if (!req.usuario || !req.usuario.empresa) {
+    return res.status(403).json({ erro: 'Usuário sem empresa vinculada.' });
+  }
+  next();
+}
+
+module.exports = { autenticar, exigirEmpresa };
