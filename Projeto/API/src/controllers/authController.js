@@ -13,10 +13,13 @@ async function cadastrar(req, res) {
 
   try {
     const [existe] = await db.query(
-      'SELECT id_usuario FROM tb_usuario WHERE email_usuario = ?', [email]
+      'SELECT email_usuario, cpf_usuario FROM tb_usuario WHERE email_usuario = ? OR cpf_usuario = ?', [email, cpf]
     );
     if (existe.length > 0) {
-      return res.status(409).json({ erro: 'E-mail já cadastrado.' });
+      const emailDuplicado = existe.some(u => u.email_usuario === email);
+      return res.status(409).json({
+        erro: emailDuplicado ? 'E-mail já cadastrado.' : 'CPF já cadastrado.'
+      });
     }
 
     const hash = await bcrypt.hash(senha, 10);

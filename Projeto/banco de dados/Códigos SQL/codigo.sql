@@ -20,7 +20,7 @@ create table tb_empresa (
     id_empresa int primary key auto_increment,
     nm_empresa varchar(45) not null,
     cnpj_empresa varchar(18),
-    st_empresa char(1) not null default 'A',
+    st_empresa enum('A','I') not null default 'A',
     dt_cadastro_empresa date,
     tb_endereco_id_endereco int,
     responsavel_empresa varchar(45),
@@ -47,7 +47,7 @@ create table tb_epi (
     id_epi int primary key auto_increment,
     nm_epi varchar(45) not null,
     desc_epi longtext,
-    st_epi char(1), -- A (Ativo - EPI pronta para uso e entrega); I (Inativo - EPI descontinuado, CA vencido ou removido do sistema)
+    st_epi enum('A','I') default 'A', -- A (Ativo - EPI pronta para uso e entrega); I (Inativo - EPI descontinuado, CA vencido ou removido do sistema)
     dt_cadastro_epi date,
     ca_epi varchar(10),
     tb_categoria_id_categoria int,
@@ -67,7 +67,7 @@ create table tb_estoque (
 
 create table tb_movimentacao (
     id_movimentacao int primary key auto_increment,
-    tipo_movimentacao char(1),
+    tipo_movimentacao enum('E','S'),
     qtd_movimentacao int,
     dt_movimentacao date,
     desc_movimentacao varchar(255),
@@ -84,11 +84,11 @@ create table tb_usuario (
     id_usuario int primary key auto_increment,
     nm_usuario varchar(45) not null,
     dt_nascimento_usuario date,
-    email_usuario varchar(255),
+    email_usuario varchar(255) unique,
     senha_usuario varchar(255),
-    st_usuario char(1), -- A (Ativo - consegue logar); I (Inativo - acesso bloqueado)
+    st_usuario enum('A','I') default 'A', -- A (Ativo - consegue logar); I (Inativo - acesso bloqueado)
     dt_cadastro_usuario date,
-    cpf_usuario varchar(14),
+    cpf_usuario varchar(14) unique,
     tb_empresa_id_empresa int not null,
     tb_tipousuario_id_tipousuario int,
     foreign key (tb_empresa_id_empresa) references tb_empresa(id_empresa),
@@ -100,7 +100,7 @@ create table tb_funcionario (
     nm_funcionario varchar(45) not null,
     sobrenome_funcionario varchar(60) not null,
     dt_nascimento_funcionario date,
-    st_funcionario char(1), -- A (Ativo - funcionário na empresa); I (Inativo - funcionário desligado/exclusão pelo admin) 
+    st_funcionario enum('A','I') default 'A', -- A (Ativo - funcionário na empresa); I (Inativo - funcionário desligado/exclusão pelo admin) 
     dt_cadastro_funcionario date,
     motivo_inativacao_funcionario varchar(255),
     data_inativacao date,
@@ -117,7 +117,7 @@ create table tb_funcionario (
 create table tb_solicitacao (
     id_solicitacao int primary key auto_increment,
     dt_solicitacao date,
-    st_solicitacao char(1), -- P (Pendente - aguardando aprovação do admin); A (Aprovada); R (Recusada)
+    st_solicitacao enum('P','A','R') default 'P', -- P (Pendente - aguardando aprovação do admin); A (Aprovada); R (Recusada)
     desc_motivo_solicitacao varchar(255),
     dt_previsao date,
     tb_funcionario_id_funcionario int not null,
@@ -130,7 +130,7 @@ create table tb_entrega (
     id_entrega int primary key auto_increment,
     dt_entrega date,
     dt_devolucao date,
-    st_entrega char(1), -- A (Ativo - EPI está com o funcionário); D (Devolvido)
+    st_entrega enum('A','D') default 'A', -- A (Ativo - EPI está com o funcionário); D (Devolvido)
     tb_funcionario_id_funcionario int not null,
     tb_epi_id_epi int not null,
     tb_usuario_id_usuario int not null,
@@ -139,10 +139,8 @@ create table tb_entrega (
     foreign key (tb_usuario_id_usuario) references tb_usuario(id_usuario)
 );
 
-/* ==== CÓDIGO TRIGGER (atualizando estoque automaticamente após fazer uma entrega) ==== */
-/*
-toda vez que um registro é inserido em tb_entrega, ela automaticamente desconta 1 unidade do estoque do EPI correto, da
-empresa correta, e seguindo FIFO — o lote com validade mais próxima sai primeiro
+/* ==== CÓDIGO TRIGGER (atualizando estoque automaticamente após fazer uma entrega) ====
+    -> Toda vez que um registro é inserido em tb_entrega, ela automaticamente desconta 1 unidade do estoque do EPI correto, da empresa correta, e seguindo FIFO — o lote com validade mais próxima sai primeiro
 */
 
 delimiter $$
@@ -171,3 +169,8 @@ modify tb_empresa_id_empresa int null;
 insert into tb_tipousuario (nm_tipousuario)
 values
 ('Administrador'), ('Funcionário');
+
+/*
+    ======== TROCA DE CHAR PARA ENUM ========
+        --> enum impediria alguém de inserir um status inválido, ou seja, trava os valores válidos no banco = segurança/integridade
+*/
