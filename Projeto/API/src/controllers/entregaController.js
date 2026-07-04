@@ -123,4 +123,72 @@ async function registrarDevolucao(req, res) {
   }
 }
 
-module.exports = { registrarEntrega, listarEntregas, registrarDevolucao };
+// ADMIN: histórico de EPIs de um funcionário (funciona mesmo se ele estiver INATIVO — auditoria)
+async function historicoFuncionario(req, res) {
+  const id_funcionario = req.params.id;
+  const empresa = req.usuario.empresa;
+
+  try {
+    // Funcionário precisa ser DESTA empresa. NÃO filtramos por status de propósito:
+    // o histórico deve existir mesmo para quem foi inativado (é o valor da exclusão lógica).
+    const [funcs] = await db.query(
+      `SELECT id_funcionario, nm_funcionario, sobrenome_funcionario, st_funcionario
+       FROM tb_funcionario WHERE id_funcionario = ? AND tb_empresa_id_empresa = ?`,
+      [id_funcionario, empresa]
+    );
+    if (funcs.length === 0) {
+      return res.status(404).json({ erro: 'Funcionário não encontrado para esta empresa.' });
+    }
+
+    const [historico] = await db.query(
+      `SELECT e.id_entrega, e.dt_entrega, e.dt_devolucao, e.st_entrega, epi.nm_epi
+       FROM tb_entrega e
+       JOIN tb_epi epi ON epi.id_epi = e.tb_epi_id_epi
+       WHERE e.tb_funcionario_id_funcionario = ?
+       ORDER BY e.dt_entrega DESC`,
+      [id_funcionario]
+    );
+
+    return res.status(200).json({
+      funcionario: funcs[0],
+      historico
+    });
+
+  } catch (err) {
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+}
+
+// FUNCIONÁRIO: vê os próprios equipamentos (tela "meus equipamentos")
+async function meusEquipamentos(req, res) {
+  const empresa = req.usuario.empresa;
+
+  try {
+    // Ponte usuário -> funcionário (só vê os próprios; admin cai fora aqui)
+    const [funcs] = await db.query(
+      `SELECT id_funcionario FROM tb_funcionario
+       WHERE tb_usuario_id_usuario = ? AND tb_empresa_id_empresa = ?`,
+      [req.usuario.id, empresa]
+    );
+    if (funcs.length === 0) {
+      return res.status(403).json({ erro: 'Apenas funcionários possuem equipamentos.' });
+    }
+    const id_funcionario = funcs[0].id_funcionario;
+
+    const [equipamentos] = await db.query(
+      `SELECT e.id_entrega, e.dt_entrega, e.dt_devolucao, e.st_entrega, epi.nm_epi
+       FROM tb_entrega e
+       JOIN tb_epi epi ON epi.id_epi = e.tb_epi_id_epi
+       WHERE e.tb_funcionario_id_funcionario = ?
+       ORDER BY e.dt_entrega DESC`,
+      [id_funcionario]
+    );
+
+    return res.status(200).json(equipamentos);
+
+  } catch (err) {
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+}
+
+module.exports = { registrarEntrega, listarEntregas, registrarDevolucao, historicoFuncionario, meusEquipamentos };

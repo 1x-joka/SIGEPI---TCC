@@ -12,4 +12,10 @@ router.get('/listar', autenticar, exigirEmpresa, exigirAdmin, entregaController.
 // Devolver um EPI (PUT = atualizar uma entrega existente). O :id é o id_entrega.
 router.put('/:id/devolver', autenticar, exigirEmpresa, exigirAdmin, entregaController.registrarDevolucao);
 
+// ADMIN: histórico de um funcionário específico (mesmo inativo)
+router.get('/funcionario/:id', autenticar, exigirEmpresa, exigirAdmin, entregaController.historicoFuncionario);
+
+// FUNCIONÁRIO: meus equipamentos
+router.get('/meus', autenticar, exigirEmpresa, entregaController.meusEquipamentos);
+
 module.exports = router;
