@@ -1,0 +1,91 @@
+const db = require('../config/db');
+
+// Registrar ENTRADA de estoque (um lote novo) — só admin
+async function registrarEntrada(req, res) {
+  const { epi, quantidade, validade, quantidadeMinima } = req.body;
+  const empresa = req.usuario.empresa; // do token, nunca do cliente
+
+  // Validação básica
+  if (!epi || !quantidade) {
+    return res.status(400).json({ erro: 'Informe o EPI e a quantidade.' });
+  }
+  if (quantidade <= 0) {
+    return res.status(400).json({ erro: 'A quantidade deve ser maior que zero.' });
+  }
+
+  // Pega UMA conexão do pool para a transação (todas as queries usam ela)
+  const conexao = await db.getConnection();
+
+  try {
+    // Segurança: o EPI precisa pertencer À MESMA empresa do admin logado
+    const [epis] = await conexao.query(
+      'SELECT id_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ?',
+      [epi, empresa]
+    );
+    if (epis.length === 0) {
+      conexao.release();
+      return res.status(400).json({ erro: 'EPI inválido para esta empresa.' });
+    }
+
+    // ===== INÍCIO DA TRANSAÇÃO =====
+    await conexao.beginTransaction();
+
+    // 1) Cria o LOTE em tb_estoque (Opção A: cada entrada é uma linha nova)
+    const [resultEstoque] = await conexao.query(
+      `INSERT INTO tb_estoque
+        (qtd_disponivel_estoque, qtd_minima_estoque, dt_validade_estoque, tb_empresa_id_empresa, tb_epi_id_epi)
+       VALUES (?, ?, ?, ?, ?)`,
+      [quantidade, quantidadeMinima || null, validade || null, empresa, epi]
+    );
+    const id_estoque = resultEstoque.insertId;
+
+    // 2) Registra a MOVIMENTAÇÃO (histórico da entrada)
+    await conexao.query(
+      `INSERT INTO tb_movimentacao
+        (tipo_movimentacao, qtd_movimentacao, dt_movimentacao, desc_movimentacao, tb_estoque_id_estoque)
+       VALUES ('E', ?, CURDATE(), ?, ?)`,
+      [quantidade, 'Entrada de estoque', id_estoque]
+    );
+
+    // Se chegou aqui, as DUAS deram certo → grava de verdade
+    await conexao.commit();
+
+    return res.status(201).json({
+      mensagem: 'Entrada de estoque registrada com sucesso.',
+      id_estoque
+    });
+
+  } catch (err) {
+    // Qualquer erro no meio → desfaz TUDO (nem estoque, nem movimentação ficam)
+    await conexao.rollback();
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+
+  } finally {
+    // Aconteça o que acontecer, devolve a conexão ao pool
+    conexao.release();
+  }
+}
+
+// Lista o estoque (todos os lotes) da empresa do usuário logado
+async function listarEstoque(req, res) {
+  const empresa = req.usuario.empresa;
+
+  try {
+    const [estoque] = await db.query(
+      `SELECT e.id_estoque, e.qtd_disponivel_estoque, e.qtd_minima_estoque,
+              e.dt_validade_estoque, epi.nm_epi
+       FROM tb_estoque e
+       JOIN tb_epi epi ON epi.id_epi = e.tb_epi_id_epi
+       WHERE e.tb_empresa_id_empresa = ?
+       ORDER BY epi.nm_epi, e.dt_validade_estoque`,
+      [empresa]
+    );
+
+    return res.status(200).json(estoque);
+
+  } catch (err) {
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+}
+
+module.exports = { registrarEntrada, listarEstoque };

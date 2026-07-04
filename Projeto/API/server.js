@@ -7,6 +7,7 @@ const empresaRoutes = require('./src/routes/empresaRoutes');
 const setorRoutes = require('./src/routes/setorRoutes');
 const epiRoutes = require('./src/routes/epiRoutes');
 const funcionarioRoutes = require('./src/routes/funcionarioRoutes');
+const estoqueRoutes = require('./src/routes/estoqueRoutes');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use('/api/empresa', empresaRoutes);
 app.use('/api/funcionario', funcionarioRoutes);
 app.use('/api/setor', setorRoutes);
 app.use('/api/epi', epiRoutes);
+app.use('/api/estoque', estoqueRoutes);
 
 // Verificando se a API funciona (roda "npm start" no terminal na pasta API e testa no google com a url: http://localhost:3000/ )
 app.get('/', (req, res) => {
