@@ -5,6 +5,7 @@ require('dotenv').config();
 const authRoutes = require('./src/routes/authRoutes');
 const empresaRoutes = require('./src/routes/empresaRoutes');
 const setorRoutes = require('./src/routes/setorRoutes');
+const funcionarioRoutes = require('./src/routes/funcionarioRoutes');
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/empresa', empresaRoutes);
+app.use('/api/funcionario', funcionarioRoutes);
 app.use('/api/setor', setorRoutes);
 
 app.get('/', (req, res) => {

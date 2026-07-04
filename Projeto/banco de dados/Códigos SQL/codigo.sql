@@ -20,6 +20,7 @@ create table tb_empresa (
     id_empresa int primary key auto_increment,
     nm_empresa varchar(45) not null,
     cnpj_empresa varchar(18),
+    codigo_empresa varchar(10) unique, -- Para o funcionário logar na empresa já cadastrada pelo ADM
     st_empresa enum('A','I') not null default 'A',
     dt_cadastro_empresa date,
     tb_endereco_id_endereco int,

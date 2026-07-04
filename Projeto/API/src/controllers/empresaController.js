@@ -15,13 +15,13 @@ async function cadastrarEmpresa(req, res) {
       return res.status(409).json({ erro: 'CNPJ já cadastrado.' });
     }
 
-    const codigo = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+    const codigo = Math.floor(1000000000 + Math.random() * 9000000000).toString(); // Código da empresa gerado automaticamente após o cadastro
 
     const [result] = await db.query(
       `INSERT INTO tb_empresa 
-        (nm_empresa, cnpj_empresa, responsavel_empresa, email_empresa, tel_empresa, st_empresa, dt_cadastro_empresa)
-       VALUES (?, ?, ?, ?, ?, 'A', CURDATE())`,
-      [nome, cnpj, responsavel, email, telefone]
+       (nm_empresa, cnpj_empresa, responsavel_empresa, email_empresa, tel_empresa, codigo_empresa, st_empresa, dt_cadastro_empresa)
+       VALUES (?, ?, ?, ?, ?, ?, 'A', CURDATE())`,
+      [nome, cnpj, responsavel, email, telefone, codigo]
     );
 
     const id_empresa = result.insertId;
