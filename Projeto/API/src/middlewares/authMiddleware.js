@@ -17,13 +17,14 @@ async function autenticar(req, res, next) {
     
     // Empresa vem do banco (fonte confiável), nunca do cliente
     const [rows] = await db.query(
-      'SELECT tb_empresa_id_empresa FROM tb_usuario WHERE id_usuario = ?',
+      'SELECT tb_empresa_id_empresa, tb_tipousuario_id_tipousuario FROM tb_usuario WHERE id_usuario = ?',
       [dados.id]
     );
     if (rows.length === 0) {
       return res.status(401).json({ erro: 'Usuário não encontrado.' });
     }
     req.usuario.empresa = rows[0].tb_empresa_id_empresa;
+    req.usuario.tipo = rows[0].tb_tipousuario_id_tipousuario; // Vendo qual o tipo de usuário
 
     next();
   } catch (err) {
@@ -39,4 +40,12 @@ function exigirEmpresa(req, res, next) {
   next();
 }
 
-module.exports = { autenticar, exigirEmpresa };
+// Bloqueia rotas que só o Administrador pode acessar (tipo 1 = Administrador)
+function exigirAdmin(req, res, next) {
+  if (!req.usuario || req.usuario.tipo !== 1) {
+    return res.status(403).json({ erro: 'Acesso restrito ao administrador.' });
+  }
+  next();
+}
+
+module.exports = { autenticar, exigirEmpresa, exigirAdmin };

@@ -52,7 +52,9 @@ create table tb_epi (
     dt_cadastro_epi date,
     ca_epi varchar(10),
     tb_categoria_id_categoria int,
-    foreign key (tb_categoria_id_categoria) references tb_categoria(id_categoria)
+    tb_empresa_id_empresa int not null, -- para que cada empresa tenha seu próprio EPI, não deixando ser global (empresa A ver as q a B tem, ou seja, informação mútua)
+    foreign key (tb_categoria_id_categoria) references tb_categoria(id_categoria),
+    foreign key (tb_empresa_id_empresa) references tb_empresa(id_empresa)
 );
 
 create table tb_estoque (
