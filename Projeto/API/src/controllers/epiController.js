@@ -2,7 +2,7 @@ const db = require('../config/db');
 
 // Cadastrar um EPI vinculado à empresa do admin logado
 async function cadastrarEpi(req, res) {
-  const { nome, descricao, ca, categoria } = req.body;
+  const { nome, descricao, ca, categoria, validadeCa } = req.body;
   const empresa = req.usuario.empresa; // do middleware, nunca do cliente
 
   if (!nome) {
@@ -32,9 +32,9 @@ async function cadastrarEpi(req, res) {
 
     const [result] = await db.query(
       `INSERT INTO tb_epi
-        (nm_epi, desc_epi, st_epi, dt_cadastro_epi, ca_epi, tb_categoria_id_categoria, tb_empresa_id_empresa)
-       VALUES (?, ?, 'A', CURDATE(), ?, ?, ?)`,
-      [nome, descricao || null, ca || null, categoria || null, empresa]
+        (nm_epi, desc_epi, st_epi, dt_cadastro_epi, ca_epi, dt_validade_ca, tb_categoria_id_categoria, tb_empresa_id_empresa)
+       VALUES (?, ?, 'A', CURDATE(), ?, ?, ?, ?)`,
+      [nome, descricao || null, ca || null, validadeCa || null, categoria || null, empresa]
     );
 
     return res.status(201).json({
