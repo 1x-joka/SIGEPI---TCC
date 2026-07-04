@@ -142,6 +142,18 @@ create table tb_entrega (
     foreign key (tb_usuario_id_usuario) references tb_usuario(id_usuario)
 );
 
+-- COLOCANDO TODAS AS CATEGORIAS DE EPI'S PRESENTES NA NR-6 (NORMA REGULAMENTADORA 6), OU SEJA, O ADM NÃO CRIA POIS É UMA NORMA
+insert into tb_categoria (nm_categoria)
+values
+('Proteção da cabeça'), -- id = 1
+('Proteção dos olhos e face'),
+('Proteção auditiva'),
+('Proteção respiratória'),
+('Proteção dos membros superiores'),
+('Proteção dos membros inferiores'),
+('Proteção do tronco'),
+('Proteção contra quedas');
+
 /* ==== CÓDIGO TRIGGER (atualizando estoque automaticamente após fazer uma entrega) ====
     -> Toda vez que um registro é inserido em tb_entrega, ela automaticamente desconta 1 unidade do estoque do EPI correto, da empresa correta, e seguindo FIFO — o lote com validade mais próxima sai primeiro
 */
@@ -177,3 +189,8 @@ values
     ======== TROCA DE CHAR PARA ENUM ========
         --> enum impediria alguém de inserir um status inválido, ou seja, trava os valores válidos no banco = segurança/integridade
 */
+
+select * from tb_usuario;
+select * from tb_empresa;
+select * from tb_epi;
+select * from tb_categoria;
