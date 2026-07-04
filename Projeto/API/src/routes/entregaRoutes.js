@@ -6,4 +6,10 @@ const { autenticar, exigirEmpresa, exigirAdmin } = require('../middlewares/authM
 // Só o ADMIN registra entregas
 router.post('/registrar', autenticar, exigirEmpresa, exigirAdmin, entregaController.registrarEntrega);
 
+// Listar entregas da empresa (admin)
+router.get('/listar', autenticar, exigirEmpresa, exigirAdmin, entregaController.listarEntregas);
+
+// Devolver um EPI (PUT = atualizar uma entrega existente). O :id é o id_entrega.
+router.put('/:id/devolver', autenticar, exigirEmpresa, exigirAdmin, entregaController.registrarDevolucao);
+
 module.exports = router;
