@@ -88,4 +88,26 @@ async function completarCadastro(req, res) {
   }
 }
 
-module.exports = { entrarEmpresa, completarCadastro };
+// Lista os funcionários da empresa do usuário logado
+async function listarFuncionarios(req, res) {
+  const empresa = req.usuario.empresa;
+
+  try {
+    const [funcionarios] = await db.query(
+      `SELECT f.id_funcionario, f.nm_funcionario, f.sobrenome_funcionario,
+              f.st_funcionario, s.nm_setor
+       FROM tb_funcionario f
+       LEFT JOIN tb_setor s ON s.id_setor = f.tb_setor_id_setor
+       WHERE f.tb_empresa_id_empresa = ?
+       ORDER BY f.nm_funcionario`,
+      [empresa]
+    );
+
+    return res.status(200).json(funcionarios);
+
+  } catch (err) {
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+}
+
+module.exports = { entrarEmpresa, completarCadastro, listarFuncionarios };
