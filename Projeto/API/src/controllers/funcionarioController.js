@@ -110,4 +110,72 @@ async function listarFuncionarios(req, res) {
   }
 }
 
-module.exports = { entrarEmpresa, completarCadastro, listarFuncionarios };
+// ADMIN inativa um funcionário (exclusão lógica) + bloqueia o acesso dele
+async function inativarFuncionario(req, res) {
+  const id_funcionario = req.params.id;   // da URL
+  const { motivo } = req.body;
+  const empresa = req.usuario.empresa;
+
+  // NF12.2: motivo obrigatório
+  if (!motivo) {
+    return res.status(400).json({ erro: 'Informe o motivo da inativação.' });
+  }
+
+  const conexao = await db.getConnection();
+
+  try {
+    // Segurança: o funcionário precisa ser DESTA empresa e ainda estar ATIVO.
+    // Traz também o id_usuario para bloquear o login.
+    const [funcs] = await conexao.query(
+      `SELECT id_funcionario, st_funcionario, tb_usuario_id_usuario
+       FROM tb_funcionario
+       WHERE id_funcionario = ? AND tb_empresa_id_empresa = ?`,
+      [id_funcionario, empresa]
+    );
+
+    if (funcs.length === 0) {
+      conexao.release();
+      return res.status(404).json({ erro: 'Funcionário não encontrado para esta empresa.' });
+    }
+    if (funcs[0].st_funcionario === 'I') {
+      conexao.release();
+      return res.status(409).json({ erro: 'Este funcionário já está inativo.' });
+    }
+
+    const id_usuario = funcs[0].tb_usuario_id_usuario;
+
+    // ===== TRANSAÇÃO: as duas gravações são "tudo ou nada" =====
+    await conexao.beginTransaction();
+
+    // 1) Exclusão lógica do funcionário (guarda motivo e data)
+    // data_inativacao = CURDATE():  o "quando" fica registrado, junto com o "por quê" (motivo). Isso é a auditoria que o NF12.1 pede.
+
+    await conexao.query(
+      `UPDATE tb_funcionario
+       SET st_funcionario = 'I', motivo_inativacao_funcionario = ?, data_inativacao = CURDATE()
+       WHERE id_funcionario = ?`,
+      [motivo, id_funcionario]
+    );
+
+    // 2) Bloqueia o acesso: usuário vinculado vira inativo (NF12.1)
+    if (id_usuario) {
+      await conexao.query(
+        `UPDATE tb_usuario SET st_usuario = 'I' WHERE id_usuario = ?`,
+        [id_usuario]
+      );
+    }
+
+    await conexao.commit();
+
+    return res.status(200).json({ mensagem: 'Funcionário inativado com sucesso.' });
+
+  } catch (err) {
+    await conexao.rollback();
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+
+  } finally {
+    conexao.release();
+  }
+}
+
+module.exports = { entrarEmpresa, completarCadastro, listarFuncionarios, inativarFuncionario };

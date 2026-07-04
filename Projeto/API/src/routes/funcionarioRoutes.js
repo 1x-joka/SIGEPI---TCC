@@ -12,4 +12,7 @@ router.post('/completar', autenticar, exigirEmpresa, funcionarioController.compl
 // Listando todos os funcionários cadastrados na empresa
 router.get('/listar', autenticar, exigirEmpresa, exigirAdmin, funcionarioController.listarFuncionarios);
 
+// ADMIN inativa um funcionário (exclusão lógica)
+router.put('/:id/inativar', autenticar, exigirEmpresa, exigirAdmin, funcionarioController.inativarFuncionario);
+
 module.exports = router;

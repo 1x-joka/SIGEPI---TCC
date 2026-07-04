@@ -61,6 +61,12 @@ async function login(req, res) {
       return res.status(401).json({ erro: 'E-mail ou senha incorretos.' });
     }
 
+    if (usuario.st_usuario === 'I') {
+      return res.status(403).json({ erro: 'Acesso bloqueado. Procure o administrador.' });
+    }
+
+    // A ordem importa: colocamos depois de validar a senha de propósito. Assim, quem erra a senha recebe "credenciais inválidas" (sem revelar que a conta existe), e só quem acerta a senha de uma conta inativa é que descobre que está bloqueado. É um detalhe de segurança (não vazar informação a quem nem sabe a senha).
+
     const token = jwt.sign(
       { id: usuario.id_usuario, email: usuario.email_usuario },
       process.env.JWT_SECRET,
