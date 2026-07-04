@@ -111,4 +111,71 @@ async function listarMinhasSolicitacoes(req, res) {
   }
 }
 
-module.exports = { criarSolicitacao, listarMinhasSolicitacoes };
+// ADMIN lista as solicitações PENDENTES da empresa (NF11.1)
+async function listarPendentes(req, res) {
+  const empresa = req.usuario.empresa;
+
+  try {
+    const [solicitacoes] = await db.query(
+      `SELECT s.id_solicitacao, s.dt_solicitacao, s.desc_motivo_solicitacao, s.dt_previsao,
+              f.nm_funcionario, f.sobrenome_funcionario, epi.nm_epi
+       FROM tb_solicitacao s
+       JOIN tb_funcionario f ON f.id_funcionario = s.tb_funcionario_id_funcionario
+       JOIN tb_epi epi        ON epi.id_epi = s.tb_epi_id_epi
+       WHERE f.tb_empresa_id_empresa = ? AND s.st_solicitacao = 'P'
+       ORDER BY s.dt_solicitacao`,
+      [empresa]
+    );
+
+    return res.status(200).json(solicitacoes);
+
+  } catch (err) {
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+}
+
+// ADMIN aprova ou recusa uma solicitação (uma rota, decisão no body)
+async function responderSolicitacao(req, res) {
+  const id_solicitacao = req.params.id;   // da URL
+  const { decisao } = req.body;           // 'A' (aprovar) ou 'R' (recusar)
+  const empresa = req.usuario.empresa;
+
+  // Só aceita valores válidos do domínio (mesma filosofia do ENUM: nada fora disso)
+  if (decisao !== 'A' && decisao !== 'R') {
+    return res.status(400).json({ erro: "Decisão inválida. Use 'A' (aprovar) ou 'R' (recusar)." });
+  }
+
+  try {
+    // Segurança: a solicitação precisa existir, ser DESTA empresa e ainda estar PENDENTE
+    const [solics] = await db.query(
+      `SELECT s.id_solicitacao, s.st_solicitacao
+       FROM tb_solicitacao s
+       JOIN tb_funcionario f ON f.id_funcionario = s.tb_funcionario_id_funcionario
+       WHERE s.id_solicitacao = ? AND f.tb_empresa_id_empresa = ?`,
+      [id_solicitacao, empresa]
+    );
+
+    if (solics.length === 0) {
+      return res.status(404).json({ erro: 'Solicitação não encontrada para esta empresa.' });
+    }
+    if (solics[0].st_solicitacao !== 'P') {
+      return res.status(409).json({ erro: 'Esta solicitação já foi respondida.' });
+    }
+
+    // A checagem st_solicitacao !== 'P' evita "responder duas vezes" (aprovar uma solicitação já recusada, por exemplo).
+
+    // Atualiza o status (Opção A: só decide, não gera entrega)
+    await db.query(
+      'UPDATE tb_solicitacao SET st_solicitacao = ? WHERE id_solicitacao = ?',
+      [decisao, id_solicitacao]
+    );
+
+    const msg = decisao === 'A' ? 'Solicitação aprovada.' : 'Solicitação recusada.';
+    return res.status(200).json({ mensagem: msg });
+
+  } catch (err) {
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+}
+
+module.exports = { criarSolicitacao, listarMinhasSolicitacoes, listarPendentes, responderSolicitacao };
