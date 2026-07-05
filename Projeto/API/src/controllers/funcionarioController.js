@@ -178,4 +178,47 @@ async function inativarFuncionario(req, res) {
   }
 }
 
-module.exports = { entrarEmpresa, completarCadastro, listarFuncionarios, inativarFuncionario };
+// ADMIN edita um funcionário (nome, sobrenome e setor) — setor pode ficar vazio (desvincula)
+async function editarFuncionario(req, res) {
+  const id_funcionario = req.params.id;
+  const { nome, sobrenome, setor } = req.body;
+  const empresa = req.usuario.empresa;
+
+  if (!nome || !sobrenome) {
+    return res.status(400).json({ erro: 'Informe nome e sobrenome.' });
+  }
+
+  try {
+    // O funcionário precisa ser desta empresa (isolamento)
+    const [funcs] = await db.query(
+      'SELECT id_funcionario FROM tb_funcionario WHERE id_funcionario = ? AND tb_empresa_id_empresa = ?',
+      [id_funcionario, empresa]
+    );
+    if (funcs.length === 0) {
+      return res.status(404).json({ erro: 'Funcionário não encontrado para esta empresa.' });
+    }
+
+    // Se informou setor, ele precisa ser desta empresa. Vazio = desvincular (null).
+    if (setor) {
+      const [setores] = await db.query(
+        'SELECT id_setor FROM tb_setor WHERE id_setor = ? AND tb_empresa_id_empresa = ?',
+        [setor, empresa]
+      );
+      if (setores.length === 0) {
+        return res.status(400).json({ erro: 'Setor inválido para esta empresa.' });
+      }
+    }
+
+    await db.query(
+      'UPDATE tb_funcionario SET nm_funcionario = ?, sobrenome_funcionario = ?, tb_setor_id_setor = ? WHERE id_funcionario = ?',
+      [nome, sobrenome, setor || null, id_funcionario]
+    );
+
+    return res.status(200).json({ mensagem: 'Funcionário atualizado com sucesso.' });
+
+  } catch (err) {
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+}
+
+module.exports = { entrarEmpresa, completarCadastro, listarFuncionarios, inativarFuncionario, editarFuncionario };

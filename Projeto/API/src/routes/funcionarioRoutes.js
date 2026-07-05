@@ -15,4 +15,7 @@ router.get('/listar', autenticar, exigirEmpresa, exigirAdmin, funcionarioControl
 // ADMIN inativa um funcionário (exclusão lógica)
 router.put('/:id/inativar', autenticar, exigirEmpresa, exigirAdmin, funcionarioController.inativarFuncionario);
 
+// ADMIN edita um funcionário
+router.put('/:id', autenticar, exigirEmpresa, exigirAdmin, funcionarioController.editarFuncionario);
+
 module.exports = router;

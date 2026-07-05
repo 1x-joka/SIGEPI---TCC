@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../estilos/style.css">
   <script src="../scripts/script.js" defer></script>
 </head>
-<body class="layout-flex">
+<body class="layout-flex" data-protegida>
   <header class="header">
     <div class="logo-wrap">
       <span class="logo-title">SIGEPI</span>
@@ -54,23 +54,10 @@
             <thead>
               <tr>
                 <th>Nome do Funcionário</th><th>Setor</th>
-                <th>EPIs</th><th>Status</th><th>Solicitação</th>
+                <th>EPIs</th><th>Status</th><th>Ações</th>
               </tr>
             </thead>
-            <tbody id="tbody-func">
-              <tr data-status="OK" data-nome="Davi Delmondes Machado" data-setor="Pintura" data-cpf="123.456.789-00" data-epis="3">
-                <td>Davi Delmondes Machado</td><td>Pintura</td><td>3</td><td>OK</td><td>---</td>
-              </tr>
-              <tr class="row-yellow" data-status="IRREGULAR" data-nome="Joaquim Pereira Lima" data-setor="Acabamento" data-cpf="987.654.321-00" data-epis="3">
-                <td>Joaquim Pereira Lima</td><td>Acabamento</td><td>3</td><td>IRREGULAR</td><td>Luva de Raspa/Couro</td>
-              </tr>
-              <tr class="row-red" data-status="VENCIDO" data-nome="Igor de Oliveira Bernardo" data-setor="Pintura" data-cpf="111.222.333-00" data-epis="3">
-                <td>Igor de Oliveira Bernardo</td><td>Pintura</td><td>3</td><td>VENCIDO</td><td>Capacete</td>
-              </tr>
-              <tr class="row-red" data-status="SEM EPI" data-nome="João Pedro Bernardes Cardoso" data-setor="Acabamento" data-cpf="444.555.666-00" data-epis="0">
-                <td>João Pedro Bernardes Cardoso</td><td>Acabamento</td><td>0</td><td>SEM EPI</td><td>Óculos</td>
-              </tr>
-            </tbody>
+            <tbody id="tbody-func"></tbody>
           </table>
         </div>
 
@@ -179,5 +166,32 @@
       </div>
     </div>
   </div>
+
+  <!-- POPUP: EDITAR FUNCIONÁRIO -->
+<div class="modal-overlay" id="modal-editar" onclick="fecharSeOverlay(event,'modal-editar')">
+  <div class="modal modal--md">
+    <h2>Editar Funcionário</h2>
+    <input type="hidden" id="editar-id">
+    <div class="form-group">
+      <label>Nome <span class="req">*</span></label>
+      <input type="text" id="editar-nome">
+    </div>
+    <div class="form-group">
+      <label>Sobrenome <span class="req">*</span></label>
+      <input type="text" id="editar-sobrenome">
+    </div>
+    <div class="form-group">
+      <label>Setor</label>
+      <div class="select-wrap">
+        <select id="editar-setor"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="salvarEdicao()">Salvar</button>
+      <button class="btn btn-outline" onclick="fecharModal('modal-editar')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

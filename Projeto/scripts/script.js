@@ -394,20 +394,42 @@ async function adicionarSetor() {
 function renderSetoresEmpresa() {
   const lista = document.getElementById('setores-lista');
   if (!lista) return;
-  lista.innerHTML = ''; // limpa a lista antes de redesenhar
+  lista.innerHTML = '';
 
   setoresEmpresa.forEach(setor => {
-    // BLINDAGEM XSS: createElement + textContent, NUNCA innerHTML com dados do usuário, trata o nome como texto puro, ou seja, até mesmo um img aparecerá como texto literal, inofensivo
     const item = document.createElement('div');
     item.className = 'setor-item';
 
     const nome = document.createElement('span');
     nome.className = 'nome';
-    nome.textContent = setor.nm_setor; // texto puro: um "nome" malicioso não vira código
+    nome.textContent = setor.nm_setor; // BLINDAGEM XSS: createElement + textContent, NUNCA innerHTML com dados do usuário, trata o nome como texto puro, ou seja, até mesmo um img aparecerá como texto literal, inofensivo
+
+    const btn = document.createElement('button');
+    btn.className = 'btn-rm';
+    btn.textContent = '✕';
+    btn.onclick = () => removerSetor(setor.id_setor);
 
     item.appendChild(nome);
+    item.appendChild(btn);
     lista.appendChild(item);
   });
+}
+
+async function removerSetor(idSetor) {
+  if (!confirm('Deseja realmente excluir este setor?')) return;
+  try {
+    const resposta = await fetchAutenticado(`/setor/${idSetor}`, { method: 'DELETE' });
+    if (!resposta) return;
+    const dados = await resposta.json();
+    if (resposta.ok) {
+      await carregarSetores();
+    } else {
+      // Ex.: 409 (setor com funcionários) — mostra a mensagem da trava
+      alert(dados.erro || 'Não foi possível excluir o setor.');
+    }
+  } catch (err) {
+    alert('Não foi possível conectar ao servidor.');
+  }
 }
 
 async function avancar() {
@@ -948,6 +970,120 @@ document.addEventListener('DOMContentLoaded', function () {
     renderSetoresSecao();
   }
 });
+
+// ============================================================
+//  funcionarios.html  (integração: listar + editar)
+// ============================================================
+let funcionariosCache = [];
+
+async function carregarFuncionarios() {
+  const tbody = document.getElementById('tbody-func');
+  if (!tbody) return; // só roda na página de funcionários
+  try {
+    const resposta = await fetchAutenticado('/funcionario/listar');
+    if (!resposta) return;
+    if (resposta.ok) {
+      funcionariosCache = await resposta.json();
+      renderFuncionarios();
+    }
+  } catch (err) {
+    alert('Não foi possível carregar os funcionários.');
+  }
+}
+document.addEventListener('DOMContentLoaded', carregarFuncionarios);
+
+function renderFuncionarios() {
+  const tbody = document.getElementById('tbody-func');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  funcionariosCache.forEach(f => {
+    const nomeCompleto = `${f.nm_funcionario} ${f.sobrenome_funcionario || ''}`.trim();
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-nome', nomeCompleto);
+    tr.setAttribute('data-status', f.st_funcionario);
+
+    const tdNome = document.createElement('td');
+    tdNome.textContent = nomeCompleto;                       // XSS-safe
+
+    const tdSetor = document.createElement('td');
+    tdSetor.textContent = f.nm_setor || 'Sem setor';
+
+    const tdEpis = document.createElement('td');
+    tdEpis.textContent = '—';
+
+    const tdStatus = document.createElement('td');
+    tdStatus.textContent = f.st_funcionario === 'A' ? 'Ativo' : 'Inativo';
+
+    const tdAcao = document.createElement('td');
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-outline';
+    btn.textContent = 'Editar';
+    btn.onclick = () => abrirEditar(f.id_funcionario);
+    tdAcao.appendChild(btn);
+
+    tr.append(tdNome, tdSetor, tdEpis, tdStatus, tdAcao);
+    tbody.appendChild(tr);
+  });
+}
+
+async function abrirEditar(id) {
+  const f = funcionariosCache.find(x => x.id_funcionario === id);
+  if (!f) return;
+
+  document.getElementById('editar-id').value = f.id_funcionario;
+  document.getElementById('editar-nome').value = f.nm_funcionario;
+  document.getElementById('editar-sobrenome').value = f.sobrenome_funcionario || '';
+
+  // Popular o select com os setores da empresa + opção "Sem setor"
+  const select = document.getElementById('editar-setor');
+  select.innerHTML = '<option value="">Sem setor</option>';
+  try {
+    const resp = await fetchAutenticado('/setor/listar');
+    if (resp && resp.ok) {
+      const setores = await resp.json();
+      setores.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id_setor;
+        opt.textContent = s.nm_setor;
+        if (s.nm_setor === f.nm_setor) opt.selected = true; // pré-seleciona o atual
+        select.appendChild(opt);
+      });
+    }
+  } catch (err) {}
+
+  abrirModal('modal-editar');
+}
+
+async function salvarEdicao() {
+  const id = document.getElementById('editar-id').value;
+  const nome = document.getElementById('editar-nome').value.trim();
+  const sobrenome = document.getElementById('editar-sobrenome').value.trim();
+  const setorVal = document.getElementById('editar-setor').value;
+  const setor = setorVal ? parseInt(setorVal) : null; // vazio = desvincular
+
+  if (!nome || !sobrenome) {
+    alert('Informe nome e sobrenome.');
+    return;
+  }
+
+  try {
+    const resposta = await fetchAutenticado(`/funcionario/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ nome, sobrenome, setor })
+    });
+    if (!resposta) return;
+    const dados = await resposta.json();
+    if (resposta.ok) {
+      fecharModal('modal-editar');
+      await carregarFuncionarios();
+    } else {
+      alert(dados.erro || 'Erro ao editar funcionário.');
+    }
+  } catch (err) {
+    alert('Não foi possível conectar ao servidor.');
+  }
+}
 
 // ============================================================
 //  COMENTÁRIOS

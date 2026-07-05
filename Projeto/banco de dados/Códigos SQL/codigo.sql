@@ -193,19 +193,3 @@ values
 -- Colocando a column "dt_validade_ca" para que, na dashboard, tenha uma contagem de quantos estão ativos, em validade, etc.
 alter table tb_epi
 add dt_validade_ca date;
-
-select * from tb_usuario;
-select * from tb_empresa;
-select * from tb_epi;
-select * from tb_categoria;
-SELECT * FROM tb_estoque;
-SELECT * FROM tb_movimentacao;
-SELECT id_empresa, nm_empresa, codigo_empresa FROM db_SIGEPI.tb_empresa;
-select * from tb_funcionario;
-SELECT id_estoque, qtd_disponivel_estoque FROM tb_estoque;
-SELECT id_entrega, st_entrega, dt_devolucao FROM tb_entrega;
-SELECT id_solicitacao, st_solicitacao, dt_previsao, desc_motivo_solicitacao FROM tb_solicitacao;
-SELECT id_solicitacao, st_solicitacao FROM tb_solicitacao;
-SELECT id_funcionario, st_funcionario, motivo_inativacao_funcionario, data_inativacao FROM tb_funcionario;
-SELECT id_usuario, st_usuario FROM db_SIGEPI.tb_usuario
-WHERE nm_usuario = 'Ana Funcionaria';

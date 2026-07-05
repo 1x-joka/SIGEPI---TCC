@@ -52,4 +52,38 @@ async function listarSetores(req, res) {
     }
 }
 
-module.exports = { cadastrarSetor, listarSetores};
+// ADMIN exclui um setor — BLOQUEIA se houver funcionário vinculado (integridade)
+async function deletarSetor(req, res) {
+  const id_setor = req.params.id;
+  const empresa = req.usuario.empresa;
+
+  try {
+    // O setor precisa ser desta empresa
+    const [setores] = await db.query(
+      'SELECT id_setor FROM tb_setor WHERE id_setor = ? AND tb_empresa_id_empresa = ?',
+      [id_setor, empresa]
+    );
+    if (setores.length === 0) {
+      return res.status(404).json({ erro: 'Setor não encontrado para esta empresa.' });
+    }
+
+    // TRAVA: não excluir se houver funcionário no setor
+    const [funcs] = await db.query(
+      'SELECT COUNT(*) AS total FROM tb_funcionario WHERE tb_setor_id_setor = ?',
+      [id_setor]
+    );
+    if (funcs[0].total > 0) {
+      return res.status(409).json({
+        erro: `Não é possível excluir: há ${funcs[0].total} funcionário(s) neste setor. Altere o setor deles primeiro.`
+      });
+    }
+
+    await db.query('DELETE FROM tb_setor WHERE id_setor = ?', [id_setor]);
+    return res.status(200).json({ mensagem: 'Setor excluído com sucesso.' });
+
+  } catch (err) {
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+}
+
+module.exports = { cadastrarSetor, listarSetores, deletarSetor };
