@@ -4,6 +4,13 @@
 
 const API_URL = 'http://localhost:3000/api';
 
+// SEGURANÇA: páginas com "data-protegida" no <body> exigem login. Sem token, volta ao login.
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.body.hasAttribute('data-protegida') && !localStorage.getItem('token')) {
+    window.location.href = 'loginpage.html';
+  }
+});
+
 // ============================================================
 //  UTILITÁRIOS GLOBAIS
 // ============================================================
@@ -264,9 +271,52 @@ function previewLogo(event) {
   reader.readAsDataURL(file);
 }
 
-function cadastrarEmpresa() {
-  // Em produção: POST /api/empresa
-  window.location.href = 'setores-empresa.html';
+async function cadastrarEmpresa() {
+  const nome = document.getElementById('nome')?.value.trim();
+  const email = document.getElementById('email')?.value.trim();
+  const cnpj = document.getElementById('cnpj')?.value.trim();
+  const responsavel = document.getElementById('responsavel')?.value.trim();
+  const setor = document.getElementById('setor')?.value.trim();
+  const telefone = document.getElementById('telefone')?.value.trim();
+
+  if (!nome || !email || !cnpj || !responsavel || !telefone || !setor) {
+    alert('Preencha todos os campos obrigatórios.');
+    return;
+  }
+
+  // Lê o "crachá" guardado no login
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('Sessão expirada. Faça login novamente.');
+    window.location.href = 'loginpage.html';
+    return;
+  }
+
+  try {
+    const resposta = await fetch(`${API_URL}/empresa/cadastrar`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token   // mandar o token pro back, só que forma automática
+      },
+      body: JSON.stringify({ nome, cnpj, responsavel, email, telefone, setor })
+    });
+
+    const dados = await resposta.json();
+
+    if (resposta.ok) {
+      const campoCodigo = document.getElementById('codigo');
+      if (campoCodigo) campoCodigo.value = dados.codigo;
+      alert('Empresa cadastrada com sucesso!\nCódigo da empresa: ' + dados.codigo +
+            '\nAnote e compartilhe com seus funcionários.');
+      window.location.href = 'setores-empresa.html';
+    } else {
+      // Ex.: 409 (CNPJ já cadastrado), 401/403 (token inválido)
+      alert(dados.erro || 'Erro ao cadastrar empresa.');
+    }
+  } catch (err) {
+    alert('Não foi possível conectar ao servidor. Verifique se a API está rodando.');
+  }
 }
 
 
