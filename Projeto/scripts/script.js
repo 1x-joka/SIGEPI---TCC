@@ -1,4 +1,10 @@
 // ============================================================
+//  INTEGRAÇÃO AO FRONT-END
+// ============================================================
+
+const API_URL = 'http://localhost:3000/api';
+
+// ============================================================
 //  UTILITÁRIOS GLOBAIS
 // ============================================================
 
@@ -35,13 +41,11 @@ function setErro(id, mostrar) {
 //  loginpage.html
 // ============================================================
 
-function fazerLogin() {
+async function fazerLogin() {
   const email = document.getElementById('email')?.value;
   const senha = document.getElementById('senha')?.value;
   const erro  = document.getElementById('email-error');
-  if (!erro){
-    return;
-  }
+  if (!erro) return;
 
   if (!email || !senha) {
     erro.textContent = 'Preencha todos os campos.';
@@ -49,9 +53,31 @@ function fazerLogin() {
     return;
   }
 
-  // Em produção: POST /api/login
-  erro.classList.remove('show');
-  window.location.href = 'home.html';
+  try {
+    const resposta = await fetch(`${API_URL}/auth/login`, { // await fetch(url, {...}) = dispara a requisição. É a versão do navegador do mesmo fetch do back-end. await porque a resposta demora (vai e volta pela rede).
+      // Aqui os mesmos que se configura no Postman (method, headers (Content-Type: application/json é o que se marca em "raw → JSON") e body (JSON.stringify({...}) é o JSON que se digita na aba Body))
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, senha })
+    });
+
+    const dados = await resposta.json(); // await resposta.json() = lê o JSON que a API devolveu (a mensagem, o token, etc.).
+
+    if (resposta.ok) { // Se o status foi 2xx (200/201). É o front reagindo aos status codes que os controllers definiram: sucesso → segue; erro → mostra a mensagem.
+      // Guarda o "crachá" (token) e os dados do usuário para as próximas telas
+      localStorage.setItem('token', dados.token); // Guarda o token do usuário no próprio navegador, ou seja, quando você transita entre telas o seu token continua guardado lá para ser usado nas outras páginas (empresa, EPI, etc.). O front vai ler esse token e mandar pra aba "Authorization" no Postman, é o ctrl c + ctrl v automático
+      localStorage.setItem('usuario', JSON.stringify(dados.usuario));
+      erro.classList.remove('show');
+      window.location.href = 'home.html';
+    } else {
+      // 401 (credenciais inválidas) ou 403 (conta bloqueada/inativada)
+      erro.textContent = dados.erro || 'E-mail ou senha incorretos.';
+      erro.classList.add('show');
+    }
+  } catch (err) { // Pega o caso do servidor desligado
+    erro.textContent = 'Não foi possível conectar ao servidor.';
+    erro.classList.add('show');
+  }
 }
 
 document.addEventListener('keydown', function (e) {
@@ -67,11 +93,12 @@ document.addEventListener('keydown', function (e) {
 
 function iniciarMascaraCPF() {
   const cpfInput = document.getElementById('cpf');
-  if (!cpfInput){
+  if (!cpfInput) {
     return;
   }
   cpfInput.addEventListener('input', function () {
     let v = this.value.replace(/\D/g, '');
+
     v = v.replace(/(\d{3})(\d)/, '$1.$2');
     v = v.replace(/(\d{3})(\d)/, '$1.$2');
     v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
@@ -84,13 +111,17 @@ function iniciarMascaraTelefone() {
   inputs.forEach(input => {
     input.addEventListener('input', function () {
       let v = this.value.replace(/\D/g, '').substring(0, 11);
+
       if (v.length > 10) {
         v = v.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-      } else if (v.length > 6) {
+      }
+      else if (v.length > 6) {
         v = v.replace(/^(\d{2})(\d{4})(\d+)/, '($1) $2-$3');
-      } else if (v.length > 2) {
+      }
+      else if (v.length > 2) {
         v = v.replace(/^(\d{2})(\d+)/, '($1) $2');
-      } else if (v.length > 0) {
+      }
+      else if (v.length > 0) {
         v = v.replace(/^(\d+)/, '($1');
       }
       this.value = v;
@@ -98,7 +129,7 @@ function iniciarMascaraTelefone() {
   });
 }
 
-function cadastrar() {
+async function cadastrar() {
   const nome = document.getElementById('nome')?.value.trim();
   const email = document.getElementById('email')?.value.trim();
   const senha = document.getElementById('senha')?.value;
@@ -106,25 +137,34 @@ function cadastrar() {
   let valid = true;
 
   setErro('nome-error',  !nome);
-  if (!nome){
-    valid = false;
-  }
+  if (!nome) valid = false;
   setErro('email-error', !email || !email.includes('@'));
-  if (!email || !email.includes('@')){
-    valid = false;
-  }
+  if (!email || !email.includes('@')) valid = false;
   setErro('senha-error', senha.length < 8);
-  if (senha.length < 8){
-    valid = false;
-  }
+  if (senha.length < 8) valid = false;
   setErro('cpf-error', cpf.replace(/\D/g,'').length < 11);
-    if (cpf.replace(/\D/g,'').length < 11){
-      valid = false;
-    }
+  if (cpf.replace(/\D/g,'').length < 11) valid = false;
 
-  if (valid) {
-    // Em produção: POST /api/cadastro
-    window.location.href = 'loginpage.html';
+  if (!valid) return;
+
+  try {
+    const resposta = await fetch(`${API_URL}/auth/cadastrar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, email, senha, cpf })
+    });
+
+    const dados = await resposta.json();
+
+    if (resposta.ok) {
+      alert('Cadastro realizado com sucesso! Faça login para continuar.');
+      window.location.href = 'loginpage.html';
+    } else {
+      // Ex.: 409 (e-mail/CPF já cadastrado) ou 400 (campos)
+      alert(dados.erro || 'Erro ao cadastrar.');
+    }
+  } catch (err) {
+    alert('Não foi possível conectar ao servidor. Verifique se a API está rodando.');
   }
 }
 
@@ -812,3 +852,13 @@ document.addEventListener('DOMContentLoaded', function () {
     renderSetoresSecao();
   }
 });
+
+// ============================================================
+//  COMENTÁRIOS
+// ============================================================
+
+// --> JSON.stringify no front → vira req.body no back; res.status().json() no back → vira resposta.json() no front.
+
+// --> Proteção contra SQL Injection: no back-end, usa-se prepared statements (?) nas queries (requisições no banco de dados)
+
+// --> Usar LocalStorage para guardar o token não é inseguro? o localStorage só é vulnerável se existir uma porta de entrada: um ataque de XSS (Cross-Site Scripting). Mas um sistema com XSS é vulnerável por quaisquer formas, não só localStorage, mesmo com cookies httpOnly. O cookie httpOnly protege o token de ser lido, mas não impede o atacante de usar a sessão que já está aberta. Trrocar localStorage por cookie httpOnly reduz o dano do XSS, mas não é a defesa principal. A defesa principal é não ter XSS. E o SIGEPI blinda contra XSS já embutida na integração, usando textContent em vez de innerHTML de propósito em telas que exibem dados do usuário (listar setores, funcionários, EPIs, etc.) e prepared statements (os ?) no back-end contra injeção.
