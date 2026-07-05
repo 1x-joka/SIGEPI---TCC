@@ -11,6 +11,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// Helper: faz fetch já com o token do login no cabeçalho. Reaproveitável em toda tela protegida.
+async function fetchAutenticado(endpoint, opcoes = {}) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.href = 'loginpage.html';
+    return null;
+  }
+  const cabecalhos = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ' + token,
+    ...(opcoes.headers || {})
+  };
+  return fetch(`${API_URL}${endpoint}`, { ...opcoes, headers: cabecalhos });
+}
+
 // ============================================================
 //  UTILITÁRIOS GLOBAIS
 // ============================================================
@@ -324,52 +339,83 @@ async function cadastrarEmpresa() {
 //  setores-empresa.html
 // ============================================================
 
-const setoresLista = [];
+// Guarda os setores vindos da API (cada um com id_setor e nm_setor)
+let setoresEmpresa = [];
 
-function adicionarSetor() {
+// Ao abrir a página de setores, carrega os que já existem no banco
+async function carregarSetores() {
+  const lista = document.getElementById('setores-lista');
+  if (!lista) return; // só roda na página que tem essa lista
+
+  try {
+    const resposta = await fetchAutenticado('/setor/listar');
+    if (!resposta) return;
+    if (resposta.ok) {
+      setoresEmpresa = await resposta.json();
+      renderSetoresEmpresa();
+    }
+  } catch (err) {
+    alert('Não foi possível carregar os setores.');
+  }
+}
+document.addEventListener('DOMContentLoaded', carregarSetores);
+
+async function adicionarSetor() {
   const input = document.getElementById('input-setor');
   const erro = document.getElementById('setor-error');
-  if (!input) {
-    return
-  };
+  if (!input) return;
   const nome = input.value.trim();
-  if (!nome){
-    return
-  };
+  if (!nome) return;
 
-  if (setoresLista.includes(nome.toLowerCase())) {
-    erro?.classList.add('show');
-    return;
+  try {
+    const resposta = await fetchAutenticado('/setor/cadastrar', {
+      method: 'POST',
+      body: JSON.stringify({ nome })
+    });
+    if (!resposta) return;
+    const dados = await resposta.json();
+
+    if (resposta.ok) {
+      erro?.classList.remove('show');
+      input.value = '';
+      await carregarSetores(); // recarrega a lista atualizada do banco
+    } else {
+      // Ex.: 409 (setor já existe nesta empresa)
+      if (erro) {
+        erro.textContent = dados.erro || 'Erro ao adicionar setor.';
+        erro.classList.add('show');
+      }
+    }
+  } catch (err) {
+    alert('Não foi possível conectar ao servidor.');
   }
-  erro?.classList.remove('show');
-  setoresLista.push(nome.toLowerCase());
-  renderSetoresEmpresa();
-  input.value = '';
-}
-
-function removerSetor(idx) {
-  setoresLista.splice(idx, 1);
-  renderSetoresEmpresa();
 }
 
 function renderSetoresEmpresa() {
   const lista = document.getElementById('setores-lista');
-  if (!lista){
-    return;
-  }
-  lista.innerHTML = setoresLista.map((s, i) => `
-    <div class="setor-item">
-      <span class="nome">${s.charAt(0).toUpperCase() + s.slice(1)}</span>
-      <button class="btn-rm" onclick="removerSetor(${i})">✕</button>
-    </div>
-  `).join('');
+  if (!lista) return;
+  lista.innerHTML = ''; // limpa a lista antes de redesenhar
+
+  setoresEmpresa.forEach(setor => {
+    // BLINDAGEM XSS: createElement + textContent, NUNCA innerHTML com dados do usuário, trata o nome como texto puro, ou seja, até mesmo um img aparecerá como texto literal, inofensivo
+    const item = document.createElement('div');
+    item.className = 'setor-item';
+
+    const nome = document.createElement('span');
+    nome.className = 'nome';
+    nome.textContent = setor.nm_setor; // texto puro: um "nome" malicioso não vira código
+
+    item.appendChild(nome);
+    lista.appendChild(item);
+  });
 }
 
-function avancar() {
-  if (setoresLista.length === 0) {
+async function avancar() {
+  if (setoresEmpresa.length === 0) {
     alert('Adicione pelo menos um setor antes de continuar.');
     return;
   }
+  window.location.href = 'home.html';
 }
 
 // ============================================================
