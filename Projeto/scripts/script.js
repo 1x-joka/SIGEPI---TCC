@@ -86,11 +86,20 @@ async function fazerLogin() {
     const dados = await resposta.json(); // await resposta.json() = lê o JSON que a API devolveu (a mensagem, o token, etc.).
 
     if (resposta.ok) { // Se o status foi 2xx (200/201). É o front reagindo aos status codes que os controllers definiram: sucesso → segue; erro → mostra a mensagem.
-      // Guarda o "crachá" (token) e os dados do usuário para as próximas telas
       localStorage.setItem('token', dados.token); // Guarda o token do usuário no próprio navegador, ou seja, quando você transita entre telas o seu token continua guardado lá para ser usado nas outras páginas (empresa, EPI, etc.). O front vai ler esse token e mandar pra aba "Authorization" no Postman, é o ctrl c + ctrl v automático
       localStorage.setItem('usuario', JSON.stringify(dados.usuario));
       erro.classList.remove('show');
-      window.location.href = 'home.html';
+
+      const u = dados.usuario;
+      if (u.tipo === 1) {
+        // ADMIN: sem empresa -> cadastrar; com empresa -> dashboard
+        window.location.href = u.empresa ? 'dashboard.html' : 'cadastrar-empresa.html';
+      } else {
+        // FUNCIONÁRIO: sem empresa -> código; com empresa e sem completar -> completar; senão -> meus EPIs
+        if (!u.empresa) window.location.href = 'entrar-empresa.html';
+        else if (!u.completou) window.location.href = 'complementar-funcionario.html';
+        else window.location.href = 'meus-equipamentos.html';
+      }
     } else {
       // 401 (credenciais inválidas) ou 403 (conta bloqueada/inativada)
       erro.textContent = dados.erro || 'E-mail ou senha incorretos.';
@@ -156,6 +165,7 @@ async function cadastrar() {
   const email = document.getElementById('email')?.value.trim();
   const senha = document.getElementById('senha')?.value;
   const cpf = document.getElementById('cpf')?.value.trim();
+  const tipo = document.getElementById('tipo')?.value;
   let valid = true;
 
   setErro('nome-error',  !nome);
@@ -166,6 +176,8 @@ async function cadastrar() {
   if (senha.length < 8) valid = false;
   setErro('cpf-error', cpf.replace(/\D/g,'').length < 11);
   if (cpf.replace(/\D/g,'').length < 11) valid = false;
+  setErro('tipo-error', !tipo);
+  if (!tipo) valid = false;
 
   if (!valid) return;
 
@@ -173,7 +185,7 @@ async function cadastrar() {
     const resposta = await fetch(`${API_URL}/auth/cadastrar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, email, senha, cpf })
+      body: JSON.stringify({ nome, email, senha, cpf, tipo: parseInt(tipo) })
     });
 
     const dados = await resposta.json();
@@ -219,26 +231,26 @@ function recusar() {
 //  entrar-empresa.html
 // ============================================================
 
-function entrarEmpresa() {
+async function entrarEmpresa() {
   const codigo = document.getElementById('codigo')?.value.trim();
   const erro = document.getElementById('codigo-error');
-  if (!erro){
-    return;
-  }
+  if (!codigo) { if (erro){ erro.textContent='Digite o código.'; erro.classList.add('show'); } return; }
 
-  if (!codigo) {
-    erro.textContent = 'Digite o código da empresa.';
-    erro.classList.add('show');
-    return;
-  }
-
-  // Em produção: GET /api/empresa/:codigo
-  if (codigo.length >= 4) {
-    erro.classList.remove('show');
-    window.location.href = 'complementar-funcionario.html';
-  } else {
-    erro.textContent = 'Código não encontrado. Verifique e tente novamente.';
-    erro.classList.add('show');
+  try {
+    const resposta = await fetchAutenticado('/funcionario/entrar', {
+      method: 'POST',
+      body: JSON.stringify({ codigo })
+    });
+    if (!resposta) return;
+    const dados = await resposta.json();
+    if (resposta.ok) {
+      erro?.classList.remove('show');
+      window.location.href = 'complementar-funcionario.html';
+    } else {
+      if (erro) { erro.textContent = dados.erro || 'Código inválido.'; erro.classList.add('show'); }
+    }
+  } catch (err) {
+    if (erro) { erro.textContent = 'Não foi possível conectar ao servidor.'; erro.classList.add('show'); }
   }
 }
 
@@ -437,7 +449,54 @@ async function avancar() {
     alert('Adicione pelo menos um setor antes de continuar.');
     return;
   }
-  window.location.href = 'home.html';
+  window.location.href = 'dashboard.html';
+}
+
+// Carrega os setores DA EMPRESA no select (só na página de complementar)
+async function carregarSetoresComplementar() {
+  const select = document.getElementById('setor');
+  if (!select || !document.querySelector('.card-complementar')) return;
+  try {
+    const resp = await fetchAutenticado('/setor/listar');
+    if (resp && resp.ok) {
+      const setores = await resp.json();
+      setores.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id_setor;
+        opt.textContent = s.nm_setor; // XSS-safe
+        select.appendChild(opt);
+      });
+    }
+  } catch (err) {}
+}
+document.addEventListener('DOMContentLoaded', carregarSetoresComplementar);
+
+async function avancarComplementar() {
+  const setor = document.getElementById('setor')?.value;
+  const nascimento = document.getElementById('nascimento')?.value;
+  const setorErro = document.getElementById('setor-error');
+  const nascErro = document.getElementById('nasc-error');
+
+  let ok = true;
+  if (!setor) { setorErro?.classList.add('show'); ok = false; } else setorErro?.classList.remove('show');
+  if (!nascimento) { nascErro?.classList.add('show'); ok = false; } else nascErro?.classList.remove('show');
+  if (!ok) return;
+
+  try {
+    const resposta = await fetchAutenticado('/funcionario/completar', {
+      method: 'POST',
+      body: JSON.stringify({ setor: parseInt(setor), dataNascimento: nascimento })
+    });
+    if (!resposta) return;
+    const dados = await resposta.json();
+    if (resposta.ok) {
+      window.location.href = 'meus-equipamentos.html';
+    } else {
+      alert(dados.erro || 'Erro ao completar cadastro.');
+    }
+  } catch (err) {
+    alert('Não foi possível conectar ao servidor.');
+  }
 }
 
 // ============================================================

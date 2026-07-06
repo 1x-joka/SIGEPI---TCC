@@ -3,6 +3,15 @@ const db = require('../config/db');
 async function cadastrarEmpresa(req, res) {
   const { nome, cnpj, responsavel, email, telefone, setor } = req.body;
 
+  if (req.usuario.tipo !== 1) {
+    return res.status(403).json({ erro: 'Apenas administradores podem cadastrar empresa.' });
+  }
+
+  // Impedindo de ter uma segunda empresa cadastrada
+  if (req.usuario.empresa) {
+    return res.status(409).json({ erro: 'Você já possui uma empresa vinculada.' });
+  }
+
   if (!nome || !cnpj || !responsavel || !email || !telefone) {
     return res.status(400).json({ erro: 'Preencha todos os campos obrigatórios.' });
   }

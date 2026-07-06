@@ -5,10 +5,15 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 async function cadastrar(req, res) {
-  const { nome, email, senha, cpf } = req.body;
+  const { nome, email, senha, cpf, tipo } = req.body;
 
   if (!nome || !email || !senha || !cpf) {
     return res.status(400).json({ erro: 'Preencha todos os campos.' });
+  }
+
+  const tipoNum = parseInt(tipo);
+  if (tipoNum !== 1 && tipoNum !== 2) {
+    return res.status(400).json({ erro: 'Selecione o tipo de conta.' });
   }
 
   try {
@@ -25,11 +30,11 @@ async function cadastrar(req, res) {
     const hash = await bcrypt.hash(senha, 10);
 
     await db.query(
-  `INSERT INTO tb_usuario 
-    (nm_usuario, email_usuario, senha_usuario, cpf_usuario, st_usuario, dt_cadastro_usuario)
-   VALUES (?, ?, ?, ?, 'A', CURDATE())`,
-  [nome, email, hash, cpf]
-);
+      `INSERT INTO tb_usuario
+        (nm_usuario, email_usuario, senha_usuario, cpf_usuario, st_usuario, dt_cadastro_usuario, tb_tipousuario_id_tipousuario)
+       VALUES (?, ?, ?, ?, 'A', CURDATE(), ?)`,
+      [nome, email, hash, cpf, tipoNum]
+    );
 
     return res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso.' });
 
@@ -67,11 +72,29 @@ async function login(req, res) {
 
     // A ordem importa: colocamos depois de validar a senha de propósito. Assim, quem erra a senha recebe "credenciais inválidas" (sem revelar que a conta existe), e só quem acerta a senha de uma conta inativa é que descobre que está bloqueado. É um detalhe de segurança (não vazar informação a quem nem sabe a senha).
 
+    // Descobre se o funcionário já completou o cadastro (tem linha em tb_funcionario)
+    const [func] = await db.query(
+      'SELECT id_funcionario FROM tb_funcionario WHERE tb_usuario_id_usuario = ?',
+      [usuario.id_usuario]
+    );
+
     const token = jwt.sign(
       { id: usuario.id_usuario, email: usuario.email_usuario },
       process.env.JWT_SECRET,
       { expiresIn: '8h' }
     );
+
+    return res.status(200).json({
+      mensagem: 'Login realizado com sucesso.',
+      token,
+      usuario: {
+        id: usuario.id_usuario,
+        nome: usuario.nm_usuario,
+        tipo: usuario.tb_tipousuario_id_tipousuario, // 1 = admin, 2 = funcionário
+        empresa: usuario.tb_empresa_id_empresa, // null se ainda não tem
+        completou: func.length > 0 // funcionário já completou?
+      }
+    });
 
     return res.status(200).json({
       mensagem: 'Login realizado com sucesso.',

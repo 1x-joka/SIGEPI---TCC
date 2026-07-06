@@ -2,6 +2,10 @@ const db = require('../config/db');
 
 // PASSO 1: funcionário entra na empresa usando o código único recebido do admin
 async function entrarEmpresa(req, res) {
+  if (req.usuario.tipo !== 2) {
+    return res.status(403).json({ erro: 'Apenas funcionários entram em empresa por código.' });
+  }
+
   const { codigo } = req.body;
 
   if (!codigo) {
@@ -43,15 +47,15 @@ async function entrarEmpresa(req, res) {
 
 // PASSO 2: funcionário completa o próprio cadastro (cria a linha em tb_funcionario)
 async function completarCadastro(req, res) {
-  const { nome, sobrenome, dataNascimento, setor } = req.body;
-  const empresa = req.usuario.empresa; // já garantida pelo middleware exigirEmpresa
+  const { dataNascimento, setor } = req.body;
+  const empresa = req.usuario.empresa;
 
-  if (!nome || !sobrenome) {
-    return res.status(400).json({ erro: 'Informe nome e sobrenome.' });
+  if (!setor) {
+    return res.status(400).json({ erro: 'Selecione um setor.' });
   }
 
   try {
-    // Impede completar duas vezes (a FK tb_usuario_id_usuario é UNIQUE no banco)
+    // Impede completar duas vezes
     const [jaExiste] = await db.query(
       'SELECT id_funcionario FROM tb_funcionario WHERE tb_usuario_id_usuario = ?',
       [req.usuario.id]
@@ -60,22 +64,27 @@ async function completarCadastro(req, res) {
       return res.status(409).json({ erro: 'Cadastro de funcionário já concluído.' });
     }
 
-    // Se informou setor, ele PRECISA pertencer à mesma empresa (segurança)
-    if (setor) {
-      const [setores] = await db.query(
-        'SELECT id_setor FROM tb_setor WHERE id_setor = ? AND tb_empresa_id_empresa = ?',
-        [setor, empresa]
-      );
-      if (setores.length === 0) {
-        return res.status(400).json({ erro: 'Setor inválido para esta empresa.' });
-      }
+    // O setor precisa ser da empresa do funcionário (isolamento)
+    const [setores] = await db.query(
+      'SELECT id_setor FROM tb_setor WHERE id_setor = ? AND tb_empresa_id_empresa = ?',
+      [setor, empresa]
+    );
+    if (setores.length === 0) {
+      return res.status(400).json({ erro: 'Setor inválido para esta empresa.' });
     }
+
+    // Nome vem da conta (nm_usuario), definido no cadastro
+    const [usuarios] = await db.query(
+      'SELECT nm_usuario FROM tb_usuario WHERE id_usuario = ?',
+      [req.usuario.id]
+    );
+    const nomeCompleto = usuarios[0].nm_usuario;
 
     const [result] = await db.query(
       `INSERT INTO tb_funcionario
-        (nm_funcionario, sobrenome_funcionario, dt_nascimento_funcionario, st_funcionario, dt_cadastro_funcionario, tb_empresa_id_empresa, tb_setor_id_setor, tb_usuario_id_usuario)
-       VALUES (?, ?, ?, 'A', CURDATE(), ?, ?, ?)`,
-      [nome, sobrenome, dataNascimento || null, empresa, setor || null, req.usuario.id]
+        (nm_funcionario, dt_nascimento_funcionario, st_funcionario, dt_cadastro_funcionario, tb_empresa_id_empresa, tb_setor_id_setor, tb_usuario_id_usuario)
+       VALUES (?, ?, 'A', CURDATE(), ?, ?, ?)`,
+      [nomeCompleto, dataNascimento || null, empresa, setor, req.usuario.id]
     );
 
     return res.status(201).json({
