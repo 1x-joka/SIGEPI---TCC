@@ -471,6 +471,12 @@ async function carregarSetoresComplementar() {
 }
 document.addEventListener('DOMContentLoaded', carregarSetoresComplementar);
 
+
+
+// ============================================================
+//  complementar-funcionario.html
+// ============================================================
+
 async function avancarComplementar() {
   const setor = document.getElementById('setor')?.value;
   const nascimento = document.getElementById('nascimento')?.value;
@@ -498,31 +504,6 @@ async function avancarComplementar() {
     alert('Não foi possível conectar ao servidor.');
   }
 }
-
-// ============================================================
-//  complementar-funcionario.html
-// ============================================================
-
-function avancarComplementar() {
-  const setor = document.getElementById('setor')?.value;
-  const nasc  = document.getElementById('nascimento')?.value;
-  let valid = true;
-
-  setErro('setor-error', !setor);
-  if (!setor) {
-    valid = false;
-  }
-  setErro('nasc-error',  !nasc); 
-  if (!nasc){
-    valid = false;
-  }
-
-  if (valid) {
-    // Em produção: PATCH /api/funcionarios/complementar
-    window.location.href = 'meus-equipamentos.html';
-  }
-}
-
 
 // ============================================================
 //  epis.html
@@ -885,9 +866,35 @@ function previewLogoSecao(event) {
   reader.readAsDataURL(file);
 }
 
-function salvarAlteracoes() {
-  // Em produção: PATCH /api/empresa
-  window.history.back();
+async function carregarSecaoEmpresa() {
+  if (!document.getElementById('secao-nome')) return; // só na secao-empresa
+  try {
+    const resp = await fetchAutenticado('/empresa');
+    if (resp && resp.ok) {
+      const e = await resp.json();
+      document.getElementById('secao-nome').value = e.nm_empresa || '';
+      document.getElementById('secao-cnpj').value = e.cnpj_empresa || '';
+      document.getElementById('secao-codigo').value = e.codigo_empresa || '';
+      document.getElementById('responsavel').value = e.responsavel_empresa || '';
+      document.getElementById('email').value = e.email_empresa || '';
+      document.getElementById('telefone').value = e.tel_empresa || '';
+    }
+  } catch (err) {}
+}
+document.addEventListener('DOMContentLoaded', carregarSecaoEmpresa);
+
+async function salvarAlteracoes() {
+  const responsavel = document.getElementById('responsavel')?.value.trim();
+  const email = document.getElementById('email')?.value.trim();
+  const telefone = document.getElementById('telefone')?.value.trim();
+  try {
+    const resp = await fetchAutenticado('/empresa', {
+      method: 'PUT', body: JSON.stringify({ responsavel, email, telefone })
+    });
+    if (!resp) return;
+    const dados = await resp.json();
+    alert(resp.ok ? 'Alterações salvas com sucesso!' : (dados.erro || 'Erro ao salvar.'));
+  } catch (err) { alert('Não foi possível conectar ao servidor.'); }
 }
 
 // ============================================================
@@ -900,78 +907,62 @@ let setoresSecao = [
   {nome: 'Mecânica Automotiva', funcionarios: 1}
 ];
 
+let secaoSetores = [];
+
+async function carregarSecaoSetores() {
+  const tbody = document.getElementById('tbody-setores');
+  if (!tbody) return;
+  try {
+    const resp = await fetchAutenticado('/setor/listar');
+    if (resp && resp.ok) { secaoSetores = await resp.json(); renderSetoresSecao(); }
+  } catch (err) { alert('Não foi possível carregar os setores.'); }
+}
+document.addEventListener('DOMContentLoaded', carregarSecaoSetores);
+
 function renderSetoresSecao() {
   const tbody = document.getElementById('tbody-setores');
   if (!tbody) return;
-  tbody.innerHTML = setoresSecao.map((s, i) => `
-    <tr id="row-s-${i}">
-      <td style="text-align:left; padding-left:16px;">${s.nome}</td>
-      <td>
-        <div id="acao-s-${i}">
-          <button class="btn btn-outline" style="padding:6px 16px; font-size:13px;" onclick="confirmarExcluirSetor(${i})">Excluir</button>
-        </div>
-        <div id="confirm-s-${i}" style="display:none; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap;">
-          <span id="aviso-s-${i}" style="font-size:12px; color:#7a5000; background:#fff8e1; border:1px solid #f5a623; border-radius:8px; padding:4px 10px; display:none;"></span>
-          <span style="font-size:13px;">Tem certeza?</span>
-          <button class="btn btn-danger" style="padding:4px 12px; font-size:12px;" onclick="excluirSetorSecao(${i})">Sim</button>
-          <button class="btn btn-outline" style="padding:4px 12px; font-size:12px;" onclick="renderSetoresSecao()">Não</button>
-        </div>
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = '';
+  secaoSetores.forEach(s => {
+    const tr = document.createElement('tr');
+    const tdNome = document.createElement('td');
+    tdNome.textContent = s.nm_setor;                 // XSS-safe
+    const tdAcao = document.createElement('td');
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-outline';
+    btn.textContent = 'Excluir';
+    btn.onclick = () => excluirSetorSecao(s.id_setor);
+    tdAcao.appendChild(btn);
+    tr.append(tdNome, tdAcao);
+    tbody.appendChild(tr);
+  });
 }
 
-function confirmarExcluirSetor(i) {
-  const acao = document.getElementById('acao-s-' + i);
-  const confirm = document.getElementById('confirm-s-' + i);
-  if (acao){
-    acao.style.display = 'none';
-  }
-  if (confirm){
-    confirm.style.display = 'flex';
-  }
-  if (setoresSecao[i].funcionarios > 0) {
-    const aviso = document.getElementById('aviso-s-' + i);
-    if (aviso) {
-      aviso.textContent = `Este setor possui ${setoresSecao[i].funcionarios} funcionário(s). Transfira-os antes de excluir.`;
-      aviso.style.display = 'inline';
-    }
-  }
-}
-
-function excluirSetorSecao(i) {
-  if (setoresSecao[i].funcionarios > 0){
-    return;
-  }
-  // Em produção: DELETE /api/setores/:id
-  setoresSecao.splice(i, 1);
-  renderSetoresSecao();
-}
-
-function adicionarSetorSecao() {
+async function adicionarSetorSecao() {
   const input = document.getElementById('novo-setor');
   const erro = document.getElementById('setor-dup-error');
-  if (!input){
-    return;
-  }
+  if (!input) return;
   const nome = input.value.trim();
-  if (!nome){
-    return;
-  }
-
-  const existe = setoresSecao.some(s => s.nome.toLowerCase() === nome.toLowerCase());
-  if (existe){
-    erro?.classList.add('show');
-    return;
-  }
-  erro?.classList.remove('show');
-
-  // Em produção: POST /api/setores
-  setoresSecao.push({nome, funcionarios: 0});
-  renderSetoresSecao();
-  input.value = '';
+  if (!nome) return;
+  try {
+    const resp = await fetchAutenticado('/setor/cadastrar', { method: 'POST', body: JSON.stringify({ nome }) });
+    if (!resp) return;
+    const dados = await resp.json();
+    if (resp.ok) { erro?.classList.remove('show'); input.value = ''; await carregarSecaoSetores(); }
+    else { if (erro) { erro.textContent = dados.erro || 'Erro ao adicionar.'; erro.classList.add('show'); } }
+  } catch (err) { alert('Não foi possível conectar ao servidor.'); }
 }
 
+async function excluirSetorSecao(idSetor) {
+  if (!confirm('Deseja realmente excluir este setor?')) return;
+  try {
+    const resp = await fetchAutenticado(`/setor/${idSetor}`, { method: 'DELETE' });
+    if (!resp) return;
+    const dados = await resp.json();
+    if (resp.ok) await carregarSecaoSetores();
+    else alert(dados.erro || 'Não foi possível excluir o setor.'); // ex.: 409 setor com funcionários
+  } catch (err) { alert('Não foi possível conectar ao servidor.'); }
+}
 
 // ============================================================
 //  DROPDOWN — abre/fecha via click, não hover
@@ -1026,7 +1017,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const novoSetor = document.getElementById('novo-setor');
   if (novoSetor) {
     novoSetor.addEventListener('keydown', e => { if (e.key === 'Enter') adicionarSetorSecao(); });
-    renderSetoresSecao();
   }
 });
 
@@ -1057,13 +1047,13 @@ function renderFuncionarios() {
   tbody.innerHTML = '';
 
   funcionariosCache.forEach(f => {
-    const nomeCompleto = `${f.nm_funcionario} ${f.sobrenome_funcionario || ''}`.trim();
+    const nomeCompleto = `${f.nm_funcionario}`.trim();
     const tr = document.createElement('tr');
     tr.setAttribute('data-nome', nomeCompleto);
     tr.setAttribute('data-status', f.st_funcionario);
 
     const tdNome = document.createElement('td');
-    tdNome.textContent = nomeCompleto;                       // XSS-safe
+    tdNome.textContent = nomeCompleto; // XSS-safe
 
     const tdSetor = document.createElement('td');
     tdSetor.textContent = f.nm_setor || 'Sem setor';
@@ -1092,7 +1082,6 @@ async function abrirEditar(id) {
 
   document.getElementById('editar-id').value = f.id_funcionario;
   document.getElementById('editar-nome').value = f.nm_funcionario;
-  document.getElementById('editar-sobrenome').value = f.sobrenome_funcionario || '';
 
   // Popular o select com os setores da empresa + opção "Sem setor"
   const select = document.getElementById('editar-setor');
@@ -1117,19 +1106,18 @@ async function abrirEditar(id) {
 async function salvarEdicao() {
   const id = document.getElementById('editar-id').value;
   const nome = document.getElementById('editar-nome').value.trim();
-  const sobrenome = document.getElementById('editar-sobrenome').value.trim();
   const setorVal = document.getElementById('editar-setor').value;
   const setor = setorVal ? parseInt(setorVal) : null; // vazio = desvincular
 
-  if (!nome || !sobrenome) {
-    alert('Informe nome e sobrenome.');
+  if (!nome) {
+    alert('Informe o nome');
     return;
   }
 
   try {
     const resposta = await fetchAutenticado(`/funcionario/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ nome, sobrenome, setor })
+      body: JSON.stringify({ nome, setor })
     });
     if (!resposta) return;
     const dados = await resposta.json();
