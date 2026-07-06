@@ -19,6 +19,17 @@ async function cadastrarEpi(req, res) {
       return res.status(409).json({ erro: 'Já existe um EPI com esse nome nesta empresa.' });
     }
 
+    // CA é único por empresa (Certificado de Aprovação não se repete)
+    if (ca) {
+      const [caExiste] = await db.query(
+        'SELECT id_epi FROM tb_epi WHERE ca_epi = ? AND tb_empresa_id_empresa = ?',
+        [ca, empresa]
+      );
+      if (caExiste.length > 0) {
+        return res.status(409).json({ erro: 'Já existe um EPI com esse CA nesta empresa.' });
+      }
+    }
+
     // Se informou categoria, ela precisa existir (evita erro de FK)
     if (categoria) {
       const [cats] = await db.query(
@@ -54,8 +65,14 @@ async function listarEpis(req, res) {
 
   try {
     const [epis] = await db.query(
-      `SELECT id_epi, nm_epi, desc_epi, st_epi, ca_epi, tb_categoria_id_categoria
-       FROM tb_epi WHERE tb_empresa_id_empresa = ? ORDER BY nm_epi`,
+      `SELECT epi.id_epi, epi.nm_epi, epi.ca_epi, epi.st_epi,
+              COALESCE(SUM(es.qtd_disponivel_estoque), 0) AS quantidade,
+              COALESCE(MAX(es.qtd_minima_estoque), 0) AS limite
+       FROM tb_epi epi
+       LEFT JOIN tb_estoque es ON es.tb_epi_id_epi = epi.id_epi
+       WHERE epi.tb_empresa_id_empresa = ?
+       GROUP BY epi.id_epi, epi.nm_epi, epi.ca_epi, epi.st_epi
+       ORDER BY epi.nm_epi`,
       [empresa]
     );
 
@@ -66,4 +83,16 @@ async function listarEpis(req, res) {
   }
 }
 
-module.exports = { cadastrarEpi, listarEpis };
+async function listarCategorias(req, res) {
+  try {
+    const [cats] = await db.query('SELECT id_categoria, nm_categoria FROM tb_categoria ORDER BY nm_categoria');
+    return res.status(200).json(cats);
+  } catch (err) { return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message }); }
+}
+
+function limparModalCadastrarEpi() {
+  ['cad-nome','cad-desc','cad-ca','cad-validade','cad-qtd','cad-limite','cad-cat']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+}
+
+module.exports = { cadastrarEpi, listarEpis, limparModalCadastrarEpi };

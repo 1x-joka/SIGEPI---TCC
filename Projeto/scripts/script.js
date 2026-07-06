@@ -516,52 +516,82 @@ function filtrarEpis() {
   });
 }
 
-function cadastrarEPI() {
-  const nome = document.getElementById('cad-nome')?.value.trim();
-  const ca = document.getElementById('cad-ca')?.value.trim();
-  const qtd = document.getElementById('cad-qtd')?.value;
-  const lim = document.getElementById('cad-limite')?.value;
-  const val = document.getElementById('cad-validade')?.value;
-  const cat = document.getElementById('cad-cat')?.value;
-  const desc = document.getElementById('cad-desc')?.value.trim();
-  let ok = true;
-
-  const caInvalido = !ca || ca.length < 3 || ca.length > 6 || !/^\d+$/.test(ca);
-  setErro('cad-nome-err', !nome);
-  if (!nome){
-    ok = false;
-  }
-  setErro('cad-ca-err', caInvalido);
-  if (caInvalido){
-    ok = false;
-  }
-  setErro('cad-qtd-err', !qtd || qtd < 1);
-  if (!qtd){
-    ok = false;
-  }
-  setErro('cad-lim-err', !lim || lim < 1);
-  if (!lim){
-    ok = false;
-  }
-  setErro('cad-val-err', !val);
-  if (!val){
-    ok = false;
-  }
-  setErro('cad-cat-err', !cat);
-  if (!cat){
-    ok = false;
-  }
-
-  if (ok && !desc) {
-    if (!confirm('A descrição está vazia. Tem certeza que deseja continuar?')){
-      return;
+// Carrega os EPIs (com estoque) na tabela
+async function carregarEpis() {
+  const tbody = document.querySelector('#tabela-epis tbody');
+  if (!tbody) return;
+  try {
+    const resp = await fetchAutenticado('/epi/listar');
+    if (resp && resp.ok) {
+      const epis = await resp.json();
+      tbody.innerHTML = '';
+      epis.forEach(e => {
+        const tr = document.createElement('tr');
+        const baixo = Number(e.quantidade) < Number(e.limite);
+        if (baixo) tr.className = 'row-red';
+        [e.nm_epi, e.ca_epi || '—', '—', e.quantidade, e.limite, baixo ? 'BAIXO' : 'OK']
+          .forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); }); // XSS-safe
+        tbody.appendChild(tr);
+      });
     }
+  } catch (err) { alert('Não foi possível carregar os EPIs.'); }
+}
+document.addEventListener('DOMContentLoaded', carregarEpis);
+
+// Carrega as categorias no select do modal de cadastro
+async function carregarCategoriasEpi() {
+  const select = document.getElementById('cad-cat');
+  if (!select) return;
+  try {
+    const resp = await fetchAutenticado('/epi/categorias');
+    if (resp && resp.ok) {
+      const cats = await resp.json();
+      select.innerHTML = '<option value="">Selecione a categoria</option>';
+      cats.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id_categoria; opt.textContent = c.nm_categoria;
+        select.appendChild(opt);
+      });
+    }
+  } catch (err) {}
+}
+document.addEventListener('DOMContentLoaded', carregarCategoriasEpi);
+
+// Cadastra o EPI + o lote inicial de estoque (duas etapas)
+async function cadastrarEPI() {
+  const nome = document.getElementById('cad-nome')?.value.trim();
+  const desc = document.getElementById('cad-desc')?.value.trim();
+  const ca = document.getElementById('cad-ca')?.value.trim();
+  const validade = document.getElementById('cad-validade')?.value;
+  const qtd = document.getElementById('cad-qtd')?.value;
+  const limite = document.getElementById('cad-limite')?.value;
+  const categoria = document.getElementById('cad-cat')?.value;
+
+  if (!nome || !ca || !validade || !qtd || !limite || !categoria) {
+    alert('Preencha todos os campos.'); return;
   }
 
-  if (ok) {
-    // Em produção: POST /api/epis
+  try {
+    // 1) cria o EPI
+    const r1 = await fetchAutenticado('/epi/cadastrar', {
+      method: 'POST',
+      body: JSON.stringify({ nome, descricao: desc, ca, validadeCa: validade, categoria: parseInt(categoria) })
+    });
+    if (!r1) return;
+    const d1 = await r1.json();
+    if (!r1.ok) { alert(d1.erro || 'Erro ao cadastrar EPI.'); return; }
+
+    // 2) cria o lote inicial de estoque
+    const r2 = await fetchAutenticado('/estoque/entrada', {
+      method: 'POST',
+      body: JSON.stringify({ epi: d1.id_epi, quantidade: parseInt(qtd), quantidadeMinima: parseInt(limite), validade })
+    });
+    const d2 = await r2.json();
+    if (!r2.ok) alert('EPI criado, mas houve erro no estoque: ' + (d2.erro || ''));
+
     fecharModal('modal-cadastrar');
-  }
+    await carregarEpis();
+  } catch (err) { alert('Não foi possível conectar ao servidor.'); }
 }
 
 function adicionarEstoque() {

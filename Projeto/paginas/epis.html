@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../estilos/style.css">
   <script src="../scripts/script.js" defer></script>
 </head>
-<body class="layout-flex">
+<body class="layout-flex" data-protegida>
   <header class="header">
     <div class="logo-wrap">
       <span class="logo-title">SIGEPI</span>
@@ -49,22 +49,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Capacete de Segurança</td><td>498</td><td>Elétrica</td>
-                <td>120</td><td>40</td><td>OK</td>
-              </tr>
-              <tr class="row-red">
-                <td>Luva de Segurança Nitrílica</td><td>16312</td><td>Automotivo</td>
-                <td>50</td><td>100</td><td>BAIXO</td>
-              </tr>
-              <tr>
-                <td>Óculos de Proteção Incolor</td><td>9722</td><td>Construção Civil</td>
-                <td>150</td><td>50</td><td>OK</td>
-              </tr>
-              <tr>
-                <td>Botina de Segurança com Biqueira</td><td>17317</td><td>Metalurgia</td>
-                <td>80</td><td>30</td><td>OK</td>
-              </tr>
+
             </tbody>
           </table>
         </div>
@@ -133,7 +118,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-primary btn-modal-confirmar" onclick="cadastrarEPI()">Cadastrar</button>
+        <button class="btn btn-primary" onclick="limparModalCadastrarEpi(); abrirModal('modal-cadastrar')">Cadastrar</button>
         <button class="btn btn-outline" onclick="fecharModal('modal-cadastrar')">Cancelar</button>
       </div>
     </div>
