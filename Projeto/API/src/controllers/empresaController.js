@@ -58,4 +58,31 @@ async function cadastrarEmpresa(req, res) {
   }
 }
 
-module.exports = { cadastrarEmpresa };
+// Retorna os dados da empresa do admin logado
+async function obterEmpresa(req, res) {
+  const empresa = req.usuario.empresa;
+  if (!empresa) return res.status(404).json({ erro: 'Nenhuma empresa vinculada.' });
+  try {
+    const [rows] = await db.query(
+      `SELECT id_empresa, nm_empresa, cnpj_empresa, codigo_empresa, responsavel_empresa, email_empresa, tel_empresa
+       FROM tb_empresa WHERE id_empresa = ?`, [empresa]
+    );
+    return res.status(200).json(rows[0]);
+  } catch (err) { return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message }); }
+}
+
+// Atualiza os campos editáveis (nome/CNPJ/código NÃO mudam)
+async function atualizarEmpresa(req, res) {
+  const empresa = req.usuario.empresa;
+  const { responsavel, email, telefone } = req.body;
+  if (!empresa) return res.status(404).json({ erro: 'Nenhuma empresa vinculada.' });
+  try {
+    await db.query(
+      `UPDATE tb_empresa SET responsavel_empresa = ?, email_empresa = ?, tel_empresa = ? WHERE id_empresa = ?`,
+      [responsavel || null, email || null, telefone || null, empresa]
+    );
+    return res.status(200).json({ mensagem: 'Empresa atualizada com sucesso.' });
+  } catch (err) { return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message }); }
+}
+
+module.exports = { cadastrarEmpresa, obterEmpresa, atualizarEmpresa };

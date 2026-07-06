@@ -5,4 +5,7 @@ const { autenticar } = require('../middlewares/authMiddleware');
 
 router.post('/cadastrar', autenticar, empresaController.cadastrarEmpresa);
 
+router.get('/', autenticar, exigirEmpresa, exigirAdmin, empresaController.obterEmpresa);
+router.put('/', autenticar, exigirEmpresa, exigirAdmin, empresaController.atualizarEmpresa);
+
 module.exports = router;
