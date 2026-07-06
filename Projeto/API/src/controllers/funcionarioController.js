@@ -103,7 +103,7 @@ async function listarFuncionarios(req, res) {
 
   try {
     const [funcionarios] = await db.query(
-      `SELECT f.id_funcionario, f.nm_funcionario, f.sobrenome_funcionario,
+      `SELECT f.id_funcionario, f.nm_funcionario,
               f.st_funcionario, s.nm_setor
        FROM tb_funcionario f
        LEFT JOIN tb_setor s ON s.id_setor = f.tb_setor_id_setor
@@ -187,14 +187,14 @@ async function inativarFuncionario(req, res) {
   }
 }
 
-// ADMIN edita um funcionário (nome, sobrenome e setor) — setor pode ficar vazio (desvincula)
+// ADMIN edita um funcionário (nome e setor) — setor pode ficar vazio (desvincula)
 async function editarFuncionario(req, res) {
   const id_funcionario = req.params.id;
-  const { nome, sobrenome, setor } = req.body;
+  const { nome, setor } = req.body;
   const empresa = req.usuario.empresa;
 
-  if (!nome || !sobrenome) {
-    return res.status(400).json({ erro: 'Informe nome e sobrenome.' });
+  if (!nome) {
+    return res.status(400).json({ erro: 'Informe o nome' });
   }
 
   try {
@@ -219,8 +219,8 @@ async function editarFuncionario(req, res) {
     }
 
     await db.query(
-      'UPDATE tb_funcionario SET nm_funcionario = ?, sobrenome_funcionario = ?, tb_setor_id_setor = ? WHERE id_funcionario = ?',
-      [nome, sobrenome, setor || null, id_funcionario]
+      'UPDATE tb_funcionario SET nm_funcionario = ?, tb_setor_id_setor = ? WHERE id_funcionario = ?',
+      [nome, setor || null, id_funcionario]
     );
 
     return res.status(200).json({ mensagem: 'Funcionário atualizado com sucesso.' });
