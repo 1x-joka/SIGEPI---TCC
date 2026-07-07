@@ -88,4 +88,65 @@ async function listarEstoque(req, res) {
   }
 }
 
-module.exports = { registrarEntrada, listarEstoque };
+// Registrar SAÍDA de estoque (baixa manual) — só admin
+async function registrarSaida(req, res) {
+  const { epi, quantidade, motivo } = req.body;
+  const empresa = req.usuario.empresa;
+
+  if (!epi || !quantidade || quantidade <= 0) {
+    return res.status(400).json({ erro: 'Informe o EPI e uma quantidade válida.' });
+  }
+
+  const conexao = await db.getConnection();
+  try {
+    // Estoque total disponível deste EPI (soma dos lotes) — fonte confiável
+    const [tot] = await conexao.query(
+      `SELECT COALESCE(SUM(qtd_disponivel_estoque),0) AS total
+       FROM tb_estoque WHERE tb_epi_id_epi = ? AND tb_empresa_id_empresa = ?`,
+      [epi, empresa]
+    );
+    if (tot[0].total < quantidade) {
+      conexao.release();
+      return res.status(400).json({ erro: 'Quantidade superior ao estoque disponível.' });
+    }
+
+    await conexao.beginTransaction();
+
+    // Baixa FIFO: retira dos lotes mais antigos (validade mais próxima) primeiro
+    let restante = quantidade;
+    const [lotes] = await conexao.query(
+      `SELECT id_estoque, qtd_disponivel_estoque
+       FROM tb_estoque
+       WHERE tb_epi_id_epi = ? AND tb_empresa_id_empresa = ? AND qtd_disponivel_estoque > 0
+       ORDER BY dt_validade_estoque ASC`,
+      [epi, empresa]
+    );
+
+    for (const lote of lotes) {
+      if (restante <= 0) break;
+      const baixa = Math.min(lote.qtd_disponivel_estoque, restante);
+      await conexao.query(
+        'UPDATE tb_estoque SET qtd_disponivel_estoque = qtd_disponivel_estoque - ? WHERE id_estoque = ?',
+        [baixa, lote.id_estoque]
+      );
+      await conexao.query(
+        `INSERT INTO tb_movimentacao
+          (tipo_movimentacao, qtd_movimentacao, dt_movimentacao, desc_movimentacao, tb_estoque_id_estoque)
+         VALUES ('S', ?, CURDATE(), ?, ?)`,
+        [baixa, motivo || 'Saída de estoque', lote.id_estoque]
+      );
+      restante -= baixa;
+    }
+
+    await conexao.commit();
+    return res.status(200).json({ mensagem: 'Saída de estoque registrada com sucesso.' });
+
+  } catch (err) {
+    await conexao.rollback();
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  } finally {
+    conexao.release();
+  }
+}
+
+module.exports = { registrarEntrada, listarEstoque, registrarSaida };

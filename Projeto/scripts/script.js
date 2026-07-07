@@ -594,41 +594,37 @@ async function cadastrarEPI() {
   } catch (err) { alert('Não foi possível conectar ao servidor.'); }
 }
 
-function retirarEstoque() {
+async function retirarEstoque() {
   const epi = document.getElementById('ret-epi')?.value;
   const qtd = parseInt(document.getElementById('ret-qtd')?.value);
   const mot = document.getElementById('ret-motivo')?.value;
   let ok = true;
 
-  setErro('ret-epi-err', !epi);
-  if (!epi){
-    ok = false;
-  }
-  setErro('ret-qtd-err', !qtd || qtd < 1); 
-  if (!qtd || qtd < 1){
-    ok = false;
-  }
-  setErro('ret-mot-err', !mot); 
-  if (!mot){
-    ok = false;
-  }
+  setErro('ret-epi-err', !epi); if (!epi) ok = false;
+  setErro('ret-qtd-err', !qtd || qtd < 1); if (!qtd || qtd < 1) ok = false;
+  setErro('ret-mot-err', !mot); if (!mot) ok = false;
+  if (!ok) return;
 
-  const estoques = {
-    'Luva de Segurança Nitrílica': 50,
-    'Capacete de Segurança': 120,
-    'Óculos de Proteção Incolor': 150,
-    'Botina de Segurança com Biqueira': 80
-  };
-  const disponivel = estoques[epi] ?? 999;
-  const semEstoque = qtd > disponivel;
-  setErro('ret-estoque-err', semEstoque);
-  if (semEstoque){
-    ok = false;
-  }
-
-  if (ok) {
-    // Em produção: POST /api/estoque/saida
-    fecharModal('modal-retirar');
+  try {
+    const resp = await fetchAutenticado('/estoque/saida', {
+      method: 'POST',
+      body: JSON.stringify({ epi: parseInt(epi), quantidade: qtd, motivo: mot })
+    });
+    if (!resp) return;
+    const dados = await resp.json();
+    if (resp.ok) {
+      setErro('ret-estoque-err', false);
+      fecharModal('modal-retirar');
+      ['ret-qtd','ret-obs'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      await carregarEpis();   // regra "alterou → recarrega"
+    } else {
+      // ex.: "Quantidade superior ao estoque disponível"
+      setErro('ret-estoque-err', true);
+      const span = document.getElementById('ret-estoque-err');
+      if (span) span.textContent = dados.erro || 'Não foi possível retirar.';
+    }
+  } catch (err) {
+    alert('Não foi possível conectar ao servidor.');
   }
 }
 

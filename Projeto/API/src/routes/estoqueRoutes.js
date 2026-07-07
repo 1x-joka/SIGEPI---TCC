@@ -9,4 +9,6 @@ router.post('/entrada', autenticar, exigirEmpresa, exigirAdmin, estoqueControlle
 // Admin e funcionário podem consultar o estoque da empresa
 router.get('/listar', autenticar, exigirEmpresa, estoqueController.listarEstoque);
 
+router.post('/saida', autenticar, exigirEmpresa, exigirAdmin, estoqueController.registrarSaida);
+
 module.exports = router;
