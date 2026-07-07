@@ -103,10 +103,11 @@ async function listarFuncionarios(req, res) {
 
   try {
     const [funcionarios] = await db.query(
-      `SELECT f.id_funcionario, f.nm_funcionario,
-              f.st_funcionario, s.nm_setor
+      `SELECT f.id_funcionario, f.nm_funcionario, f.sobrenome_funcionario,
+              f.st_funcionario, s.nm_setor, u.cpf_usuario
        FROM tb_funcionario f
-       LEFT JOIN tb_setor s ON s.id_setor = f.tb_setor_id_setor
+       LEFT JOIN tb_setor s   ON s.id_setor = f.tb_setor_id_setor
+       LEFT JOIN tb_usuario u ON u.id_usuario = f.tb_usuario_id_usuario
        WHERE f.tb_empresa_id_empresa = ?
        ORDER BY f.nm_funcionario`,
       [empresa]

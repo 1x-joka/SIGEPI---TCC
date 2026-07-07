@@ -1095,7 +1095,14 @@ function renderFuncionarios() {
     tr.setAttribute('data-status', f.st_funcionario);
 
     const tdNome = document.createElement('td');
-    tdNome.textContent = nomeCompleto; // XSS-safe
+    tdNome.textContent = nomeCompleto;                       // XSS-safe
+    if (f.cpf_usuario) {
+      const cpfLinha = document.createElement('div');
+      cpfLinha.textContent = 'CPF: ' + f.cpf_usuario;        // XSS-safe
+      cpfLinha.style.fontSize = '12px';
+      cpfLinha.style.color = '#777';
+      tdNome.appendChild(cpfLinha);
+    }
 
     const tdSetor = document.createElement('td');
     tdSetor.textContent = f.nm_setor || 'Sem setor';
