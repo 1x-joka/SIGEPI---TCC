@@ -277,11 +277,6 @@ function iniciarMascaraCNPJ() {
     v = v.replace(/(\d{4})(\d)/, '$1-$2');
     this.value = v;
   });
-
-  const codigoInput = document.getElementById('codigo');
-  if (codigoInput) {
-    codigoInput.value = Math.floor(1000000000 + Math.random() * 9000000000);
-  }
 }
 
 function previewLogo(event) {
@@ -520,7 +515,28 @@ function filtrarEpis() {
   tr.style.display = tr.cells[0]?.textContent.toLowerCase().includes(busca) ? '' : 'none';
   });
 }
-document.addEventListener('DOMContentLoaded');
+
+document.addEventListener('DOMContentLoaded', carregarEpis);
+
+async function carregarEpis() {
+  const tbody = document.querySelector('#tabela-epis tbody');
+  if (!tbody) return;
+  try {
+    const resp = await fetchAutenticado('/epi/listar');
+    if (resp && resp.ok) {
+      const epis = await resp.json();
+      tbody.innerHTML = '';
+      epis.forEach(e => {
+        const tr = document.createElement('tr');
+        const baixo = Number(e.quantidade) < Number(e.limite);
+        if (baixo) tr.className = 'row-red';
+        [e.nm_epi, e.ca_epi || '—', '—', e.quantidade, e.limite, baixo ? 'BAIXO' : 'OK']
+          .forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+        tbody.appendChild(tr);
+      });
+    }
+  } catch (err) { alert('Não foi possível carregar os EPIs.'); }
+}
 
 // Carrega as categorias no select do modal de cadastro
 async function carregarCategoriasEpi() {
@@ -574,6 +590,7 @@ async function cadastrarEPI() {
     if (!r2.ok) alert('EPI criado, mas houve erro no estoque: ' + (d2.erro || ''));
 
     fecharModal('modal-cadastrar');
+    await carregarEpis(); // Carregando os EPIs cadastrados imediatamente após cadastrar um por um
   } catch (err) { alert('Não foi possível conectar ao servidor.'); }
 }
 
@@ -650,6 +667,7 @@ async function adicionarEstoque() {
     const dados = await resp.json();
     if (resp.ok) {
       fecharModal('modal-adicionar');
+      await carregarEpis();
       ['add-epi','add-qtd','add-validade','add-obs'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
     } else alert(dados.erro || 'Erro ao adicionar ao estoque.');
   } catch (err) { alert('Não foi possível conectar ao servidor.'); }
