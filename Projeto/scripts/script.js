@@ -42,6 +42,11 @@ function fecharSeOverlay(event, id) {
   if (event.target === document.getElementById(id)) fecharModal(id);
 }
 
+function limparModalCadastrarEpi() {
+  ['cad-nome','cad-desc','cad-ca','cad-validade','cad-qtd','cad-limite','cad-cat']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+}
+
 function toggleVisivel(id, mostrar) {
   const el = document.getElementById(id);
   if (!el){
@@ -515,28 +520,7 @@ function filtrarEpis() {
   tr.style.display = tr.cells[0]?.textContent.toLowerCase().includes(busca) ? '' : 'none';
   });
 }
-
-// Carrega os EPIs (com estoque) na tabela
-async function carregarEpis() {
-  const tbody = document.querySelector('#tabela-epis tbody');
-  if (!tbody) return;
-  try {
-    const resp = await fetchAutenticado('/epi/listar');
-    if (resp && resp.ok) {
-      const epis = await resp.json();
-      tbody.innerHTML = '';
-      epis.forEach(e => {
-        const tr = document.createElement('tr');
-        const baixo = Number(e.quantidade) < Number(e.limite);
-        if (baixo) tr.className = 'row-red';
-        [e.nm_epi, e.ca_epi || '—', '—', e.quantidade, e.limite, baixo ? 'BAIXO' : 'OK']
-          .forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); }); // XSS-safe
-        tbody.appendChild(tr);
-      });
-    }
-  } catch (err) { alert('Não foi possível carregar os EPIs.'); }
-}
-document.addEventListener('DOMContentLoaded', carregarEpis);
+document.addEventListener('DOMContentLoaded');
 
 // Carrega as categorias no select do modal de cadastro
 async function carregarCategoriasEpi() {
@@ -590,33 +574,7 @@ async function cadastrarEPI() {
     if (!r2.ok) alert('EPI criado, mas houve erro no estoque: ' + (d2.erro || ''));
 
     fecharModal('modal-cadastrar');
-    await carregarEpis();
   } catch (err) { alert('Não foi possível conectar ao servidor.'); }
-}
-
-function adicionarEstoque() {
-  const epi = document.getElementById('add-epi')?.value;
-  const qtd = document.getElementById('add-qtd')?.value;
-  const val = document.getElementById('add-validade')?.value;
-  let ok = true;
-
-  setErro('add-epi-err', !epi);
-  if (!epi){
-    ok = false;
-  }
-  setErro('add-qtd-err', !qtd || qtd < 1);
-  if (!qtd){
-    ok = false;
-  }
-  setErro('add-val-err', !val);
-  if (!val){
-    ok = false;
-  }
-
-  if (ok) {
-    // Em produção: POST /api/estoque/entrada
-    fecharModal('modal-adicionar');
-  }
 }
 
 function retirarEstoque() {
@@ -655,6 +613,46 @@ function retirarEstoque() {
     // Em produção: POST /api/estoque/saida
     fecharModal('modal-retirar');
   }
+}
+
+// Carrega os EPIs num <select> (reutilizável)
+async function carregarEpisSelect(selectId) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  try {
+    const resp = await fetchAutenticado('/epi/listar');
+    if (resp && resp.ok) {
+      const epis = await resp.json();
+      select.innerHTML = '<option value="">Selecione o EPI</option>';
+      epis.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e.id_epi; opt.textContent = e.nm_epi; // XSS-safe
+        select.appendChild(opt);
+      });
+    }
+  } catch (err) {}
+}
+document.addEventListener('DOMContentLoaded', () => carregarEpisSelect('add-epi'));
+
+// Adiciona um lote ao estoque de um EPI existente
+async function adicionarEstoque() {
+  const epi = document.getElementById('add-epi')?.value;
+  const qtd = document.getElementById('add-qtd')?.value;
+  const validade = document.getElementById('add-validade')?.value;
+  const obs = document.getElementById('add-obs')?.value;
+  if (!epi || !qtd) { alert('Selecione o EPI e a quantidade.'); return; }
+  try {
+    const resp = await fetchAutenticado('/estoque/entrada', {
+      method: 'POST',
+      body: JSON.stringify({ epi: parseInt(epi), quantidade: parseInt(qtd), validade: validade || null })
+    });
+    if (!resp) return;
+    const dados = await resp.json();
+    if (resp.ok) {
+      fecharModal('modal-adicionar');
+      ['add-epi','add-qtd','add-validade','add-obs'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    } else alert(dados.erro || 'Erro ao adicionar ao estoque.');
+  } catch (err) { alert('Não foi possível conectar ao servidor.'); }
 }
 
 
