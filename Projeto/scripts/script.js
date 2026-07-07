@@ -785,6 +785,31 @@ function filtrarHistorico() {
   });
 }
 
+// Histórico (admin) — todas as entregas da empresa
+async function carregarHistorico() {
+  const tbody = document.getElementById('tbody-hist');
+  if (!tbody) return;
+  try {
+    const resp = await fetchAutenticado('/entrega/listar');
+    if (resp && resp.ok) {
+      const entregas = await resp.json();
+      tbody.innerHTML = '';
+      entregas.forEach(e => {
+        const tr = document.createElement('tr');
+        const data = e.dt_entrega ? new Date(e.dt_entrega).toLocaleDateString('pt-BR') : '—';
+        const tipo = e.st_entrega === 'D' ? 'Devolução' : 'Entrega';
+        const func = `${e.nm_funcionario} ${e.sobrenome_funcionario || ''}`.trim();
+        // Colunas: Data, Tipo, Descrição, Equipamento, Funcionário, Setor, Quantidade, Responsável
+        [data, tipo, '—', e.nm_epi, func, '—', '1', 'Admin'].forEach(v => {
+          const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); // XSS-safe
+        });
+        tbody.appendChild(tr);
+      });
+    }
+  } catch (err) { alert('Não foi possível carregar o histórico.'); }
+}
+document.addEventListener('DOMContentLoaded', carregarHistorico);
+
 function exportarPDF() {
   // Em produção: GET /api/historico/export-pdf
   alert('Exportando PDF...');
@@ -794,6 +819,29 @@ function exportarPDF() {
 // ============================================================
 //  meus-equipamentos.html
 // ============================================================
+
+// Meus EPIs (funcionário) — lista o que ele recebeu
+async function carregarMeusEquipamentos() {
+  const tbody = document.getElementById('tbody-equipamentos');
+  if (!tbody) return;
+  try {
+    const resp = await fetchAutenticado('/entrega/meus');
+    if (resp && resp.ok) {
+      const itens = await resp.json();
+      tbody.innerHTML = '';
+      itens.forEach(i => {
+        const tr = document.createElement('tr');
+        const status = i.st_entrega === 'D' ? 'Devolvido' : 'Com você';
+        const validade = i.dt_devolucao ? new Date(i.dt_devolucao).toLocaleDateString('pt-BR') : '—';
+        [i.nm_epi, '—', '1', validade, status].forEach(v => {
+          const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); // XSS-safe
+        });
+        tbody.appendChild(tr);
+      });
+    }
+  } catch (err) { alert('Não foi possível carregar seus equipamentos.'); }
+}
+document.addEventListener('DOMContentLoaded', carregarMeusEquipamentos);
 
 const episSolicitacao = ['Máscara Respiratória', 'Óculos de Proteção', 'Luvas Nitrílicas (par)'];
 const justificativasSolicitacao = [];
