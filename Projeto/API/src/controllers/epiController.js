@@ -70,7 +70,7 @@ async function listarEpis(req, res) {
               COALESCE(MAX(es.qtd_minima_estoque), 0) AS limite
        FROM tb_epi epi
        LEFT JOIN tb_estoque es ON es.tb_epi_id_epi = epi.id_epi
-       WHERE epi.tb_empresa_id_empresa = ?
+       WHERE epi.tb_empresa_id_empresa = ? AND epi.st_epi = 'A'
        GROUP BY epi.id_epi, epi.nm_epi, epi.ca_epi, epi.st_epi
        ORDER BY epi.nm_epi`,
       [empresa]
@@ -95,4 +95,15 @@ function limparModalCadastrarEpi() {
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 }
 
-module.exports = { cadastrarEpi, listarEpis, limparModalCadastrarEpi };
+async function inativarEpi(req, res) {
+  const id_epi = req.params.id;
+  const empresa = req.usuario.empresa;
+  try {
+    const [e] = await db.query('SELECT id_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ?', [id_epi, empresa]);
+    if (e.length === 0) return res.status(404).json({ erro: 'EPI não encontrado.' });
+    await db.query("UPDATE tb_epi SET st_epi = 'I' WHERE id_epi = ?", [id_epi]);
+    return res.status(200).json({ mensagem: 'EPI inativado com sucesso.' });
+  } catch (err) { return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message }); }
+}
+
+module.exports = { cadastrarEpi, listarEpis, limparModalCadastrarEpi, inativarEpi };

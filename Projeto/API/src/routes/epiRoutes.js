@@ -9,4 +9,6 @@ router.post('/cadastrar', autenticar, exigirEmpresa, exigirAdmin, epiController.
 // Admin E funcionário podem listar os EPIs da empresa (o funcionário precisa ver o que pode solicitar)
 router.get('/listar', autenticar, exigirEmpresa, epiController.listarEpis);
 
+router.put('/:id/inativar', autenticar, exigirEmpresa, exigirAdmin, epiController.inativarEpi);
+
 module.exports = router;

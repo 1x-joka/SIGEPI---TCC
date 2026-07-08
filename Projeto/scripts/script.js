@@ -530,12 +530,25 @@ async function carregarEpis() {
         const tr = document.createElement('tr');
         const baixo = Number(e.quantidade) < Number(e.limite);
         if (baixo) tr.className = 'row-red';
-        [e.nm_epi, e.ca_epi || '—', '—', e.quantidade, e.limite, baixo ? 'BAIXO' : 'OK']
-          .forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+        [e.nm_epi, e.ca_epi || '—', e.quantidade, e.limite, baixo ? 'BAIXO' : 'OK'].forEach(v => {
+          const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
+        });
+        const tdAcao = document.createElement('td');
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-outline'; btn.textContent = 'Inativar'; // inativando, não deletando, pois assim os registros não somem, fidelizando a rastreabilidade
+        btn.onclick = () => inativarEpi(e.id_epi, e.nm_epi);
+        tdAcao.appendChild(btn); tr.appendChild(tdAcao);
         tbody.appendChild(tr);
       });
     }
   } catch (err) { alert('Não foi possível carregar os EPIs.'); }
+}
+
+async function inativarEpi(id, nome) {
+  if (!confirm(`Inativar o EPI "${nome}"? Ele sairá da lista, mas o histórico é mantido.`)) return;
+  const resp = await fetchAutenticado(`/epi/${id}/inativar`, { method: 'PUT' });
+  const d = await resp.json();
+  if (resp.ok) await carregarEpis(); else alert(d.erro || 'Erro ao inativar.');
 }
 
 // Carrega as categorias no select do modal de cadastro
@@ -1135,38 +1148,34 @@ function renderFuncionarios() {
   const tbody = document.getElementById('tbody-func');
   if (!tbody) return;
   tbody.innerHTML = '';
-
   funcionariosCache.forEach(f => {
-    const nomeCompleto = `${f.nm_funcionario}`.trim();
+    const nomeCompleto = `${f.nm_funcionario} ${f.sobrenome_funcionario || ''}`.trim();
+    const semEpi = Number(f.total_epis) === 0;
     const tr = document.createElement('tr');
     tr.setAttribute('data-nome', nomeCompleto);
-    tr.setAttribute('data-status', f.st_funcionario);
+    tr.setAttribute('data-status', semEpi ? 'SEM EPI' : 'COM EPI');
 
     const tdNome = document.createElement('td');
-    tdNome.textContent = nomeCompleto;                       // XSS-safe
+    tdNome.textContent = nomeCompleto;
     if (f.cpf_usuario) {
-      const cpfLinha = document.createElement('div');
-      cpfLinha.textContent = 'CPF: ' + f.cpf_usuario;        // XSS-safe
-      cpfLinha.style.fontSize = '12px';
-      cpfLinha.style.color = '#777';
-      tdNome.appendChild(cpfLinha);
+      const cpf = document.createElement('div');
+      cpf.textContent = 'CPF: ' + f.cpf_usuario;
+      cpf.style.fontSize = '12px'; cpf.style.color = '#777';
+      tdNome.appendChild(cpf);
     }
-
-    const tdSetor = document.createElement('td');
-    tdSetor.textContent = f.nm_setor || 'Sem setor';
-
-    const tdEpis = document.createElement('td');
-    tdEpis.textContent = '—';
-
-    const tdStatus = document.createElement('td');
-    tdStatus.textContent = f.st_funcionario === 'A' ? 'Ativo' : 'Inativo';
+    const tdSetor = document.createElement('td'); tdSetor.textContent = f.nm_setor || 'Sem setor';
+    const tdEpis = document.createElement('td'); tdEpis.textContent = semEpi ? 'SEM EPI' : f.total_epis;
+    const tdStatus = document.createElement('td'); tdStatus.textContent = f.st_funcionario === 'A' ? 'Ativo' : 'Inativo';
 
     const tdAcao = document.createElement('td');
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-outline';
-    btn.textContent = 'Editar';
-    btn.onclick = () => abrirEditar(f.id_funcionario);
-    tdAcao.appendChild(btn);
+    const btnEd = document.createElement('button');
+    btnEd.className = 'btn btn-outline'; btnEd.textContent = 'Editar';
+    btnEd.onclick = () => abrirEditar(f.id_funcionario);
+    const btnEnt = document.createElement('button');
+    btnEnt.className = 'btn btn-primary'; btnEnt.textContent = 'Entregar EPI';
+    btnEnt.style.marginLeft = '6px';
+    btnEnt.onclick = () => entregarEpi(f.id_funcionario, nomeCompleto);
+    tdAcao.append(btnEd, btnEnt);
 
     tr.append(tdNome, tdSetor, tdEpis, tdStatus, tdAcao);
     tbody.appendChild(tr);
@@ -1226,6 +1235,96 @@ async function salvarEdicao() {
     }
   } catch (err) {
     alert('Não foi possível conectar ao servidor.');
+  }
+}
+
+// ============================================================
+//  dashboard.html
+// ============================================================
+
+async function carregarDashboard() {
+  if (!document.getElementById('chartBarras')) return; // só na dashboard
+  try {
+    const resp = await fetchAutenticado('/dashboard?ano=' + new Date().getFullYear());
+    if (!resp || !resp.ok) return;
+    const d = await resp.json();
+    const label = document.querySelector('.kpi-card .label');
+    if (label) label.textContent = 'EPIs Entregues (em ' + new Date().getFullYear() + ')';
+    const card = document.querySelector('.kpi-card');
+    if (card) { card.style.textAlign = 'center'; card.style.display = 'flex'; card.style.flexDirection = 'column'; card.style.justifyContent = 'center'; }
+    const val = document.querySelector('.kpi-card .value');
+    if (val) val.style.fontSize = '72px';
+
+    // Card "EPIs Entregues"
+    const kpi = document.querySelector('.kpi-card .value');
+    if (kpi) kpi.textContent = d.epiEntregue;
+
+    // Status de CA (3 valores)
+    const cas = document.querySelectorAll('.status-ca .s-val');
+    if (cas.length === 3) {
+      cas[0].textContent = '✅ ' + d.statusCa.valido;
+      cas[1].textContent = '⚠️ ' + d.statusCa.a_vencer;
+      cas[2].textContent = '❌ ' + d.statusCa.vencido;
+    }
+
+    // Tabela "necessidade de compra"
+    const tbodyCompra = document.querySelector('.tabela-compra tbody');
+    if (tbodyCompra) {
+      tbodyCompra.innerHTML = '';
+      d.necessidadeCompra.forEach(item => {
+        const tr = document.createElement('tr');
+        [item.nm_epi, item.ca_epi || '—', item.qtd_sugerida].forEach(v => {
+          const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
+        });
+        tbodyCompra.appendChild(tr);
+      });
+    }
+
+    // Gráfico de barras (top EPIs)
+    new Chart(document.getElementById('chartBarras'), {
+      type: 'bar',
+      data: {
+        labels: d.topEpisEntregues.map(e => e.nm_epi),
+        datasets: [{ data: d.topEpisEntregues.map(e => e.total), backgroundColor: '#4ea8c9', borderRadius: 4 }]
+      },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+
+    // Gráfico de linha (entregas por mês)
+    new Chart(document.getElementById('chartLinha'), {
+      type: 'line',
+      data: {
+        labels: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
+        datasets: [{ data: d.entregasPorMes.map(m => m.total), borderColor: '#333', backgroundColor: 'transparent', pointBackgroundColor: '#333', tension: 0.1 }]
+      },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    });
+  } catch (err) {}
+}
+document.addEventListener('DOMContentLoaded', carregarDashboard); // Rodando no front-end
+
+// ENTREGA: abre seleção de EPI e registra para o funcionário
+async function entregarEpi(idFuncionario, nomeFuncionario) {
+  // Busca os EPIs da empresa para o admin escolher
+  const respEpis = await fetchAutenticado('/epi/listar');
+  if (!respEpis || !respEpis.ok) { alert('Erro ao carregar EPIs.'); return; }
+  const epis = await respEpis.json();
+  if (epis.length === 0) { alert('Nenhum EPI cadastrado.'); return; }
+
+  const lista = epis.map(e => `${e.id_epi} - ${e.nm_epi} (estoque: ${e.quantidade})`).join('\n');
+  const escolha = prompt(`Entregar EPI para ${nomeFuncionario}.\nDigite o ID do EPI:\n\n${lista}`);
+  if (!escolha) return;
+
+  const resp = await fetchAutenticado('/entrega/registrar', {
+    method: 'POST',
+    body: JSON.stringify({ funcionario: idFuncionario, epi: parseInt(escolha) })
+  });
+  const dados = await resp.json();
+  if (resp.ok) {
+    alert('Entrega registrada com sucesso!');
+    await carregarFuncionarios();
+  } else {
+    alert(dados.erro || 'Erro ao registrar entrega.'); // ex.: "Sem estoque disponível"
   }
 }
 
