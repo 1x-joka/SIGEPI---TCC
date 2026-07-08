@@ -193,3 +193,5 @@ values
 -- Colocando a column "dt_validade_ca" para que, na dashboard, tenha uma contagem de quantos estão ativos, em validade, etc.
 alter table tb_epi
 add dt_validade_ca date;
+
+SELECT * FROM tb_epi; SELECT * FROM tb_estoque;

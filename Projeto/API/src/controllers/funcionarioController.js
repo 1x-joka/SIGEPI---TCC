@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const registrarLog = require('../utils/registrarLog');
 
 // PASSO 1: funcionário entra na empresa usando o código único recebido do admin
 async function entrarEmpresa(req, res) {
@@ -177,6 +178,8 @@ async function inativarFuncionario(req, res) {
     }
 
     await conexao.commit();
+
+    await registrarLog({ empresa, tipo: 'INATIVACAO_FUNC', descricao: 'Inativação de funcionário', motivo: motivo, responsavel: req.usuario.email });
 
     return res.status(200).json({ mensagem: 'Funcionário inativado com sucesso.' });
 

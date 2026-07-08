@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const registrarLog = require('../utils/registrarLog');
 
 // Cadastrar um setor vinculado à empresa do usuário logado
 async function cadastrarSetor(req, res) {

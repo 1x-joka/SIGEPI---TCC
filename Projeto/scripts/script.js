@@ -803,19 +803,21 @@ async function carregarHistorico() {
   const tbody = document.getElementById('tbody-hist');
   if (!tbody) return;
   try {
-    const resp = await fetchAutenticado('/entrega/listar');
+    const resp = await fetchAutenticado('/log');
     if (resp && resp.ok) {
-      const entregas = await resp.json();
+      const logs = await resp.json();
       tbody.innerHTML = '';
-      entregas.forEach(e => {
+      const nomesTipo = {
+        CADASTRO_EPI:'Cadastro de EPI', ENTRADA_ESTOQUE:'Entrada de Estoque',
+        SAIDA_ESTOQUE:'Retirada de Estoque', ENTREGA:'Entrega', DEVOLUCAO:'Devolução',
+        INATIVACAO_FUNC:'Inativação de Funcionário'
+      };
+      logs.forEach(l => {
         const tr = document.createElement('tr');
-        const data = e.dt_entrega ? new Date(e.dt_entrega).toLocaleDateString('pt-BR') : '—';
-        const tipo = e.st_entrega === 'D' ? 'Devolução' : 'Entrega';
-        const func = `${e.nm_funcionario} ${e.sobrenome_funcionario || ''}`.trim();
-        // Colunas: Data, Tipo, Descrição, Equipamento, Funcionário, Setor, Quantidade, Responsável
-        [data, tipo, '—', e.nm_epi, func, '—', '1', 'Admin'].forEach(v => {
-          const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); // XSS-safe
-        });
+        const dataHora = l.dt_log ? new Date(l.dt_log).toLocaleString('pt-BR') : '—';
+        [ dataHora, nomesTipo[l.tipo_acao] || l.tipo_acao, l.descricao || '—',
+          l.equipamento || '—', (l.quantidade ?? '—'), l.motivo || '—', l.responsavel || '—'
+        ].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
         tbody.appendChild(tr);
       });
     }

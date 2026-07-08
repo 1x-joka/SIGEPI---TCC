@@ -3,6 +3,7 @@
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const registrarLog = require('../utils/registrarLog'); // puxando o log de auditoria para ver e registrar o que está acontecendo em cada Controller
 
 async function cadastrar(req, res) {
   const { nome, email, senha, cpf, tipo } = req.body;

@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const registrarLog = require('../utils/registrarLog');
 
 // Cadastrar um EPI vinculado à empresa do admin logado
 async function cadastrarEpi(req, res) {
@@ -47,6 +48,8 @@ async function cadastrarEpi(req, res) {
        VALUES (?, ?, 'A', CURDATE(), ?, ?, ?, ?)`,
       [nome, descricao || null, ca || null, validadeCa || null, categoria || null, empresa]
     );
+
+    await registrarLog({ empresa, tipo: 'CADASTRO_EPI', descricao: 'Cadastro de EPI', equipamento: nome, responsavel: req.usuario.email });
 
     return res.status(201).json({
       mensagem: 'EPI cadastrado com sucesso.',

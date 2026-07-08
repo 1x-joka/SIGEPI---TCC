@@ -11,6 +11,7 @@ const estoqueRoutes = require('./src/routes/estoqueRoutes');
 const entregaRoutes = require('./src/routes/entregaRoutes');
 const solicitacaoRoutes = require('./src/routes/solicitacaoRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
+const logRoutes = require('./src/routes/logRoutes');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use('/api/estoque', estoqueRoutes);
 app.use('/api/entrega', entregaRoutes)
 app.use('/api/solicitacao', solicitacaoRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/log', logRoutes);
 
 // Verificando se a API funciona (roda "npm start" no terminal na pasta API e testa no google com a url: http://localhost:3000/ )
 app.get('/', (req, res) => {

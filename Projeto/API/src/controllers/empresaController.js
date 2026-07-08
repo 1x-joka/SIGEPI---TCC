@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const registrarLog = require('../utils/registrarLog');
 
 async function cadastrarEmpresa(req, res) {
   const { nome, cnpj, responsavel, email, telefone, setor } = req.body;

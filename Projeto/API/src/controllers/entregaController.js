@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const registrarLog = require('../utils/registrarLog');
 
 // O controller não mexe no estoque. Ele insere em tb_entrega e para.
 // A checagem st_entrega === 'D' evita "devolver duas vezes" (409).
@@ -115,6 +116,8 @@ async function registrarDevolucao(req, res) {
        WHERE id_entrega = ?`,
       [id_entrega]
     );
+
+    await registrarLog({ empresa, tipo: 'DEVOLUCAO', descricao: 'Devolução de EPI', responsavel: req.usuario.email });
 
     return res.status(200).json({ mensagem: 'Devolução registrada com sucesso.' });
 

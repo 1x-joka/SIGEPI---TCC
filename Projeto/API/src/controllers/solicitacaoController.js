@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const registrarLog = require('../utils/registrarLog');
 
 // Calcula uma data somando N dias ÚTEIS a partir de hoje (pula sábado e domingo)
 function calcularPrevisao(diasUteis) {

@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const registrarLog = require('../utils/registrarLog');
 
 // Painel gerencial (F13) — todos os números filtrados pela empresa e pelo período
 async function obterDashboard(req, res) {

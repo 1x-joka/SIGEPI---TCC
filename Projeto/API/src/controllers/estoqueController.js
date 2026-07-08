@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const registrarLog = require('../utils/registrarLog');
 
 // Registrar ENTRADA de estoque (um lote novo) — só admin
 async function registrarEntrada(req, res) {
@@ -47,8 +48,12 @@ async function registrarEntrada(req, res) {
       [quantidade, 'Entrada de estoque', id_estoque]
     );
 
+    await registrarLog({ empresa, tipo: 'ENTRADA_ESTOQUE', descricao: 'Entrada de estoque', equipamento: null, quantidade, responsavel: req.usuario.email });
+
     // Se chegou aqui, as DUAS deram certo → grava de verdade
     await conexao.commit();
+
+    await registrarLog({ empresa, tipo: 'ENTREGA', descricao: 'Entrega de EPI', equipamento: epis[0]?.nm_epi || null, quantidade: 1, responsavel: req.usuario.email });
 
     return res.status(201).json({
       mensagem: 'Entrada de estoque registrada com sucesso.',
@@ -137,6 +142,8 @@ async function registrarSaida(req, res) {
       );
       restante -= baixa;
     }
+
+    await registrarLog({ empresa, tipo: 'SAIDA_ESTOQUE', descricao: 'Retirada de estoque', quantidade, motivo: motivo || null, responsavel: req.usuario.email });
 
     await conexao.commit();
     return res.status(200).json({ mensagem: 'Saída de estoque registrada com sucesso.' });
