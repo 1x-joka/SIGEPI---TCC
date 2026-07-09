@@ -179,7 +179,7 @@ async function inativarFuncionario(req, res) {
 
     await conexao.commit();
 
-    await registrarLog({ empresa, tipo: 'INATIVACAO_FUNC', descricao: 'Inativação de funcionário', motivo: motivo, responsavel: req.usuario.email });
+    await registrarLog({ empresa, tipo: 'INATIVACAO_FUNC', descricao: 'Inativação de funcionário', motivo: motivo, responsavel: req.usuario.id });
 
     return res.status(200).json({ mensagem: 'Funcionário inativado com sucesso.' });
 

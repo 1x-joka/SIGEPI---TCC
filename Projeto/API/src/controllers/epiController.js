@@ -49,7 +49,7 @@ async function cadastrarEpi(req, res) {
       [nome, descricao || null, ca || null, validadeCa || null, categoria || null, empresa]
     );
 
-    await registrarLog({ empresa, tipo: 'CADASTRO_EPI', descricao: 'Cadastro de EPI', equipamento: nome, responsavel: req.usuario.email });
+    await registrarLog({ empresa, tipo: 'CADASTRO_EPI', descricao: 'Cadastro de EPI', equipamento: nome, responsavel: req.usuario.id });
 
     return res.status(201).json({
       mensagem: 'EPI cadastrado com sucesso.',

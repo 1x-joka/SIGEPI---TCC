@@ -49,21 +49,15 @@
             </select>
           </div>
           <div class="select-wrap select-wrap--filtro-setor">
-            <select id="filtro-setor" onchange="filtrarHistorico()">
-              <option value="">Setor</option>
-              <option>Pintura</option><option>Acabamento</option>
-              <option>Metalurgia</option><option>Construção</option>
-            </select>
           </div>
+          <label style="align-self:center;font-size:13px;color:#555;margin-right:6px;">Filtrar por data:</label>
           <input type="date" id="filtro-inicio" onchange="filtrarHistorico()" class="input-data-filtro">
-          <input type="date" id="filtro-fim" onchange="filtrarHistorico()" class="input-data-filtro">
         </div>
         <div class="table-overflow">
           <table id="tabela-hist">
             <thead>
               <tr>
-                <th>Data</th><th>Tipo</th><th>Descrição</th><th>Equipamento</th>
-                <th>Funcionário</th><th>Setor</th><th>Quantidade</th><th>Responsável</th><th>Motivo</th>
+                <th>Data/Hora</th><th>Tipo</th><th>Equipamento</th><th>Quantidade</th><th>Motivo</th><th>Responsável</th>
               </tr>
             </thead>
             <tbody id="tbody-hist">

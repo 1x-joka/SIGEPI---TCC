@@ -782,7 +782,6 @@ function reporTodos() {
   fecharModal('modal-verificar');
 }
 
-
 // ============================================================
 //  historico.html
 // ============================================================
@@ -808,16 +807,20 @@ async function carregarHistorico() {
       const logs = await resp.json();
       tbody.innerHTML = '';
       const nomesTipo = {
-        CADASTRO_EPI:'Cadastro de EPI', ENTRADA_ESTOQUE:'Entrada de Estoque',
-        SAIDA_ESTOQUE:'Retirada de Estoque', ENTREGA:'Entrega', DEVOLUCAO:'Devolução',
-        INATIVACAO_FUNC:'Inativação de Funcionário'
+        CADASTRO_EPI:'Cadastro de EPI', ENTRADA_ESTOQUE:'Entrada de Estoque', SAIDA_ESTOQUE:'Retirada de Estoque', ENTREGA:'Entrega', DEVOLUCAO:'Devolução', INATIVACAO_FUNC:'Inativação de Funcionário'
       };
       logs.forEach(l => {
         const tr = document.createElement('tr');
         const dataHora = l.dt_log ? new Date(l.dt_log).toLocaleString('pt-BR') : '—';
-        [ dataHora, nomesTipo[l.tipo_acao] || l.tipo_acao, l.descricao || '—',
-          l.equipamento || '—', (l.quantidade ?? '—'), l.motivo || '—', l.responsavel || '—'
-        ].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+        [dataHora, nomesTipo[l.tipo_acao] || l.tipo_acao, l.equipamento || '—', (l.quantidade ?? '—'), l.motivo || '—'].forEach(v => {
+          const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
+        });
+        const tdResp = document.createElement('td');
+        tdResp.textContent = l.nm_usuario || '—';
+        if (l.cpf_usuario) {
+          const c = document.createElement('div'); c.textContent = 'CPF: ' + l.cpf_usuario; c.style.fontSize='12px'; c.style.color='#777'; tdResp.appendChild(c);
+        }
+        tr.appendChild(tdResp);
         tbody.appendChild(tr);
       });
     }

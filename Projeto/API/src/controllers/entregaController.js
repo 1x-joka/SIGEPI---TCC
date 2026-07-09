@@ -117,7 +117,7 @@ async function registrarDevolucao(req, res) {
       [id_entrega]
     );
 
-    await registrarLog({ empresa, tipo: 'DEVOLUCAO', descricao: 'Devolução de EPI', responsavel: req.usuario.email });
+    await registrarLog({ empresa, tipo: 'DEVOLUCAO', descricao: 'Devolução de EPI', responsavel: req.usuario.id });
 
     return res.status(200).json({ mensagem: 'Devolução registrada com sucesso.' });
 

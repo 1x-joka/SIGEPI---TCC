@@ -190,6 +190,20 @@ values
         --> enum impediria alguém de inserir um status inválido, ou seja, trava os valores válidos no banco = segurança/integridade
 */
 
+-- ADICIONANDO A TABELA DE AUDITORIA DE LOGS PARA MÁXIMA RASTREABILIDADE
+create table tb_log (
+    id_log int primary key auto_increment,
+    dt_log datetime default current_timestamp,
+    tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC') not null,
+    descricao varchar(255),
+    equipamento varchar(45),
+    quantidade int,
+    motivo varchar(100),
+    responsavel varchar(120),
+    tb_empresa_id_empresa int not null,
+    foreign key (tb_empresa_id_empresa) references tb_empresa(id_empresa)
+);
+
 -- Colocando a column "dt_validade_ca" para que, na dashboard, tenha uma contagem de quantos estão ativos, em validade, etc.
 alter table tb_epi
 add dt_validade_ca date;
