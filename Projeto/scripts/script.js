@@ -488,6 +488,14 @@ async function avancarComplementar() {
   if (!nascimento) { nascErro?.classList.add('show'); ok = false; } else nascErro?.classList.remove('show');
   if (!ok) return;
 
+  if (nascimento) {
+    const nasc = new Date(nascimento), hoje = new Date();
+    let idade = hoje.getFullYear() - nasc.getFullYear();
+    const m = hoje.getMonth() - nasc.getMonth();
+    if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+    if (idade < 18) { alert('Você deve ter no mínimo 18 anos.'); return; }
+  }
+
   try {
     const resposta = await fetchAutenticado('/funcionario/completar', {
       method: 'POST',
@@ -579,31 +587,16 @@ async function cadastrarEPI() {
   const qtd = document.getElementById('cad-qtd')?.value;
   const limite = document.getElementById('cad-limite')?.value;
   const categoria = document.getElementById('cad-cat')?.value;
-
-  if (!nome || !ca || !validade || !qtd || !limite || !categoria) {
-    alert('Preencha todos os campos.'); return;
-  }
-
+  if (!nome || !ca || !validade || !qtd || !limite || !categoria) { alert('Preencha todos os campos.'); return; }
   try {
-    // 1) cria o EPI
-    const r1 = await fetchAutenticado('/epi/cadastrar', {
+    const r = await fetchAutenticado('/epi/cadastrar', {
       method: 'POST',
-      body: JSON.stringify({ nome, descricao: desc, ca, validadeCa: validade, categoria: parseInt(categoria) })
+      body: JSON.stringify({ nome, descricao: desc, ca, validadeCa: validade, categoria: parseInt(categoria), quantidade: parseInt(qtd), quantidadeMinima: parseInt(limite), validade })
     });
-    if (!r1) return;
-    const d1 = await r1.json();
-    if (!r1.ok) { alert(d1.erro || 'Erro ao cadastrar EPI.'); return; }
-
-    // 2) cria o lote inicial de estoque
-    const r2 = await fetchAutenticado('/estoque/entrada', {
-      method: 'POST',
-      body: JSON.stringify({ epi: d1.id_epi, quantidade: parseInt(qtd), quantidadeMinima: parseInt(limite), validade })
-    });
-    const d2 = await r2.json();
-    if (!r2.ok) alert('EPI criado, mas houve erro no estoque: ' + (d2.erro || ''));
-
-    fecharModal('modal-cadastrar');
-    await carregarEpis(); // Carregando os EPIs cadastrados imediatamente após cadastrar um por um
+    if (!r) return;
+    const d = await r.json();
+    if (r.ok) { fecharModal('modal-cadastrar'); await carregarEpis(); }
+    else alert(d.erro || 'Erro ao cadastrar EPI.');
   } catch (err) { alert('Não foi possível conectar ao servidor.'); }
 }
 
@@ -787,13 +780,12 @@ function reporTodos() {
 // ============================================================
 
 function filtrarHistorico() {
-  const tipo = document.getElementById('filtro-tipo')?.value;
-  const setor = document.getElementById('filtro-setor')?.value;
-  document.querySelectorAll('#tabela-hist tbody tr').forEach(tr => {
-    const tds = tr.querySelectorAll('td');
-    const tipoOk = !tipo  || tds[1]?.textContent.trim() === tipo;
-    const setorOk = !setor || tds[5]?.textContent.trim() === setor;
-    tr.style.display = (tipoOk && setorOk) ? '' : 'none';
+  const tipo = document.getElementById('filtro-tipo')?.value || '';
+  const data = document.getElementById('filtro-inicio')?.value || '';
+  document.querySelectorAll('#tbody-hist tr').forEach(tr => {
+    const okTipo = !tipo || tr.dataset.tipo === tipo;
+    const okData = !data || tr.dataset.data === data;
+    tr.style.display = (okTipo && okData) ? '' : 'none';
   });
 }
 
@@ -811,6 +803,8 @@ async function carregarHistorico() {
       };
       logs.forEach(l => {
         const tr = document.createElement('tr');
+        tr.dataset.tipo = l.tipo_acao;
+        tr.dataset.data = l.dt_log ? l.dt_log.substring(0, 10) : '';
         const dataHora = l.dt_log ? new Date(l.dt_log).toLocaleString('pt-BR') : '—';
         [dataHora, nomesTipo[l.tipo_acao] || l.tipo_acao, l.equipamento || '—', (l.quantidade ?? '—'), l.motivo || '—'].forEach(v => {
           const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);

@@ -74,6 +74,16 @@ async function completarCadastro(req, res) {
       return res.status(400).json({ erro: 'Setor inválido para esta empresa.' });
     }
 
+    // Tendo como obrigatório o funcionário ter, pelo menos, 18 anos
+
+    if (dataNascimento) {
+      const nasc = new Date(dataNascimento), hoje = new Date();
+      let idade = hoje.getFullYear() - nasc.getFullYear();
+      const m = hoje.getMonth() - nasc.getMonth();
+      if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+      if (idade < 18) return res.status(400).json({ erro: 'O funcionário deve ter no mínimo 18 anos.' });
+    }
+
     // Nome vem da conta (nm_usuario), definido no cadastro
     const [usuarios] = await db.query(
       'SELECT nm_usuario FROM tb_usuario WHERE id_usuario = ?',
@@ -227,6 +237,8 @@ async function editarFuncionario(req, res) {
       'UPDATE tb_funcionario SET nm_funcionario = ?, tb_setor_id_setor = ? WHERE id_funcionario = ?',
       [nome, setor || null, id_funcionario]
     );
+
+    await registrarLog({ empresa, tipo: 'EDICAO_FUNC', descricao: 'Edição de funcionário', responsavel: req.usuario.id });
 
     return res.status(200).json({ mensagem: 'Funcionário atualizado com sucesso.' });
 

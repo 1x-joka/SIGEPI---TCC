@@ -20,7 +20,7 @@ async function registrarEntrada(req, res) {
   try {
     // Segurança: o EPI precisa pertencer À MESMA empresa do admin logado
     const [epis] = await conexao.query(
-      'SELECT id_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ?',
+      'SELECT id_epi, nm_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ?',
       [epi, empresa]
     );
     if (epis.length === 0) {
@@ -48,7 +48,7 @@ async function registrarEntrada(req, res) {
       [quantidade, 'Entrada de estoque', id_estoque]
     );
 
-    await registrarLog({ empresa, tipo: 'ENTRADA_ESTOQUE', descricao: 'Entrada de estoque', equipamento: null, quantidade, responsavel: req.usuario.id });
+    await registrarLog({ empresa, tipo: 'ENTRADA_ESTOQUE', descricao: 'Entrada de estoque', equipamento: epis[0].nm_epi, quantidade, responsavel: req.usuario.id });
 
     // Se chegou aqui, as DUAS deram certo → grava de verdade
     await conexao.commit();
@@ -141,7 +141,9 @@ async function registrarSaida(req, res) {
       restante -= baixa;
     }
 
-    await registrarLog({ empresa, tipo: 'SAIDA_ESTOQUE', descricao: 'Retirada de estoque', quantidade, motivo: motivo || null, responsavel: req.usuario.id });
+    const [epiNome] = await db.query('SELECT nm_epi FROM tb_epi WHERE id_epi = ?', [epi]);
+
+    await registrarLog({ empresa, tipo: 'SAIDA_ESTOQUE', descricao: 'Retirada de estoque', equipamento: epiNome[0]?.nm_epi || null, quantidade, motivo: motivo || null, responsavel: req.usuario.id });
 
     await conexao.commit();
     return res.status(200).json({ mensagem: 'Saída de estoque registrada com sucesso.' });

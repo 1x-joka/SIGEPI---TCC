@@ -26,7 +26,7 @@ async function registrarEntrega(req, res) {
 
     // 2) O EPI precisa ser DESTA empresa
     const [epis] = await db.query(
-      'SELECT id_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ?',
+      'SELECT id_epi, nm_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ?',
       [epi, empresa]
     );
     if (epis.length === 0) {
@@ -53,6 +53,8 @@ async function registrarEntrega(req, res) {
        VALUES (CURDATE(), 'A', ?, ?, ?)`,
       [funcionario, epi, admin]
     );
+
+    await registrarLog({ empresa, tipo: 'ENTREGA', descricao: 'Entrega de EPI', equipamento: epis[0]?.nm_epi,quantidade: 1, responsavel: req.usuario.id });
 
     return res.status(201).json({
       mensagem: 'Entrega registrada com sucesso.',

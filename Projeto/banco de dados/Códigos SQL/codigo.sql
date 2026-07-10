@@ -194,7 +194,7 @@ values
 create table tb_log (
     id_log int primary key auto_increment,
     dt_log datetime default current_timestamp,
-    tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC') not null,
+    tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC') not null,
     descricao varchar(255),
     equipamento varchar(45),
     quantidade int,

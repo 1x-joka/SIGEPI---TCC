@@ -3,63 +3,43 @@ const registrarLog = require('../utils/registrarLog');
 
 // Cadastrar um EPI vinculado à empresa do admin logado
 async function cadastrarEpi(req, res) {
-  const { nome, descricao, ca, categoria, validadeCa } = req.body;
-  const empresa = req.usuario.empresa; // do middleware, nunca do cliente
+  const { nome, descricao, ca, categoria, validadeCa, quantidade, quantidadeMinima, validade } = req.body;
+  const empresa = req.usuario.empresa;
+  if (!nome) return res.status(400).json({ erro: 'Informe o nome do EPI.' });
 
-  if (!nome) {
-    return res.status(400).json({ erro: 'Informe o nome do EPI.' });
-  }
-
+  const conexao = await db.getConnection();
   try {
-    // Impede EPI duplicado (mesmo nome) dentro da mesma empresa
-    const [existe] = await db.query(
-      'SELECT id_epi FROM tb_epi WHERE nm_epi = ? AND tb_empresa_id_empresa = ?',
-      [nome, empresa]
-    );
-    if (existe.length > 0) {
-      return res.status(409).json({ erro: 'Já existe um EPI com esse nome nesta empresa.' });
-    }
-
-    // CA é único por empresa (Certificado de Aprovação não se repete)
+    const [existe] = await conexao.query('SELECT id_epi FROM tb_epi WHERE nm_epi = ? AND tb_empresa_id_empresa = ?', [nome, empresa]);
+    if (existe.length > 0) { conexao.release(); return res.status(409).json({ erro: 'Já existe um EPI com esse nome nesta empresa.' }); }
     if (ca) {
-      const [caExiste] = await db.query(
-        'SELECT id_epi FROM tb_epi WHERE ca_epi = ? AND tb_empresa_id_empresa = ?',
-        [ca, empresa]
-      );
-      if (caExiste.length > 0) {
-        return res.status(409).json({ erro: 'Já existe um EPI com esse CA nesta empresa.' });
-      }
+      const [caEx] = await conexao.query('SELECT id_epi FROM tb_epi WHERE ca_epi = ? AND tb_empresa_id_empresa = ?', [ca, empresa]);
+      if (caEx.length > 0) { conexao.release(); return res.status(409).json({ erro: 'Já existe um EPI com esse CA nesta empresa.' }); }
     }
-
-    // Se informou categoria, ela precisa existir (evita erro de FK)
     if (categoria) {
-      const [cats] = await db.query(
-        'SELECT id_categoria FROM tb_categoria WHERE id_categoria = ?',
-        [categoria]
-      );
-      if (cats.length === 0) {
-        return res.status(400).json({ erro: 'Categoria inválida.' });
-      }
+      const [cats] = await conexao.query('SELECT id_categoria FROM tb_categoria WHERE id_categoria = ?', [categoria]);
+      if (cats.length === 0) { conexao.release(); return res.status(400).json({ erro: 'Categoria inválida.' }); }
     }
 
-    const [result] = await db.query(
-      `INSERT INTO tb_epi
-        (nm_epi, desc_epi, st_epi, dt_cadastro_epi, ca_epi, dt_validade_ca, tb_categoria_id_categoria, tb_empresa_id_empresa)
+    await conexao.beginTransaction();
+    const [result] = await conexao.query(
+      `INSERT INTO tb_epi (nm_epi, desc_epi, st_epi, dt_cadastro_epi, ca_epi, dt_validade_ca, tb_categoria_id_categoria, tb_empresa_id_empresa)
        VALUES (?, ?, 'A', CURDATE(), ?, ?, ?, ?)`,
       [nome, descricao || null, ca || null, validadeCa || null, categoria || null, empresa]
     );
+    const id_epi = result.insertId;
+    await conexao.query(
+      `INSERT INTO tb_estoque (qtd_disponivel_estoque, qtd_minima_estoque, dt_validade_estoque, tb_empresa_id_empresa, tb_epi_id_epi)
+       VALUES (?, ?, ?, ?, ?)`,
+      [quantidade || 0, quantidadeMinima || 0, validade || null, empresa, id_epi]
+    );
+    await conexao.commit();
 
-    await registrarLog({ empresa, tipo: 'CADASTRO_EPI', descricao: 'Cadastro de EPI', equipamento: nome, responsavel: req.usuario.id });
-
-    return res.status(201).json({
-      mensagem: 'EPI cadastrado com sucesso.',
-      id_epi: result.insertId,
-      nm_epi: nome
-    });
-
+    await registrarLog({ empresa, tipo: 'CADASTRO_EPI', descricao: 'Cadastro de EPI', equipamento: epis[0].nm_epi, quantidade: quantidade || 0, responsavel: req.usuario.id });
+    return res.status(201).json({ mensagem: 'EPI cadastrado com sucesso.', id_epi });
   } catch (err) {
+    await conexao.rollback();
     return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
-  }
+  } finally { conexao.release(); }
 }
 
 // Lista apenas os EPIs da empresa do usuário logado
@@ -102,7 +82,10 @@ async function inativarEpi(req, res) {
   const id_epi = req.params.id;
   const empresa = req.usuario.empresa;
   try {
-    const [e] = await db.query('SELECT id_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ?', [id_epi, empresa]);
+    const [epis] = await db.query(
+      'SELECT id_epi, nm_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ?',
+      [id_epi, empresa]
+    );
     if (e.length === 0) return res.status(404).json({ erro: 'EPI não encontrado.' });
     await db.query("UPDATE tb_epi SET st_epi = 'I' WHERE id_epi = ?", [id_epi]);
     return res.status(200).json({ mensagem: 'EPI inativado com sucesso.' });
