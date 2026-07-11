@@ -189,7 +189,13 @@ async function inativarFuncionario(req, res) {
 
     await conexao.commit();
 
-    await registrarLog({ empresa, tipo: 'INATIVACAO_FUNC', descricao: 'Inativação de funcionário', motivo: motivo, responsavel: req.usuario.id });
+    const [dadosFunc] = await db.query(
+      `SELECT f.nm_funcionario, u.cpf_usuario FROM tb_funcionario f
+       LEFT JOIN tb_usuario u ON u.id_usuario = f.tb_usuario_id_usuario
+       WHERE f.id_funcionario = ?`, [id_funcionario]
+    );
+    const alvo = dadosFunc[0] ? `${dadosFunc[0].nm_funcionario} (CPF: ${dadosFunc[0].cpf_usuario || '—'})` : null;
+    await registrarLog({ empresa, tipo: 'EDICAO_FUNC', descricao: 'Edição de funcionário', equipamento: alvo, responsavel: req.usuario.id });
 
     return res.status(200).json({ mensagem: 'Funcionário inativado com sucesso.' });
 
@@ -238,7 +244,13 @@ async function editarFuncionario(req, res) {
       [nome, setor || null, id_funcionario]
     );
 
-    await registrarLog({ empresa, tipo: 'EDICAO_FUNC', descricao: 'Edição de funcionário', responsavel: req.usuario.id });
+    const [dadosFunc] = await db.query(
+      `SELECT f.nm_funcionario, u.cpf_usuario FROM tb_funcionario f
+       LEFT JOIN tb_usuario u ON u.id_usuario = f.tb_usuario_id_usuario
+       WHERE f.id_funcionario = ?`, [id_funcionario]
+    );
+    const alvo = dadosFunc[0] ? `${dadosFunc[0].nm_funcionario} (CPF: ${dadosFunc[0].cpf_usuario || '—'})` : null;
+    await registrarLog({ empresa, tipo: 'EDICAO_FUNC', descricao: 'Edição de funcionário', equipamento: alvo, responsavel: req.usuario.id });
 
     return res.status(200).json({ mensagem: 'Funcionário atualizado com sucesso.' });
 

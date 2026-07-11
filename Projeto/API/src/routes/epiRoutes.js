@@ -11,4 +11,6 @@ router.get('/listar', autenticar, exigirEmpresa, epiController.listarEpis);
 
 router.put('/:id/inativar', autenticar, exigirEmpresa, exigirAdmin, epiController.inativarEpi);
 
+router.get('/categorias', autenticar, exigirEmpresa, epiController.listarCategorias);
+
 module.exports = router;

@@ -63,6 +63,36 @@ function setErro(id, mostrar) {
   el.classList[mostrar ? 'add' : 'remove']('show');
 }
 
+function validarCPF(cpf) {
+  if (!cpf) return false;
+  cpf = cpf.replace(/\D/g, '');
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false; // rejeita 111.111.111-11 etc.
+  let soma = 0;
+  for (let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
+  let d1 = (soma * 10) % 11; if (d1 === 10) d1 = 0;
+  if (d1 !== parseInt(cpf[9])) return false;
+  soma = 0;
+  for (let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
+  let d2 = (soma * 10) % 11; if (d2 === 10) d2 = 0;
+  return d2 === parseInt(cpf[10]);
+}
+
+function validarCNPJ(cnpj) {
+  if (!cnpj) return false;
+  cnpj = cnpj.replace(/\D/g, '');
+  if (cnpj.length !== 14 || /^(\d)\1{13}$/.test(cnpj)) return false;
+  const calc = (base, pesos) => {
+    let soma = 0;
+    for (let i = 0; i < pesos.length; i++) soma += parseInt(base[i]) * pesos[i];
+    const r = soma % 11;
+    return r < 2 ? 0 : 11 - r;
+  };
+  const d1 = calc(cnpj, [5,4,3,2,9,8,7,6,5,4,3,2]);
+  if (d1 !== parseInt(cnpj[12])) return false;
+  const d2 = calc(cnpj, [6,5,4,3,2,9,8,7,6,5,4,3,2]);
+  return d2 === parseInt(cnpj[13]);
+}
+
 
 // ============================================================
 //  loginpage.html
@@ -180,8 +210,7 @@ async function cadastrar() {
   setErro('senha-error', senha.length < 8);
   if (senha.length < 8) valid = false;
   setErro('cpf-error', cpf.replace(/\D/g,'').length < 11);
-  if (cpf.replace(/\D/g,'').length < 11) valid = false;
-  setErro('tipo-error', !tipo);
+  setErro('cpf-error', !validarCPF(cpf)); if (!validarCPF(cpf)) valid = false;
   if (!tipo) valid = false;
 
   if (!valid) return;
@@ -320,6 +349,7 @@ async function cadastrarEmpresa() {
   }
 
   try {
+    if (!validarCNPJ(cnpj)) { alert('CNPJ inválido.'); return; }
     const resposta = await fetch(`${API_URL}/empresa/cadastrar`, {
       method: 'POST',
       headers: {
@@ -518,9 +548,13 @@ async function avancarComplementar() {
 // ============================================================
 
 function filtrarEpis() {
-  const busca = document.getElementById('busca-epi')?.value.toLowerCase();
+  const busca = (document.getElementById('busca-epi')?.value || '').toLowerCase().trim();
+  const status = document.getElementById('filtro-status-epi')?.value || '';
   document.querySelectorAll('#tabela-epis tbody tr').forEach(tr => {
-  tr.style.display = tr.cells[0]?.textContent.toLowerCase().includes(busca) ? '' : 'none';
+    const nome = (tr.cells[0]?.textContent || '').toLowerCase();
+    const okBusca = !busca || nome.startsWith(busca); // COMEÇA COM, não "contém"
+    const okStatus = !status || tr.dataset.status === status;
+    tr.style.display = (okBusca && okStatus) ? '' : 'none';
   });
 }
 
@@ -536,20 +570,33 @@ async function carregarEpis() {
       tbody.innerHTML = '';
       epis.forEach(e => {
         const tr = document.createElement('tr');
+
         const baixo = Number(e.quantidade) < Number(e.limite);
-        if (baixo) tr.className = 'row-red';
-        [e.nm_epi, e.ca_epi || '—', e.quantidade, e.limite, baixo ? 'BAIXO' : 'OK'].forEach(v => {
-          const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
+        const vencido = e.dt_validade_ca && new Date(e.dt_validade_ca) < new Date();
+        const status = vencido ? 'VENCIDO' : (baixo ? 'BAIXO' : 'OK');
+        if (vencido || baixo) tr.className = 'row-red';
+        tr.dataset.status = status;
+
+        [e.nm_epi, e.ca_epi || '—', e.quantidade, e.limite, status].forEach(v => {
+          const td = document.createElement('td');
+          td.textContent = v;              // XSS-safe
+          tr.appendChild(td);
         });
+
         const tdAcao = document.createElement('td');
         const btn = document.createElement('button');
-        btn.className = 'btn btn-outline'; btn.textContent = 'Inativar'; // inativando, não deletando, pois assim os registros não somem, fidelizando a rastreabilidade
+        btn.className = 'btn btn-outline';
+        btn.textContent = 'Inativar';
         btn.onclick = () => inativarEpi(e.id_epi, e.nm_epi);
-        tdAcao.appendChild(btn); tr.appendChild(tdAcao);
+        tdAcao.appendChild(btn);
+        tr.appendChild(tdAcao);
+
         tbody.appendChild(tr);
       });
     }
-  } catch (err) { alert('Não foi possível carregar os EPIs.'); }
+  } catch (err) {
+    alert('Não foi possível carregar os EPIs.');
+  }
 }
 
 async function inativarEpi(id, nome) {
@@ -799,22 +846,64 @@ async function carregarHistorico() {
       const logs = await resp.json();
       tbody.innerHTML = '';
       const nomesTipo = {
-        CADASTRO_EPI:'Cadastro de EPI', ENTRADA_ESTOQUE:'Entrada de Estoque', SAIDA_ESTOQUE:'Retirada de Estoque', ENTREGA:'Entrega', DEVOLUCAO:'Devolução', INATIVACAO_FUNC:'Inativação de Funcionário'
+        CADASTRO_EPI:'Cadastro de EPI', ENTRADA_ESTOQUE:'Entrada de Estoque',
+        SAIDA_ESTOQUE:'Retirada de Estoque', ENTREGA:'Entrega', DEVOLUCAO:'Devolução',
+        INATIVACAO_FUNC:'Inativação de Funcionário', INATIVACAO_EPI:'Inativação de EPI',
+        EDICAO_FUNC:'Edição de Funcionário'
       };
+      // Ações que envolvem funcionário: o "alvo" (nome + CPF) fica sob o Tipo
+      const acoesDeFuncionario = ['INATIVACAO_FUNC', 'EDICAO_FUNC'];
+
       logs.forEach(l => {
         const tr = document.createElement('tr');
         tr.dataset.tipo = l.tipo_acao;
         tr.dataset.data = l.dt_log ? l.dt_log.substring(0, 10) : '';
-        const dataHora = l.dt_log ? new Date(l.dt_log).toLocaleString('pt-BR') : '—';
-        [dataHora, nomesTipo[l.tipo_acao] || l.tipo_acao, l.equipamento || '—', (l.quantidade ?? '—'), l.motivo || '—'].forEach(v => {
-          const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
-        });
+
+        // Data/Hora
+        const tdData = document.createElement('td');
+        tdData.textContent = l.dt_log ? new Date(l.dt_log).toLocaleString('pt-BR') : '—';
+        tr.appendChild(tdData);
+
+        // Tipo (+ alvo em cinza embaixo, quando for ação de funcionário)
+        const ehFuncionario = acoesDeFuncionario.includes(l.tipo_acao);
+        const tdTipo = document.createElement('td');
+        tdTipo.textContent = nomesTipo[l.tipo_acao] || l.tipo_acao;
+        if (ehFuncionario && l.equipamento) {
+          const alvo = document.createElement('div');
+          alvo.textContent = l.equipamento;      // ex.: "Igor de Oliveira (CPF: 109.739.068-39)"
+          alvo.style.fontSize = '12px';
+          alvo.style.color = '#777';
+          tdTipo.appendChild(alvo);              // XSS-safe (textContent)
+        }
+        tr.appendChild(tdTipo);
+
+        // Equipamento (hífen nas ações de funcionário, pois o alvo já subiu para o Tipo)
+        const tdEquip = document.createElement('td');
+        tdEquip.textContent = ehFuncionario ? '—' : (l.equipamento || '—');
+        tr.appendChild(tdEquip);
+
+        // Quantidade
+        const tdQtd = document.createElement('td');
+        tdQtd.textContent = (l.quantidade ?? '—');
+        tr.appendChild(tdQtd);
+
+        // Motivo
+        const tdMot = document.createElement('td');
+        tdMot.textContent = l.motivo || '—';
+        tr.appendChild(tdMot);
+
+        // Responsável (nome + CPF em cinza)
         const tdResp = document.createElement('td');
         tdResp.textContent = l.nm_usuario || '—';
         if (l.cpf_usuario) {
-          const c = document.createElement('div'); c.textContent = 'CPF: ' + l.cpf_usuario; c.style.fontSize='12px'; c.style.color='#777'; tdResp.appendChild(c);
+          const c = document.createElement('div');
+          c.textContent = 'CPF: ' + l.cpf_usuario;
+          c.style.fontSize = '12px';
+          c.style.color = '#777';
+          tdResp.appendChild(c);
         }
         tr.appendChild(tdResp);
+
         tbody.appendChild(tr);
       });
     }
@@ -1103,7 +1192,6 @@ document.addEventListener('DOMContentLoaded', function () {
   // Máscaras
   iniciarMascaraCPF();
   iniciarMascaraCNPJ();
-  iniciarMascarasCartao();
   iniciarMascaraTelefone();
 
   // Funcionários: seleção de linha

@@ -4,6 +4,7 @@ const db = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const registrarLog = require('../utils/registrarLog'); // puxando o log de auditoria para ver e registrar o que está acontecendo em cada Controller
+const { validarCPF } = require('../utils/validadores');
 
 async function cadastrar(req, res) {
   const { nome, email, senha, cpf, tipo } = req.body;
@@ -15,6 +16,10 @@ async function cadastrar(req, res) {
   const tipoNum = parseInt(tipo);
   if (tipoNum !== 1 && tipoNum !== 2) {
     return res.status(400).json({ erro: 'Selecione o tipo de conta.' });
+  }
+
+  if (!validarCPF(cpf)) {
+    return res.status(400).json({ erro: 'CPF inválido.' });
   }
 
   try {

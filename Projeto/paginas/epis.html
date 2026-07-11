@@ -38,7 +38,14 @@
         <h2 class="page-title">EPIs</h2>
         <div class="filter-bar">
           <input type="text" id="busca-epi" placeholder="Buscar EPI..." oninput="filtrarEpis()" class="input-busca">
-          <button class="btn btn-primary btn-md" onclick="filtrarEpis()">Filtrar</button>
+          <div class="select-wrap select-wrap--filtro-status">
+          <select id="filtro-status-epi" onchange="filtrarEpis()">
+            <option value="">Filtrar por Status</option>
+            <option value="OK">OK</option>
+            <option value="BAIXO">BAIXO</option>
+            <option value="VENCIDO">VENCIDO</option>
+          </select>
+        </div>
         </div>
         <div class="table-overflow">
           <table id="tabela-epis">
