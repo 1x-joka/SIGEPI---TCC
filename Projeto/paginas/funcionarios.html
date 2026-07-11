@@ -70,44 +70,24 @@
   <!-- POPUP: VERIFICAR -->
   <div class="modal-overlay" id="modal-verificar" onclick="fecharSeOverlay(event,'modal-verificar')">
     <div class="modal modal--lg">
-      <h2 id="titulo-verificar">Verificação dos EPIs de Joaquim Pereira Lima</h2>
+      <h2 id="titulo-verificar">Solicitações Pendentes</h2>
       <div class="table-overflow">
         <table>
           <thead>
             <tr>
-              <th class="th-chk"></th>
-              <th>Equipamento</th><th>Setor</th><th>Validade</th>
-              <th>Quantidade</th><th>Status</th>
+              <th>Data</th>
+              <th>Equipamento</th>
+              <th>Justificativa</th>
+              <th>Estoque</th>
+              <th>Previsão</th>
+              <th>Ações</th>
             </tr>
           </thead>
-          <tbody>
-            <tr class="row-red">
-              <td><input type="checkbox" id="chk-1" class="chk-tabela"></td>
-              <td>Capacete de Segurança</td><td>Construção Civil</td>
-              <td class="td-validade-red">25/12/2025</td>
-              <td><input type="number" value="1" min="1" class="input-qtd-tabela"></td>
-              <td>---</td>
-            </tr>
-            <tr class="row-yellow">
-              <td><input type="checkbox" id="chk-2" class="chk-tabela"></td>
-              <td>Luva de Raspa/Couro</td><td>Construção Civil</td>
-              <td class="td-validade-yellow">01/01/2026</td>
-              <td><input type="number" value="1" min="1" class="input-qtd-tabela"></td>
-              <td class="td-status-yellow">Solicitado</td>
-            </tr>
-            <tr>
-              <td><input type="checkbox" id="chk-3" class="chk-tabela"></td>
-              <td>Botina de segurança com biqueira</td><td>Construção Civil</td>
-              <td>31/10/2026</td>
-              <td><input type="number" value="1" min="1" class="input-qtd-tabela"></td>
-              <td>OK</td>
-            </tr>
-          </tbody>
+          <tbody id="tbody-solicitacoes"></tbody>
         </table>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-primary" onclick="reporSelecionados()">Repor Selecionados</button>
-        <button class="btn btn-primary" onclick="reporTodos()">Repor Todos</button>
+        <button class="btn btn-outline" onclick="fecharModal('modal-verificar')">Fechar</button>
       </div>
     </div>
   </div>

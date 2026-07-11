@@ -76,51 +76,49 @@
       <div class="modal-grid-2col">
         <div class="modal-col">
           <div class="form-group">
-            <label>Nome do EPI <span class="req">*</span></label>
+            <label for="cad-nome">Nome do EPI <span class="req">*</span></label>
             <input type="text" id="cad-nome" placeholder="Digite o nome do EPI">
             <span class="error-msg" id="cad-nome-err">Campo obrigatório.</span>
           </div>
           <div class="form-group">
-            <label>Descrição</label>
+            <label for="cad-desc">Descrição</label>
             <textarea id="cad-desc" placeholder="Descrição" class="textarea-descricao"></textarea>
           </div>
           <div class="form-group">
-            <label>Certificado de Aprovação (CA) <span class="req">*</span></label>
+            <label for="cad-ca">Certificado de Aprovação (CA) <span class="req">*</span></label>
             <input type="number" id="cad-ca" placeholder="Somente números (ex.: 12345)" title="Digite apenas os números do CA, sem pontos ou letras">
             <span class="error-msg" id="cad-ca-err">CA obrigatório.</span>
           </div>
           <div class="form-group">
-            <label>Validade <span class="req">*</span></label>
+            <label for="cad-validade">Validade <span class="req">*</span></label>
             <input type="date" id="cad-validade">
             <span class="error-msg" id="cad-val-err">Data obrigatória.</span>
           </div>
         </div>
         <div class="modal-col">
           <div class="form-group">
-            <label>Quantidade Inicial <span class="req">*</span></label>
+            <label for="cad-qtd">Quantidade Inicial <span class="req">*</span></label>
             <input type="number" id="cad-qtd" placeholder="Digite a quantidade inicial" min="1">
             <span class="error-msg" id="cad-qtd-err">Quantidade obrigatória.</span>
           </div>
           <div class="form-group">
-            <label>Limite Mínimo <span class="req">*</span></label>
+            <label for="cad-limite">Limite Mínimo <span class="req">*</span></label>
             <input type="number" id="cad-limite" placeholder="Digite o limite mínimo" min="1">
             <span class="error-msg" id="cad-lim-err">Limite obrigatório.</span>
           </div>
           <div class="form-group">
-            <label>Categoria <span class="req">*</span></label>
+            <label for="cad-cat">Categoria <span class="req">*</span></label>
             <div class="select-wrap">
               <select id="cad-cat">
                 <option value="">Selecione a categoria</option>
-                <option>Proteção da Cabeça</option>
-                <option>Proteção dos Olhos</option>
-                <option>Proteção Respiratória</option>
-                <option>Proteção das Mãos</option>
-                <option>Proteção dos Pés</option>
-                <option>Proteção Auditiva</option>
-                <option>Proteção do Corpo</option>
               </select>
             </div>
             <span class="error-msg" id="cad-cat-err">Selecione uma categoria.</span>
+          </div>
+          <div class="form-group">
+            <label for="cad-setores">Setores que usam este EPI <span class="req">*</span></label>
+            <div id="cad-setores" style="display:flex;flex-wrap:wrap;gap:10px;padding:8px 0;"></div>
+            <span class="error-msg" id="cad-setores-err">Selecione ao menos um setor.</span>
           </div>
         </div>
       </div>
@@ -137,7 +135,7 @@
       <h2>Adicionando ao Estoque</h2>
       <div class="modal-form-col">
         <div class="form-group">
-          <label>EPI <span class="req">*</span></label>
+          <label for="add-epi">EPI <span class="req">*</span></label>
           <div class="select-wrap">
             <select id="add-epi">
               <option value="">Selecione o EPI</option>
@@ -146,17 +144,17 @@
           <span class="error-msg" id="add-epi-err">Selecione um EPI.</span>
         </div>
         <div class="form-group">
-          <label>Quantidade a adicionar <span class="req">*</span></label>
+          <label for="add-qtd">Quantidade a adicionar <span class="req">*</span></label>
           <input type="number" id="add-qtd" placeholder="Digite a quantidade a adicionar" min="1">
           <span class="error-msg" id="add-qtd-err">Quantidade obrigatória.</span>
         </div>
         <div class="form-group">
-          <label>Data de validade do novo lote <span class="req">*</span></label>
+          <label for="add-validade">Data de validade do novo lote <span class="req">*</span></label>
           <input type="date" id="add-validade">
           <span class="error-msg" id="add-val-err">Data obrigatória.</span>
         </div>
         <div class="form-group">
-          <label>Observação</label>
+          <label for="add-obs">Observação</label>
           <input type="text" id="add-obs" placeholder="Obs.:">
         </div>
       </div>

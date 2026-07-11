@@ -57,6 +57,15 @@ create table tb_epi (
     foreign key (tb_empresa_id_empresa) references tb_empresa(id_empresa)
 );
 
+-- Ligação N:N — um EPI pode servir a vários setores, e um setor usa vários EPIs
+create table tb_epi_setor (
+    tb_epi_id_epi int not null,
+    tb_setor_id_setor int not null,
+    primary key (tb_epi_id_epi, tb_setor_id_setor),
+    foreign key (tb_epi_id_epi) references tb_epi(id_epi),
+    foreign key (tb_setor_id_setor) references tb_setor(id_setor)
+);
+
 create table tb_estoque (
     id_estoque int primary key auto_increment,
     qtd_disponivel_estoque int,
@@ -194,7 +203,7 @@ values
 create table tb_log (
     id_log int primary key auto_increment,
     dt_log datetime default current_timestamp,
-    tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC') not null,
+    tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC','SOLICITACAO_APROVADA','SOLICITACAO_RECUSADA') not null,
     descricao varchar(255),
     equipamento varchar(45),
     quantidade int,

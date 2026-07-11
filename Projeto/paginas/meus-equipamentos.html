@@ -36,22 +36,7 @@
             <thead>
               <tr><th>Equipamento</th><th>Setor</th><th>Quantidade</th><th>Validade</th><th>Status</th></tr>
             </thead>
-            <tbody id="tbody-equipamentos">
-              <tr class="row-red">
-                <td>Máscara respiratória</td><td>Pintura</td><td>1</td>
-                <td class="td-validade-red">20/02/2026</td>
-                <td class="td-status-red">IRREGULAR</td>
-              </tr>
-              <tr class="row-red">
-                <td>Óculos de Proteção</td><td>Pintura</td><td>1</td>
-                <td>---</td>
-                <td class="td-status-red">SEM EPI</td>
-              </tr>
-              <tr>
-                <td>Luvas nitrílicas (par)</td><td>Pintura</td><td>1</td>
-                <td>10/05/2026</td><td>OK</td>
-              </tr>
-            </tbody>
+            <tbody id="tbody-equipamentos"></tbody>
           </table>
         </div>
 
@@ -68,13 +53,13 @@
     <div class="modal modal--md">
       <h2>Solicitar Reposição de EPI</h2>
       <div class="form-group">
-        <label>EPI <span class="req">*</span></label>
+        <label for="sol-epi">EPI <span class="req">*</span></label>
         <div class="select-wrap">
           <select id="sol-epi"></select>
         </div>
       </div>
       <div class="form-group">
-        <label>Justificativa <span class="req">*</span></label>
+        <label for="sol-justificativa">Justificativa <span class="req">*</span></label>
         <textarea id="sol-justificativa" placeholder="Ex.: capacete trincado, preciso de reposição..." class="textarea-justificativa"></textarea>
         <span class="error-msg" id="sol-error">Informe o EPI e a justificativa.</span>
       </div>
@@ -82,6 +67,15 @@
         <button class="btn btn-primary" onclick="enviarSolicitacao()">Solicitar</button>
         <button class="btn btn-outline" onclick="fecharModal('modal-solicitar')">Cancelar</button>
       </div>
+      <h2 class="meus-eq-titulo" style="margin-top:32px;">Minhas Solicitações</h2>
+        <div class="table-overflow">
+          <table>
+            <thead>
+              <tr><th>Data</th><th>Equipamento</th><th>Justificativa</th><th>Previsão</th><th>Status</th></tr>
+            </thead>
+            <tbody id="tbody-minhas-solicitacoes"></tbody>
+          </table>
+        </div>
     </div>
   </div>
 </body>

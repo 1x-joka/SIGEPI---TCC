@@ -45,6 +45,7 @@ function fecharSeOverlay(event, id) {
 function limparModalCadastrarEpi() {
   ['cad-nome','cad-desc','cad-ca','cad-validade','cad-qtd','cad-limite','cad-cat']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.querySelectorAll('.chk-setor-epi').forEach(c => c.checked = false);
 }
 
 function toggleVisivel(id, mostrar) {
@@ -634,11 +635,29 @@ async function cadastrarEPI() {
   const qtd = document.getElementById('cad-qtd')?.value;
   const limite = document.getElementById('cad-limite')?.value;
   const categoria = document.getElementById('cad-cat')?.value;
-  if (!nome || !ca || !validade || !qtd || !limite || !categoria) { alert('Preencha todos os campos.'); return; }
+
+  // Setores marcados (N:N)
+  const setores = Array.from(document.querySelectorAll('.chk-setor-epi:checked'))
+    .map(c => parseInt(c.value));
+
+  if (!nome || !ca || !validade || !qtd || !limite || !categoria) {
+    alert('Preencha todos os campos.');
+    return;
+  }
+  if (setores.length === 0) {
+    alert('Selecione ao menos um setor que usa este EPI.');
+    return;
+  }
+
   try {
     const r = await fetchAutenticado('/epi/cadastrar', {
       method: 'POST',
-      body: JSON.stringify({ nome, descricao: desc, ca, validadeCa: validade, categoria: parseInt(categoria), quantidade: parseInt(qtd), quantidadeMinima: parseInt(limite), validade })
+      body: JSON.stringify({
+        nome, descricao: desc, ca, validadeCa: validade,
+        categoria: parseInt(categoria),
+        quantidade: parseInt(qtd), quantidadeMinima: parseInt(limite), validade,
+        setores
+      })
     });
     if (!r) return;
     const d = await r.json();
@@ -843,20 +862,96 @@ async function inativarFuncionario() {
   }
 }
 
-function reporSelecionados() {
-  const ids = ['chk-1', 'chk-2', 'chk-3'];
-  const selecionados = ids.filter(id => document.getElementById(id)?.checked);
-  if (selecionados.length === 0) {
-    alert('Selecione ao menos um EPI.');
-    return;
+// Abre as solicitações pendentes de um funcionário (admin)
+async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
+  const tbody = document.getElementById('tbody-solicitacoes');
+  const titulo = document.getElementById('titulo-verificar');
+  if (!tbody) return;
+
+  if (titulo) titulo.textContent = 'Solicitações de ' + nomeFuncionario;
+  tbody.innerHTML = '';
+
+  try {
+    const resp = await fetchAutenticado('/solicitacao/pendentes');
+    if (!resp || !resp.ok) { alert('Erro ao carregar solicitações.'); return; }
+    const todas = await resp.json();
+
+    // Só as deste funcionário
+    const minhas = todas.filter(s => s.id_funcionario === idFuncionario);
+
+    if (minhas.length === 0) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 6;
+      td.textContent = 'Nenhuma solicitação pendente para este funcionário.';
+      td.style.textAlign = 'center';
+      td.style.padding = '20px';
+      td.style.color = '#777';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    } else {
+      minhas.forEach(s => {
+        const tr = document.createElement('tr');
+        const semEstoque = Number(s.estoque) < 1;
+        if (semEstoque) tr.className = 'row-red';
+
+        const data = s.dt_solicitacao ? new Date(s.dt_solicitacao).toLocaleDateString('pt-BR') : '—';
+        const prev = s.dt_previsao ? new Date(s.dt_previsao).toLocaleDateString('pt-BR') : '—';
+        const estoqueTxt = semEstoque ? 'SEM ESTOQUE' : s.estoque;
+
+        [data, s.nm_epi, s.desc_motivo_solicitacao || '—', estoqueTxt, prev].forEach(v => {
+          const td = document.createElement('td');
+          td.textContent = v;                 // XSS-safe
+          tr.appendChild(td);
+        });
+
+        const tdAcao = document.createElement('td');
+
+        const btnAp = document.createElement('button');
+        btnAp.className = 'btn btn-primary';
+        btnAp.textContent = 'Aprovar';
+        btnAp.onclick = () => responderSolicitacao(s.id_solicitacao, 'A', idFuncionario, nomeFuncionario);
+
+        const btnRec = document.createElement('button');
+        btnRec.className = 'btn btn-outline';
+        btnRec.textContent = 'Recusar';
+        btnRec.style.marginLeft = '6px';
+        btnRec.onclick = () => responderSolicitacao(s.id_solicitacao, 'R', idFuncionario, nomeFuncionario);
+
+        tdAcao.append(btnAp, btnRec);
+        tr.appendChild(tdAcao);
+        tbody.appendChild(tr);
+      });
+    }
+
+    abrirModal('modal-verificar');
+  } catch (err) {
+    alert('Não foi possível conectar ao servidor.');
   }
-  // Em produção: POST /api/reposicao com EPIs selecionados
-  fecharModal('modal-verificar');
 }
 
-function reporTodos() {
-  // Em produção: POST /api/reposicao com todos os EPIs
-  fecharModal('modal-verificar');
+// Aprova ou recusa uma solicitação
+async function responderSolicitacao(idSolicitacao, decisao, idFuncionario, nomeFuncionario) {
+  const acao = decisao === 'A' ? 'aprovar' : 'recusar';
+  if (!confirm(`Deseja ${acao} esta solicitação?`)) return;
+
+  try {
+    const resp = await fetchAutenticado(`/solicitacao/${idSolicitacao}/responder`, {
+      method: 'PUT',
+      body: JSON.stringify({ decisao })
+    });
+    if (!resp) return;
+    const dados = await resp.json();
+
+    if (resp.ok) {
+      // Recarrega o modal (a solicitação respondida some da lista de pendentes)
+      await abrirSolicitacoes(idFuncionario, nomeFuncionario);
+    } else {
+      alert(dados.erro || 'Erro ao responder solicitação.');
+    }
+  } catch (err) {
+    alert('Não foi possível conectar ao servidor.');
+  }
 }
 
 // ============================================================
@@ -886,7 +981,7 @@ async function carregarHistorico() {
         CADASTRO_EPI:'Cadastro de EPI', ENTRADA_ESTOQUE:'Entrada de Estoque',
         SAIDA_ESTOQUE:'Retirada de Estoque', ENTREGA:'Entrega', DEVOLUCAO:'Devolução',
         INATIVACAO_FUNC:'Inativação de Funcionário', INATIVACAO_EPI:'Inativação de EPI',
-        EDICAO_FUNC:'Edição de Funcionário'
+        EDICAO_FUNC:'Edição de Funcionário', SOLICITACAO_APROVADA:'Solicitação Aprovada', SOLICITACAO_RECUSADA:'Solicitação Recusada'
       };
       // Ações que envolvem funcionário: o "alvo" (nome + CPF) fica sob o Tipo
       const acoesDeFuncionario = ['INATIVACAO_FUNC', 'EDICAO_FUNC'];
@@ -1041,13 +1136,18 @@ async function enviarSolicitacao() {
 
 // Mostra o aviso quando há solicitações pendentes
 async function carregarMinhasSolicitacoes() {
+  const tbody = document.getElementById('tbody-minhas-solicitacoes');
   const aviso = document.getElementById('aviso-pendente');
-  if (!aviso) return;
+  if (!tbody && !aviso) return; // só roda na tela do funcionário
+
   try {
     const resp = await fetchAutenticado('/solicitacao/minhas');
-    if (resp && resp.ok) {
-      const sols = await resp.json();
-      const pendentes = sols.filter(s => s.st_solicitacao === 'P').length;
+    if (!resp || !resp.ok) return;
+    const sols = await resp.json();
+
+    // --- Aviso de pendentes ---
+    const pendentes = sols.filter(s => s.st_solicitacao === 'P').length;
+    if (aviso) {
       if (pendentes > 0) {
         aviso.textContent = `Você possui ${pendentes} solicitação(ões) pendente(s)`;
         aviso.style.display = '';
@@ -1055,7 +1155,47 @@ async function carregarMinhasSolicitacoes() {
         aviso.style.display = 'none';
       }
     }
-  } catch (err) {}
+
+    // --- Tabela de solicitações ---
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (sols.length === 0) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 5;
+      td.textContent = 'Você ainda não fez nenhuma solicitação.';
+      td.style.textAlign = 'center';
+      td.style.padding = '20px';
+      td.style.color = '#777';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+
+    const nomesStatus = { P: 'Pendente', A: 'Aprovada', R: 'Recusada' };
+
+    sols.forEach(s => {
+      const tr = document.createElement('tr');
+      if (s.st_solicitacao === 'R') tr.className = 'row-red';        // recusada = vermelho
+      else if (s.st_solicitacao === 'P') tr.className = 'row-yellow'; // pendente = amarelo
+
+      const data = s.dt_solicitacao ? new Date(s.dt_solicitacao).toLocaleDateString('pt-BR') : '—';
+      const prev = s.dt_previsao ? new Date(s.dt_previsao).toLocaleDateString('pt-BR') : '—';
+      const status = nomesStatus[s.st_solicitacao] || s.st_solicitacao;
+
+      [data, s.nm_epi, s.desc_motivo_solicitacao || '—', prev, status].forEach(v => {
+        const td = document.createElement('td');
+        td.textContent = v;      // XSS-safe
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+  } catch (err) {
+    // silencioso: não trava a tela se a API falhar aqui
+  }
 }
 document.addEventListener('DOMContentLoaded', carregarMinhasSolicitacoes);
 
@@ -1186,6 +1326,15 @@ async function salvarAlteracoes() {
     const dados = await resp.json();
     alert(resp.ok ? 'Alterações salvas com sucesso!' : (dados.erro || 'Erro ao salvar.'));
   } catch (err) { alert('Não foi possível conectar ao servidor.'); }
+}
+
+// PARA COPIAR O CÓDIGO DA EMPRESA PARA MAIS FACILIDADE
+function copiarCodigo() {
+  const campo = document.getElementById('secao-codigo');
+  if (!campo || !campo.value) return;
+  navigator.clipboard.writeText(campo.value)
+    .then(() => alert('Código copiado! Envie ao funcionário para ele entrar na empresa.'))
+    .catch(() => alert('Não foi possível copiar. Selecione e copie manualmente.'));
 }
 
 // ============================================================
@@ -1342,7 +1491,7 @@ function renderFuncionarios() {
     const ativo = f.st_funcionario === 'A';
 
     const tr = document.createElement('tr');
-    tr.dataset.nome = nomeCompleto;                              // <<< voltou (busca)
+    tr.dataset.nome = nomeCompleto;
     tr.dataset.status = semEpi ? 'SEM EPI' : 'COM EPI';
 
     const tdNome = document.createElement('td');
@@ -1365,30 +1514,25 @@ function renderFuncionarios() {
     tdStatus.textContent = ativo ? 'Ativo' : 'Inativo';
 
     const tdAcao = document.createElement('td');
-    if (ativo) {   // inativado = demitido: sem ações
-      const btnEd = document.createElement('button');
-      btnEd.className = 'btn btn-outline';
-      btnEd.textContent = 'Editar';
-      btnEd.onclick = () => abrirEditar(f.id_funcionario);
-
-      const btnEnt = document.createElement('button');
-      btnEnt.className = 'btn btn-primary';
-      btnEnt.textContent = 'Entregar EPI';
-      btnEnt.style.marginLeft = '6px';
-      btnEnt.onclick = () => entregarEpi(f.id_funcionario, nomeCompleto);
-
-      const btnInat = document.createElement('button');
-      btnInat.className = 'btn btn-outline';
-      btnInat.textContent = 'Inativar';
-      btnInat.style.marginLeft = '6px';
-      btnInat.onclick = () => abrirExcluir(f.id_funcionario);
-
-      tdAcao.append(btnEd, btnEnt, btnInat);
+    if (ativo) {
+      const mk = (texto, classe, acao) => {
+        const b = document.createElement('button');
+        b.className = 'btn ' + classe;
+        b.textContent = texto;
+        b.style.margin = '2px';
+        b.onclick = acao;
+        return b;
+      };
+      tdAcao.style.whiteSpace = 'nowrap';
+      tdAcao.append(
+        mk('Editar', 'btn-outline', () => abrirEditar(f.id_funcionario)),
+        mk('Entregar EPI', 'btn-primary', () => entregarEpi(f.id_funcionario, nomeCompleto)),
+        mk('Solicitações', 'btn-outline', () => abrirSolicitacoes(f.id_funcionario, nomeCompleto)),
+        mk('Inativar', 'btn-outline', () => abrirExcluir(f.id_funcionario))
+      );
     } else {
       tdAcao.textContent = '—';
     }
-
-    tr.append(tdNome, tdSetor, tdEpis, tdStatus, tdAcao);
     tbody.appendChild(tr);
   });
 }
@@ -1580,6 +1724,38 @@ function exportarPDF() {
   const hoje = new Date().toISOString().substring(0, 10);
   doc.save(`SIGEPI_Historico_${hoje}.pdf`);
 }
+
+// Carrega os setores da empresa como checkboxes no modal de cadastro de EPI
+async function carregarSetoresCheckbox() {
+  const box = document.getElementById('cad-setores');
+  if (!box) return;
+  try {
+    const resp = await fetchAutenticado('/setor/listar');
+    if (resp && resp.ok) {
+      const setores = await resp.json();
+      box.innerHTML = '';
+      setores.forEach(s => {
+        const label = document.createElement('label');
+        label.style.display = 'flex';
+        label.style.alignItems = 'center';
+        label.style.gap = '5px';
+        label.style.fontSize = '14px';
+
+        const chk = document.createElement('input');
+        chk.type = 'checkbox';
+        chk.className = 'chk-setor-epi';
+        chk.value = s.id_setor;
+
+        const txt = document.createElement('span');
+        txt.textContent = s.nm_setor;   // XSS-safe
+
+        label.append(chk, txt);
+        box.appendChild(label);
+      });
+    }
+  } catch (err) {}
+}
+document.addEventListener('DOMContentLoaded', carregarSetoresCheckbox);
 
 // ============================================================
 //  COMENTÁRIOS

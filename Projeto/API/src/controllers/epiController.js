@@ -3,7 +3,7 @@ const registrarLog = require('../utils/registrarLog');
 
 // Cadastrar um EPI vinculado à empresa do admin logado
 async function cadastrarEpi(req, res) {
-  const { nome, descricao, ca, categoria, validadeCa, quantidade, quantidadeMinima, validade } = req.body;
+  const { nome, descricao, ca, categoria, validadeCa, quantidade, quantidadeMinima, validade, setores } = req.body;
   const empresa = req.usuario.empresa;
   if (!nome) return res.status(400).json({ erro: 'Informe o nome do EPI.' });
 
@@ -32,6 +32,24 @@ async function cadastrarEpi(req, res) {
        VALUES (?, ?, ?, ?, ?)`,
       [quantidade || 0, quantidadeMinima || 0, validade || null, empresa, id_epi]
     );
+
+    // Vincula o EPI aos setores marcados (N:N)
+    if (Array.isArray(setores) && setores.length > 0) {
+      for (const idSetor of setores) {
+        // segurança: o setor tem que ser DESTA empresa
+        const [s] = await conexao.query(
+          'SELECT id_setor FROM tb_setor WHERE id_setor = ? AND tb_empresa_id_empresa = ?',
+          [idSetor, empresa]
+        );
+        if (s.length > 0) {
+          await conexao.query(
+            'INSERT INTO tb_epi_setor (tb_epi_id_epi, tb_setor_id_setor) VALUES (?, ?)',
+            [id_epi, idSetor]
+          );
+        }
+      }
+    }
+
     await conexao.commit();
 
     await registrarLog({ empresa, tipo: 'CADASTRO_EPI', descricao: 'Cadastro de EPI', equipamento: nome, quantidade: quantidade || 0, responsavel: req.usuario.id });
@@ -47,6 +65,26 @@ async function listarEpis(req, res) {
   const empresa = req.usuario.empresa;
 
   try {
+    // Se for FUNCIONÁRIO (tipo 2), mostra só os EPIs vinculados ao SETOR dele
+    if (req.usuario.tipo === 2) {
+      const [epis] = await db.query(
+        `SELECT epi.id_epi, epi.nm_epi, epi.ca_epi, epi.st_epi, epi.dt_validade_ca,
+                COALESCE(SUM(es.qtd_disponivel_estoque), 0) AS quantidade,
+                COALESCE(MAX(es.qtd_minima_estoque), 0) AS limite
+         FROM tb_epi epi
+         JOIN tb_epi_setor eps ON eps.tb_epi_id_epi = epi.id_epi
+         JOIN tb_funcionario f ON f.tb_setor_id_setor = eps.tb_setor_id_setor
+         LEFT JOIN tb_estoque es ON es.tb_epi_id_epi = epi.id_epi
+         WHERE epi.tb_empresa_id_empresa = ? AND epi.st_epi = 'A'
+           AND f.tb_usuario_id_usuario = ?
+         GROUP BY epi.id_epi, epi.nm_epi, epi.ca_epi, epi.st_epi, epi.dt_validade_ca
+         ORDER BY epi.nm_epi`,
+        [empresa, req.usuario.id]
+      );
+      return res.status(200).json(epis);
+    }
+
+    // ADMIN vê todos os EPIs ativos da empresa
     const [epis] = await db.query(
       `SELECT epi.id_epi, epi.nm_epi, epi.ca_epi, epi.st_epi, epi.dt_validade_ca,
               COALESCE(SUM(es.qtd_disponivel_estoque), 0) AS quantidade,
@@ -58,7 +96,6 @@ async function listarEpis(req, res) {
        ORDER BY epi.nm_epi`,
       [empresa]
     );
-
     return res.status(200).json(epis);
 
   } catch (err) {

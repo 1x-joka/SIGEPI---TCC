@@ -40,13 +40,24 @@ async function criarSolicitacao(req, res) {
     }
     const id_funcionario = funcs[0].id_funcionario;
 
-    // O EPI precisa ser DESTA empresa
+    // O EPI precisa ser DESTA empresa = Validação
     const [epis] = await db.query(
       'SELECT id_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ?',
       [epi, empresa]
     );
     if (epis.length === 0) {
       return res.status(400).json({ erro: 'EPI inválido para esta empresa.' });
+    }
+
+    // O EPI precisa estar vinculado ao SETOR do funcionário
+    const [permitido] = await db.query(
+      `SELECT 1 FROM tb_epi_setor eps
+       JOIN tb_funcionario f ON f.tb_setor_id_setor = eps.tb_setor_id_setor
+       WHERE eps.tb_epi_id_epi = ? AND f.id_funcionario = ?`,
+      [epi, id_funcionario]
+    );
+    if (permitido.length === 0) {
+      return res.status(403).json({ erro: 'Este EPI não pertence ao seu setor.' });
     }
 
     // TRAVA: não pode existir solicitação PENDENTE para o MESMO EPI (F10)
@@ -119,13 +130,16 @@ async function listarPendentes(req, res) {
   try {
     const [solicitacoes] = await db.query(
       `SELECT s.id_solicitacao, s.dt_solicitacao, s.desc_motivo_solicitacao, s.dt_previsao,
-              f.nm_funcionario, f.sobrenome_funcionario, epi.nm_epi
+              f.id_funcionario, f.nm_funcionario, f.sobrenome_funcionario,
+              epi.nm_epi,
+              COALESCE((SELECT SUM(es.qtd_disponivel_estoque) FROM tb_estoque es
+                        WHERE es.tb_epi_id_epi = epi.id_epi AND es.tb_empresa_id_empresa = ?), 0) AS estoque
        FROM tb_solicitacao s
        JOIN tb_funcionario f ON f.id_funcionario = s.tb_funcionario_id_funcionario
        JOIN tb_epi epi        ON epi.id_epi = s.tb_epi_id_epi
        WHERE f.tb_empresa_id_empresa = ? AND s.st_solicitacao = 'P'
        ORDER BY s.dt_solicitacao`,
-      [empresa]
+      [empresa, empresa]
     );
 
     return res.status(200).json(solicitacoes);
@@ -149,9 +163,12 @@ async function responderSolicitacao(req, res) {
   try {
     // Segurança: a solicitação precisa existir, ser DESTA empresa e ainda estar PENDENTE
     const [solics] = await db.query(
-      `SELECT s.id_solicitacao, s.st_solicitacao
+      `SELECT s.id_solicitacao, s.st_solicitacao, epi.nm_epi,
+              f.nm_funcionario, u.cpf_usuario
        FROM tb_solicitacao s
        JOIN tb_funcionario f ON f.id_funcionario = s.tb_funcionario_id_funcionario
+       JOIN tb_epi epi        ON epi.id_epi = s.tb_epi_id_epi
+       LEFT JOIN tb_usuario u ON u.id_usuario = f.tb_usuario_id_usuario
        WHERE s.id_solicitacao = ? AND f.tb_empresa_id_empresa = ?`,
       [id_solicitacao, empresa]
     );
@@ -170,6 +187,17 @@ async function responderSolicitacao(req, res) {
       'UPDATE tb_solicitacao SET st_solicitacao = ? WHERE id_solicitacao = ?',
       [decisao, id_solicitacao]
     );
+
+    const s = solics[0];
+    const alvo = `${s.nm_funcionario} (CPF: ${s.cpf_usuario || '—'})`;
+    await registrarLog({
+      empresa,
+      tipo: decisao === 'A' ? 'SOLICITACAO_APROVADA' : 'SOLICITACAO_RECUSADA',
+      descricao: decisao === 'A' ? 'Solicitação aprovada' : 'Solicitação recusada',
+      equipamento: s.nm_epi,
+      motivo: alvo, // aparece na coluna Motivo: quem pediu
+      responsavel: req.usuario.id
+    });
 
     const msg = decisao === 'A' ? 'Solicitação aprovada.' : 'Solicitação recusada.';
     return res.status(200).json({ mensagem: msg });
