@@ -730,13 +730,12 @@ async function adicionarEstoque() {
 let funcSelecionado = null;
 
 function filtrarFuncionarios() {
-  const busca = document.getElementById('busca')?.value.toLowerCase();
-  const status = document.getElementById('filtro-status')?.value;
+  const busca = (document.getElementById('busca')?.value || '').toLowerCase().trim();
+  const status = document.getElementById('filtro-status')?.value || '';
   document.querySelectorAll('#tbody-func tr').forEach(tr => {
-    const nome = tr.dataset.nome?.toLowerCase();
-    const st = tr.dataset.status;
-    const okB = !busca  || nome?.includes(busca);
-    const okS = !status || st === status;
+    const nome = (tr.dataset.nome || '').toLowerCase();
+    const okB = !busca || nome.startsWith(busca);   // COMEÇA COM
+    const okS = !status || tr.dataset.status === status;
     tr.style.display = (okB && okS) ? '' : 'none';
   });
 }
@@ -766,22 +765,37 @@ function abrirVerificar() {
   abrirModal('modal-verificar');
 }
 
-function abrirExcluir() {
-  const f = funcSelecionado ?? { nome: 'Joaquim Pereira Lima', cpf: '987.654.321-00', setor: 'Acabamento', epis: '3' };
+let funcExcluindo = null;
+function abrirExcluir(idFuncionario) {
+  const f = funcionariosCache.find(x => x.id_funcionario === idFuncionario);
+  if (!f) return;
+  funcExcluindo = f;
+
+  const nomeCompleto = `${f.nm_funcionario} ${f.sobrenome_funcionario || ''}`.trim();
   const titulo = document.getElementById('titulo-excluir');
-  if (titulo) titulo.textContent = 'Exclusão de ' + f.nome;
+  if (titulo) titulo.textContent = 'Inativação de ' + nomeCompleto;
+
   const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-  setEl('excluir-nome', f.nome);
-  setEl('excluir-cpf',  f.cpf);
-  setEl('excluir-epis', f.epis + ' EPI(s)');
+  setEl('excluir-nome', nomeCompleto);
+  setEl('excluir-cpf', f.cpf_usuario || '—');
+  setEl('excluir-epis', (f.total_epis ?? 0) + ' EPI(s)');
+
+  // Setor real do funcionário (o select está disabled, é só exibição)
+  const selSetor = document.getElementById('excluir-setor');
+  if (selSetor) selSetor.innerHTML = `<option>${f.nm_setor || 'Sem setor'}</option>`;
+
+  // Reseta o formulário
+  const motivo = document.getElementById('motivo-exclusao');
+  if (motivo) motivo.value = '';
+  const outro = document.getElementById('outro-motivo');
+  if (outro) outro.value = '';
+  const wrap = document.getElementById('outro-motivo-wrap');
+  if (wrap) wrap.style.display = 'none';
   const chk = document.getElementById('chk-confirmar-exclusao');
-  if (chk){
-    chk.checked = false;
-  }
+  if (chk) chk.checked = false;
   const btn = document.getElementById('btn-inativar');
-  if (btn){
-    btn.disabled = true;
-  }
+  if (btn) btn.disabled = true;
+
   abrirModal('modal-excluir');
 }
 
@@ -789,7 +803,7 @@ function toggleOutroMotivo() {
   const val = document.getElementById('motivo-exclusao')?.value;
   const wrap = document.getElementById('outro-motivo-wrap');
   if (wrap){
-    wrap.style.display = val === 'Outro' ? 'flex' : 'none';
+    wrap.classList.toggle('oculto', val !== 'Outro');
   }
 }
 
@@ -801,9 +815,32 @@ function toggleBtnInativar() {
   }
 }
 
-function inativarFuncionario() {
-  // Em produção: PATCH /api/funcionarios/:id { status: 'I', motivo }
-  fecharModal('modal-excluir');
+async function inativarFuncionario() {
+  if (!funcExcluindo) return;
+
+  const sel = document.getElementById('motivo-exclusao')?.value;
+  const outro = document.getElementById('outro-motivo')?.value.trim();
+  const motivo = (sel === 'Outro') ? outro : sel;
+
+  if (!motivo) { alert('Informe o motivo da inativação.'); return; }
+
+  try {
+    const resp = await fetchAutenticado(`/funcionario/${funcExcluindo.id_funcionario}/inativar`, {
+      method: 'PUT',
+      body: JSON.stringify({ motivo })
+    });
+    if (!resp) return;
+    const dados = await resp.json();
+    if (resp.ok) {
+      fecharModal('modal-excluir');
+      funcExcluindo = null;
+      await carregarFuncionarios();   // alterou → recarrega
+    } else {
+      alert(dados.erro || 'Erro ao inativar funcionário.');
+    }
+  } catch (err) {
+    alert('Não foi possível conectar ao servidor.');
+  }
 }
 
 function reporSelecionados() {
@@ -949,15 +986,78 @@ const justificativasSolicitacao = [];
 let epiAtualIdx = 0;
 let solicitacaoEnviada = false;
 
-function abrirSolicitar() {
-  if (solicitacaoEnviada){
-    return;
-  }
-  epiAtualIdx = 0;
-  justificativasSolicitacao.length = 0;
-  mostrarEtapaSolic(1);
+// Abre o modal de solicitação com os EPIs reais da empresa
+async function abrirSolicitar() {
+  const select = document.getElementById('sol-epi');
+  if (!select) return;
+  try {
+    const resp = await fetchAutenticado('/epi/listar');
+    if (resp && resp.ok) {
+      const epis = await resp.json();
+      select.innerHTML = '<option value="">Selecione o EPI</option>';
+      epis.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e.id_epi;
+        opt.textContent = e.nm_epi;      // XSS-safe
+        select.appendChild(opt);
+      });
+    }
+  } catch (err) { alert('Não foi possível carregar os EPIs.'); return; }
+
+  const just = document.getElementById('sol-justificativa');
+  if (just) just.value = '';
+  document.getElementById('sol-error')?.classList.remove('show');
   abrirModal('modal-solicitar');
 }
+
+// Envia a solicitação (funcionário)
+async function enviarSolicitacao() {
+  const epi = document.getElementById('sol-epi')?.value;
+  const motivo = document.getElementById('sol-justificativa')?.value.trim();
+  const erro = document.getElementById('sol-error');
+
+  if (!epi || !motivo) {
+    erro?.classList.add('show');
+    return;
+  }
+
+  try {
+    const resp = await fetchAutenticado('/solicitacao/criar', {
+      method: 'POST',
+      body: JSON.stringify({ epi: parseInt(epi), motivo })
+    });
+    if (!resp) return;
+    const dados = await resp.json();
+    if (resp.ok) {
+      fecharModal('modal-solicitar');
+      alert('Solicitação enviada! Previsão de atendimento: ' + (dados.previsao || '3 dias úteis') + '.');
+      await carregarMinhasSolicitacoes();
+    } else {
+      // ex.: 409 (já tem pendente para esse EPI)
+      alert(dados.erro || 'Erro ao enviar solicitação.');
+    }
+  } catch (err) { alert('Não foi possível conectar ao servidor.'); }
+}
+
+// Mostra o aviso quando há solicitações pendentes
+async function carregarMinhasSolicitacoes() {
+  const aviso = document.getElementById('aviso-pendente');
+  if (!aviso) return;
+  try {
+    const resp = await fetchAutenticado('/solicitacao/minhas');
+    if (resp && resp.ok) {
+      const sols = await resp.json();
+      const pendentes = sols.filter(s => s.st_solicitacao === 'P').length;
+      if (pendentes > 0) {
+        aviso.textContent = `Você possui ${pendentes} solicitação(ões) pendente(s)`;
+        aviso.style.display = '';
+      } else {
+        aviso.style.display = 'none';
+      }
+    }
+  } catch (err) {}
+}
+document.addEventListener('DOMContentLoaded', carregarMinhasSolicitacoes);
 
 function irEtapa2() {
   mostrarEtapaSolic(2);
@@ -1235,34 +1335,58 @@ function renderFuncionarios() {
   const tbody = document.getElementById('tbody-func');
   if (!tbody) return;
   tbody.innerHTML = '';
+
   funcionariosCache.forEach(f => {
     const nomeCompleto = `${f.nm_funcionario} ${f.sobrenome_funcionario || ''}`.trim();
     const semEpi = Number(f.total_epis) === 0;
+    const ativo = f.st_funcionario === 'A';
+
     const tr = document.createElement('tr');
-    tr.setAttribute('data-nome', nomeCompleto);
-    tr.setAttribute('data-status', semEpi ? 'SEM EPI' : 'COM EPI');
+    tr.dataset.nome = nomeCompleto;                              // <<< voltou (busca)
+    tr.dataset.status = semEpi ? 'SEM EPI' : 'COM EPI';
 
     const tdNome = document.createElement('td');
     tdNome.textContent = nomeCompleto;
     if (f.cpf_usuario) {
       const cpf = document.createElement('div');
       cpf.textContent = 'CPF: ' + f.cpf_usuario;
-      cpf.style.fontSize = '12px'; cpf.style.color = '#777';
+      cpf.style.fontSize = '12px';
+      cpf.style.color = '#777';
       tdNome.appendChild(cpf);
     }
-    const tdSetor = document.createElement('td'); tdSetor.textContent = f.nm_setor || 'Sem setor';
-    const tdEpis = document.createElement('td'); tdEpis.textContent = semEpi ? 'SEM EPI' : f.total_epis;
-    const tdStatus = document.createElement('td'); tdStatus.textContent = f.st_funcionario === 'A' ? 'Ativo' : 'Inativo';
+
+    const tdSetor = document.createElement('td');
+    tdSetor.textContent = f.nm_setor || 'Sem setor';
+
+    const tdEpis = document.createElement('td');
+    tdEpis.textContent = semEpi ? 'SEM EPI' : f.total_epis;
+
+    const tdStatus = document.createElement('td');
+    tdStatus.textContent = ativo ? 'Ativo' : 'Inativo';
 
     const tdAcao = document.createElement('td');
-    const btnEd = document.createElement('button');
-    btnEd.className = 'btn btn-outline'; btnEd.textContent = 'Editar';
-    btnEd.onclick = () => abrirEditar(f.id_funcionario);
-    const btnEnt = document.createElement('button');
-    btnEnt.className = 'btn btn-primary'; btnEnt.textContent = 'Entregar EPI';
-    btnEnt.style.marginLeft = '6px';
-    btnEnt.onclick = () => entregarEpi(f.id_funcionario, nomeCompleto);
-    tdAcao.append(btnEd, btnEnt);
+    if (ativo) {   // inativado = demitido: sem ações
+      const btnEd = document.createElement('button');
+      btnEd.className = 'btn btn-outline';
+      btnEd.textContent = 'Editar';
+      btnEd.onclick = () => abrirEditar(f.id_funcionario);
+
+      const btnEnt = document.createElement('button');
+      btnEnt.className = 'btn btn-primary';
+      btnEnt.textContent = 'Entregar EPI';
+      btnEnt.style.marginLeft = '6px';
+      btnEnt.onclick = () => entregarEpi(f.id_funcionario, nomeCompleto);
+
+      const btnInat = document.createElement('button');
+      btnInat.className = 'btn btn-outline';
+      btnInat.textContent = 'Inativar';
+      btnInat.style.marginLeft = '6px';
+      btnInat.onclick = () => abrirExcluir(f.id_funcionario);
+
+      tdAcao.append(btnEd, btnEnt, btnInat);
+    } else {
+      tdAcao.textContent = '—';
+    }
 
     tr.append(tdNome, tdSetor, tdEpis, tdStatus, tdAcao);
     tbody.appendChild(tr);

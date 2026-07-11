@@ -195,7 +195,7 @@ async function inativarFuncionario(req, res) {
        WHERE f.id_funcionario = ?`, [id_funcionario]
     );
     const alvo = dadosFunc[0] ? `${dadosFunc[0].nm_funcionario} (CPF: ${dadosFunc[0].cpf_usuario || '—'})` : null;
-    await registrarLog({ empresa, tipo: 'EDICAO_FUNC', descricao: 'Edição de funcionário', equipamento: alvo, responsavel: req.usuario.id });
+    await registrarLog({ empresa, tipo: 'INATIVACAO_FUNC', descricao: 'Inativação de funcionário', equipamento: alvo, motivo: motivo, responsavel: req.usuario.id });
 
     return res.status(200).json({ mensagem: 'Funcionário inativado com sucesso.' });
 
@@ -221,11 +221,11 @@ async function editarFuncionario(req, res) {
   try {
     // O funcionário precisa ser desta empresa (isolamento)
     const [funcs] = await db.query(
-      'SELECT id_funcionario FROM tb_funcionario WHERE id_funcionario = ? AND tb_empresa_id_empresa = ?',
+      "SELECT id_funcionario FROM tb_funcionario WHERE id_funcionario = ? AND tb_empresa_id_empresa = ? AND st_funcionario = 'A'",
       [id_funcionario, empresa]
     );
     if (funcs.length === 0) {
-      return res.status(404).json({ erro: 'Funcionário não encontrado para esta empresa.' });
+      return res.status(404).json({ erro: 'Funcionário não encontrado ou inativo.' });
     }
 
     // Se informou setor, ele precisa ser desta empresa. Vazio = desvincular (null).

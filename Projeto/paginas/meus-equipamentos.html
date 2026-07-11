@@ -65,64 +65,23 @@
 
   <!-- POPUP SOLICITAÇÃO -->
   <div class="modal-overlay" id="modal-solicitar" onclick="fecharSeOverlay(event,'modal-solicitar')">
-    <div class="modal modal--solicitar">
-
-      <!-- ETAPA 1 -->
-      <div id="etapa-1">
-        <h2>Solicitar EPIs</h2>
-        <div class="table-overflow">
-          <table>
-            <thead>
-              <tr><th>Equipamento</th><th>Setor</th><th>Quantidade</th><th>Validade</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-              <tr class="row-red">
-                <td>Máscara Respiratória</td><td>Pintura</td>
-                <td><input type="number" value="1" min="1" id="qtd-0" class="input-qtd-solicitar"></td>
-                <td class="td-validade-red">20/02/2026</td>
-                <td class="td-status-red">IRREGULAR</td>
-              </tr>
-              <tr class="row-red">
-                <td>Óculos de Proteção</td><td>Pintura</td>
-                <td><input type="number" value="2" min="1" id="qtd-1" class="input-qtd-solicitar"></td>
-                <td>---</td>
-                <td class="td-status-red">SEM EPI</td>
-              </tr>
-              <tr>
-                <td>Luvas Nitrílicas (par)</td><td>Pintura</td>
-                <td><input type="number" value="3" min="1" id="qtd-2" class="input-qtd-solicitar"></td>
-                <td>15/06/2026</td><td>OK</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-primary" onclick="irEtapa2()">Avançar</button>
-          <button class="btn btn-outline" onclick="fecharModal('modal-solicitar')">Voltar</button>
+    <div class="modal modal--md">
+      <h2>Solicitar Reposição de EPI</h2>
+      <div class="form-group">
+        <label>EPI <span class="req">*</span></label>
+        <div class="select-wrap">
+          <select id="sol-epi"></select>
         </div>
       </div>
-
-      <!-- ETAPA 2 -->
-      <div id="etapa-2" class="oculto">
-        <h2 id="titulo-epi-atual" class="modal-titulo-esquerda"></h2>
-        <textarea id="justificativa" placeholder="Digite aqui sua justificativa..." class="textarea-justificativa"></textarea>
-        <span class="error-msg" id="just-error">Por favor, informe a justificativa.</span>
-        <div class="modal-footer">
-          <button class="btn btn-primary" id="btn-proximo" onclick="proximoEpi()">Solicitar</button>
-          <button class="btn btn-outline" onclick="voltarEtapa1()">Voltar</button>
-        </div>
+      <div class="form-group">
+        <label>Justificativa <span class="req">*</span></label>
+        <textarea id="sol-justificativa" placeholder="Ex.: capacete trincado, preciso de reposição..." class="textarea-justificativa"></textarea>
+        <span class="error-msg" id="sol-error">Informe o EPI e a justificativa.</span>
       </div>
-
-      <!-- ETAPA 3 -->
-      <div id="etapa-3" class="oculto">
-        <div class="confirmacao-box">
-          <p>Sua solicitação foi enviada! O prazo para recebimento do equipamento é de até <strong>3 dias úteis</strong></p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-primary" onclick="finalizarSolicitacao()">Avançar</button>
-        </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="enviarSolicitacao()">Solicitar</button>
+        <button class="btn btn-outline" onclick="fecharModal('modal-solicitar')">Cancelar</button>
       </div>
-
     </div>
   </div>
 </body>
