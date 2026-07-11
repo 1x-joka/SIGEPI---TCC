@@ -1416,6 +1416,48 @@ async function entregarEpi(idFuncionario, nomeFuncionario) {
 }
 
 // ============================================================
+// EXPORTAR HISTÓRICO EM PDF
+// ============================================================
+
+function exportarPDF() {
+  const tbody = document.getElementById('tbody-hist');
+  if (!tbody) return;
+
+  // Pega só as linhas VISÍVEIS (respeita os filtros aplicados)
+  const linhas = Array.from(tbody.querySelectorAll('tr'))
+    .filter(tr => tr.style.display !== 'none')
+    .map(tr => Array.from(tr.cells).map(td => td.innerText.replace(/\n/g, ' ').trim()));
+
+  if (linhas.length === 0) {
+    alert('Não há registros para exportar.');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape' });
+
+  // Cabeçalho do documento
+  doc.setFontSize(16);
+  doc.text('SIGEPI — Histórico de Operações', 14, 15);
+  doc.setFontSize(10);
+  doc.setTextColor(120);
+  doc.text('Emitido em: ' + new Date().toLocaleString('pt-BR'), 14, 21);
+  doc.text('Total de registros: ' + linhas.length, 14, 26);
+
+  doc.autoTable({
+    startY: 32,
+    head: [['Data/Hora', 'Tipo', 'Equipamento', 'Qtd', 'Motivo', 'Responsável']],
+    body: linhas,
+    styles: { fontSize: 8, cellPadding: 2 },
+    headStyles: { fillColor: [78, 168, 201], textColor: 255 },
+    alternateRowStyles: { fillColor: [245, 245, 245] }
+  });
+
+  const hoje = new Date().toISOString().substring(0, 10);
+  doc.save(`SIGEPI_Historico_${hoje}.pdf`);
+}
+
+// ============================================================
 //  COMENTÁRIOS
 // ============================================================
 
