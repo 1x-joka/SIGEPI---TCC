@@ -111,12 +111,20 @@ async function fazerLogin() {
     return;
   }
 
+  // Token do reCAPTCHA (vazio = usuário não marcou "Não sou um robô")
+  const captchaToken = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse() : '';
+  if (!captchaToken) {
+    const capErro = document.getElementById('captcha-error');
+    if (capErro) { capErro.textContent = 'Confirme que você não é um robô.'; capErro.classList.add('show'); }
+    return;
+  }
+
   try {
     const resposta = await fetch(`${API_URL}/auth/login`, { // await fetch(url, {...}) = dispara a requisição. É a versão do navegador do mesmo fetch do back-end. await porque a resposta demora (vai e volta pela rede).
       // Aqui os mesmos que se configura no Postman (method, headers (Content-Type: application/json é o que se marca em "raw → JSON") e body (JSON.stringify({...}) é o JSON que se digita na aba Body))
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, senha })
+      body: JSON.stringify({ email, senha, captchaToken })
     });
 
     const dados = await resposta.json(); // await resposta.json() = lê o JSON que a API devolveu (a mensagem, o token, etc.).
@@ -140,6 +148,7 @@ async function fazerLogin() {
       // 401 (credenciais inválidas) ou 403 (conta bloqueada/inativada)
       erro.textContent = dados.erro || 'E-mail ou senha incorretos.';
       erro.classList.add('show');
+      if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
     }
   } catch (err) { // Pega o caso do servidor desligado
     erro.textContent = 'Não foi possível conectar ao servidor.';

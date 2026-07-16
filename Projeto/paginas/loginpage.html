@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../estilos/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="../scripts/script.js" defer></script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body class="layout-flex">
   <header class="header">
@@ -28,6 +29,9 @@
       <div class="form-group form-group--login">
         <label for="senha">Senha <span class="req">*</span></label>
         <input type="password" placeholder="Digite sua senha" id="senha">
+        <!-- NÃO SOU UM ROBÔ (reCAPTCHA) -->
+        <div class="g-recaptcha" data-sitekey="6Lc1M1YtAAAAAJNoR1ERc5hnb6dWR3lRo9BKIx5A" style="margin:12px 0;"></div>
+      <span class="error-msg" id="captcha-error">Confirme que você não é um robô.</span>
       </div>
       <button class="btn btn-primary btn-entrar" onclick="fazerLogin()">Entrar</button>
       <div>

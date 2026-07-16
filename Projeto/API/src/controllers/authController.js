@@ -56,6 +56,25 @@ async function login(req, res) {
     return res.status(400).json({ erro: 'Preencha todos os campos.' });
   }
 
+  // Valida o reCAPTCHA no servidor do Google (defesa real, não só no front)
+  const captchaToken = req.body.captchaToken;
+  if (!captchaToken) {
+    return res.status(400).json({ erro: 'Confirme que você não é um robô.' });
+  }
+  try {
+    const respCaptcha = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `secret=${process.env.RECAPTCHA_SECRET}&response=${captchaToken}`
+    });
+    const resultado = await respCaptcha.json();
+    if (!resultado.success) {
+      return res.status(403).json({ erro: 'Falha na verificação do reCAPTCHA.' });
+    }
+  } catch (err) {
+    return res.status(500).json({ erro: 'Erro ao validar o reCAPTCHA.' });
+  }
+
   try {
     const [rows] = await db.query(
       'SELECT * FROM tb_usuario WHERE email_usuario = ?', [email]
