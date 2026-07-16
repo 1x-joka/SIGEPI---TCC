@@ -1043,11 +1043,6 @@ async function carregarHistorico() {
 }
 document.addEventListener('DOMContentLoaded', carregarHistorico);
 
-function exportarPDF() {
-  // Em produção: GET /api/historico/export-pdf
-  alert('Exportando PDF...');
-}
-
 
 // ============================================================
 //  meus-equipamentos.html

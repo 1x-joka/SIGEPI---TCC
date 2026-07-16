@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const authRoutes = require('./src/routes/authRoutes');
@@ -15,8 +17,19 @@ const logRoutes = require('./src/routes/logRoutes');
 
 const app = express();
 
+app.use(helmet()); // cabeçalhos de segurança HTTP
 app.use(cors());
 app.use(express.json());
+
+// Limite geral: 300 requisições por IP a cada 15 min (uso normal nunca chega perto)
+const limiteGeral = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { erro: 'Muitas requisições. Tente novamente em alguns minutos.' }
+});
+app.use('/api', limiteGeral);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/empresa', empresaRoutes);
