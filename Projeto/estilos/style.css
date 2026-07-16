@@ -263,6 +263,23 @@ textarea:focus {
   box-shadow: 0 0 0 2px var(--btn-primary);
 }
 
+/* ===== TOGGLE MOSTRAR/OCULTAR SENHA (olhinho) ===== */
+.senha-wrap { position: relative; display: flex; align-items: center; }
+.senha-wrap input { padding-right: 44px; }
+.btn-olho {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--nav-link);
+  font-size: 15px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+}
+.btn-olho:hover { color: var(--text-dark); }
+
 textarea {
   border-radius: 12px;
   resize: vertical;

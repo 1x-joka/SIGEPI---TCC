@@ -28,7 +28,12 @@
       </div>
       <div class="form-group form-group--login">
         <label for="senha">Senha <span class="req">*</span></label>
-        <input type="password" placeholder="Digite sua senha" id="senha">
+        <div class="senha-wrap">
+          <input type="password" placeholder="Digite sua senha" id="senha">
+          <button type="button" class="btn-olho" onclick="toggleSenha('senha', this)" aria-label="Mostrar senha">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
         <!-- NÃO SOU UM ROBÔ (reCAPTCHA) -->
         <div class="recaptcha-box">
           <div class="g-recaptcha" data-sitekey="6Lc1M1YtAAAAAJNoR1ERc5hnb6dWR3lRo9BKIx5A"></div>

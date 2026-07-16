@@ -64,6 +64,18 @@ function setErro(id, mostrar) {
   el.classList[mostrar ? 'add' : 'remove']('show');
 }
 
+function toggleSenha(idInput, btn) {
+  const input = document.getElementById(idInput);
+  if (!input) return;
+
+  const vaiMostrar = input.type === 'password'; // se está oculto, o clique revela
+  input.type = vaiMostrar ? 'text' : 'password';
+
+  const icone = btn.querySelector('i');
+  if (icone) icone.className = vaiMostrar ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+  btn.setAttribute('aria-label', vaiMostrar ? 'Ocultar senha' : 'Mostrar senha');
+}
+
 function validarCPF(cpf) {
   if (!cpf) return false;
   cpf = cpf.replace(/\D/g, '');

@@ -16,7 +16,7 @@ Segundo pesquisa da plataforma Flash, 48% das empresas brasileiras ainda utiliza
 ## ✨ Funcionalidades
 
 - **Autenticação** com criptografia de senhas e validação por CAPTCHA
-- **Cadastro de funcionários** e controle por empresa e setor
+- **Auto-cadastro do funcionário** e controle por empresa e setor
 - **Cadastro e gestão de EPIs** com categorias e validade
 - **Controle de estoque** com alertas automáticos de reposição
 - **Registro de entregas e devoluções** com histórico completo
@@ -66,7 +66,7 @@ git clone https://github.com/seu-usuario/sigepi.git
 cd sigepi
 
 # 2. Instale as dependências do back-end
-cd src/backend
+cd Projeto/API
 npm install
 
 # 3. Configure as variáveis de ambiente
@@ -74,7 +74,7 @@ cp .env.example .env
 # Edite o arquivo .env com suas credenciais do banco de dados
 
 # 4. Execute os scripts SQL para criar o banco
-mysql -u root -p < database/sigepi.sql
+mysql -u root -p < Projeto/banco de dados/Códigos SQL/codigo.sql
 
 # 5. Inicie o servidor
 npm start
@@ -92,8 +92,8 @@ Acesse em: `http://localhost:3000`
 | Prototipação (Figma) | ✅ Concluído |
 | Modelagem do Banco de Dados | ✅ Concluído |
 | Desenvolvimento Front-end | ✅ Concluído |
-| Desenvolvimento Back-end | 🔄 Em andamento |
-| Responsividade | 🔄 Em andamento |
+| Desenvolvimento Back-end | ✅ Concluído |
+| Responsividade | ✅ Concluído |
 | Adaptação PWA | ⏳ Previsto |
 | Testes e Ajustes Finais | ⏳ Previsto |
 
@@ -101,9 +101,15 @@ Acesse em: `http://localhost:3000`
 
 ## 🎨 Protótipo
 
-> 🔗 [Visualizar protótipo no Figma](https://www.figma.com/design/DDS2raMUfaX0Cw292iuYP5/Prototipa%C3%A7%C3%A3o-do-SIGEPI?node-id=0-1&t=oVStPrEXnrAm0S5V-1)
+Protótipos desenvolvidos no Figma para os diferentes formatos de tela:
 
----
+| Formato | Link |
+|---------|------|
+| 🖥️ Desktop (Mac e Windows) | [Abrir no Figma](COLE_AQUI_O_LINK_DESKTOP) |
+| 📱 Mobile | [Abrir no Figma](COLE_AQUI_O_LINK_MOBILE) |
+| 📲 Tablet (iPad) | [Abrir no Figma](COLE_AQUI_O_LINK_IPAD) |
+
+> 🔗 [Protótipo completo (todas as telas)](https://www.figma.com/design/DDS2raMUfaX0Cw292iuYP5/Prototipa%C3%A7%C3%A3o-do-SIGEPI?node-id=0-1&t=oVStPrEXnrAm0S5V-1)
 
 ## 📚 Documentação
 
