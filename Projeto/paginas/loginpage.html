@@ -30,13 +30,13 @@
         <label for="senha">Senha <span class="req">*</span></label>
         <input type="password" placeholder="Digite sua senha" id="senha">
         <!-- NÃO SOU UM ROBÔ (reCAPTCHA) -->
-        <div class="g-recaptcha" data-sitekey="6Lc1M1YtAAAAAJNoR1ERc5hnb6dWR3lRo9BKIx5A" style="margin:12px 0;"></div>
+        <div class="recaptcha-box">
+          <div class="g-recaptcha" data-sitekey="6Lc1M1YtAAAAAJNoR1ERc5hnb6dWR3lRo9BKIx5A"></div>
+          <span class="error-msg" id="captcha-error">Confirme que você não é um robô.</span>
+        </div>
       <span class="error-msg" id="captcha-error">Confirme que você não é um robô.</span>
       </div>
       <button class="btn btn-primary btn-entrar" onclick="fazerLogin()">Entrar</button>
-      <div>
-        <i class="fa-brands fa-google google-btn" title="Entrar com Google"></i>
-      </div>
     </div>
   </div>
 </body>

@@ -893,9 +893,7 @@ async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
       const td = document.createElement('td');
       td.colSpan = 6;
       td.textContent = 'Nenhuma solicitação pendente para este funcionário.';
-      td.style.textAlign = 'center';
-      td.style.padding = '20px';
-      td.style.color = '#777';
+      td.className = 'celula-vazia';
       tr.appendChild(td);
       tbody.appendChild(tr);
     } else {
@@ -924,8 +922,7 @@ async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
         const btnRec = document.createElement('button');
         btnRec.className = 'btn btn-outline';
         btnRec.textContent = 'Recusar';
-        btnRec.style.marginLeft = '6px';
-        btnRec.onclick = () => responderSolicitacao(s.id_solicitacao, 'R', idFuncionario, nomeFuncionario);
+        btnRec.classList.add('btn-acao-espaco');
 
         tdAcao.append(btnAp, btnRec);
         tr.appendChild(tdAcao);
@@ -1011,10 +1008,9 @@ async function carregarHistorico() {
         tdTipo.textContent = nomesTipo[l.tipo_acao] || l.tipo_acao;
         if (ehFuncionario && l.equipamento) {
           const alvo = document.createElement('div');
-          alvo.textContent = l.equipamento;      // ex.: "Igor de Oliveira (CPF: 109.739.068-39)"
-          alvo.style.fontSize = '12px';
-          alvo.style.color = '#777';
-          tdTipo.appendChild(alvo);              // XSS-safe (textContent)
+          alvo.textContent = l.equipamento; // ex.: "Igor de Oliveira (CPF: 109.739.068-39)"
+          alvo.className = 'subtexto-cinza';
+          tdTipo.appendChild(alvo); // XSS-safe (textContent)
         }
         tr.appendChild(tdTipo);
 
@@ -1039,8 +1035,7 @@ async function carregarHistorico() {
         if (l.cpf_usuario) {
           const c = document.createElement('div');
           c.textContent = 'CPF: ' + l.cpf_usuario;
-          c.style.fontSize = '12px';
-          c.style.color = '#777';
+          c.className = 'subtexto-cinza';
           tdResp.appendChild(c);
         }
         tr.appendChild(tdResp);
@@ -1169,9 +1164,7 @@ async function carregarMinhasSolicitacoes() {
       const td = document.createElement('td');
       td.colSpan = 5;
       td.textContent = 'Você ainda não fez nenhuma solicitação.';
-      td.style.textAlign = 'center';
-      td.style.padding = '20px';
-      td.style.color = '#777';
+      td.className = 'celula-vazia';
       tr.appendChild(td);
       tbody.appendChild(tr);
       return;
@@ -1503,8 +1496,7 @@ function renderFuncionarios() {
     if (f.cpf_usuario) {
       const cpf = document.createElement('div');
       cpf.textContent = 'CPF: ' + f.cpf_usuario;
-      cpf.style.fontSize = '12px';
-      cpf.style.color = '#777';
+      cpf.className = 'subtexto-cinza';
       tdNome.appendChild(cpf);
     }
 
@@ -1523,11 +1515,11 @@ function renderFuncionarios() {
         const b = document.createElement('button');
         b.className = 'btn ' + classe;
         b.textContent = texto;
-        b.style.margin = '2px';
+        b.classList.add('btn-acao-espaco');
         b.onclick = acao;
         return b;
       };
-      tdAcao.style.whiteSpace = 'nowrap';
+      tdAcao.classList.add('acoes-nowrap');
       tdAcao.append(
         mk('Editar', 'btn-outline', () => abrirEditar(f.id_funcionario)),
         mk('Entregar EPI', 'btn-primary', () => entregarEpi(f.id_funcionario, nomeCompleto)),
@@ -1535,7 +1527,7 @@ function renderFuncionarios() {
         mk('Inativar', 'btn-outline', () => abrirExcluir(f.id_funcionario))
       );
     } else {
-      tdAcao.textContent = '—';
+      tdAcao.classList.add('acoes-nowrap');
     }
     tbody.appendChild(tr);
   });
@@ -1610,9 +1602,9 @@ async function carregarDashboard() {
     const label = document.querySelector('.kpi-card .label');
     if (label) label.textContent = 'EPIs Entregues (em ' + new Date().getFullYear() + ')';
     const card = document.querySelector('.kpi-card');
-    if (card) { card.style.textAlign = 'center'; card.style.display = 'flex'; card.style.flexDirection = 'column'; card.style.justifyContent = 'center'; }
+    if (card) card.classList.add('kpi-centralizado');
     const val = document.querySelector('.kpi-card .value');
-    if (val) val.style.fontSize = '72px';
+    if (val) val.classList.add('kpi-valor-grande');
 
     // Card "EPIs Entregues"
     const kpi = document.querySelector('.kpi-card .value');
@@ -1740,10 +1732,7 @@ async function carregarSetoresCheckbox() {
       box.innerHTML = '';
       setores.forEach(s => {
         const label = document.createElement('label');
-        label.style.display = 'flex';
-        label.style.alignItems = 'center';
-        label.style.gap = '5px';
-        label.style.fontSize = '14px';
+        label.className = 'chk-setor-label';
 
         const chk = document.createElement('input');
         chk.type = 'checkbox';

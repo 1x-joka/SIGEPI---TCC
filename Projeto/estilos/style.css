@@ -1398,3 +1398,71 @@ input[type="number"]::-webkit-outer-spin-button {
 .historico-body {
   padding: 20px 28px;
 }
+
+/* ===== Utilitários (migrados de CSS inline) ===== */
+
+/* Setores em checkbox no modal de cadastro de EPI */
+.cad-setores-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+/* Label do filtro de data no histórico */
+.label-filtro-data {
+  align-self: center;
+  font-size: 13px;
+  color: #555;
+  margin-right: 6px;
+}
+
+/* Bloco do reCAPTCHA centralizado */
+.recaptcha-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0;
+}
+.recaptcha-box .error-msg { text-align: center; }
+
+/* Título "Minhas Solicitações" com espaçamento */
+.titulo-secao-espaco { margin-top: 32px; }
+
+/* Botão copiar código na Seção Empresa */
+.btn-copiar-codigo { margin-top: 6px; }
+
+/* CPF/alvo em cinza pequeno (sob nome no histórico e tabelas) */
+.subtexto-cinza {
+  font-size: 12px;
+  color: #777;
+}
+
+/* Célula de "vazio" centralizada nas tabelas */
+.celula-vazia {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+}
+
+/* Espaçamento entre botões de ação nas tabelas */
+.btn-acao-espaco { margin: 2px; }
+.acoes-nowrap { white-space: nowrap; }
+
+/* Card KPI do dashboard (número grande centralizado) */
+.kpi-centralizado {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.kpi-valor-grande { font-size: 72px; }
+
+/* Label de cada checkbox de setor no modal de EPI */
+.chk-setor-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+}
