@@ -120,17 +120,6 @@ async function login(req, res) {
         completou: func.length > 0 // funcionário já completou?
       }
     });
-
-    return res.status(200).json({
-      mensagem: 'Login realizado com sucesso.',
-      token,
-      usuario: {
-        id:   usuario.id_usuario,
-        nome: usuario.nm_usuario,
-        email: usuario.email_usuario
-      }
-    });
-
   } catch (err) {
     return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
   }

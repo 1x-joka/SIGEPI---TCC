@@ -1473,3 +1473,142 @@ input[type="number"]::-webkit-outer-spin-button {
   padding-top: 12px;
   padding-bottom: 12px;
 }
+
+/* ============================================================
+/*  RESPONSIVIDADE
+/* ============================================================ */
+
+/* ===================== TABLET / NOTEBOOK PEQUENO (≤1024px) ===================== */
+@media (max-width: 1024px) {
+  .main-area { padding: 12px 16px 24px; }
+  .header { padding: 14px 20px; }
+  .inner-nav { gap: 22px; padding: 14px 20px; }
+  .epis-body, .func-body, .historico-body { padding: 18px 20px; }
+  .table-footer { padding: 16px 20px; }
+  .modal { width: 94%; padding: 28px; }
+  .form-grid { gap: 14px; }
+  .modal-grid-2col { gap: 14px 20px; }
+  .secao-grid { gap: 16px 24px; }
+
+  /* Dashboard: o grid de 4 colunas (1fr 1fr 180px 1fr) não cabe num tablet →
+     empilha em bloco, mas MANTÉM os gráficos (tablet tem espaço vertical de sobra) */
+  .dashboard-body { display: block; padding: 20px; }
+  .dashboard-body > * { margin-bottom: 16px; }
+}
+
+/* ---------- MOBILE (≤ 640px) ---------- */
+@media (max-width: 640px) {
+
+  /* HEADER empilhado e centralizado */
+  .header {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    text-align: center;
+  }
+  .header-right { justify-content: center; }
+  .dropdown-menu { right: auto; }
+
+  /* ===== NAV DO ADMIN — rolagem horizontal garantida (problema 3) ===== */
+  .inner-nav {
+    gap: 18px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .inner-nav a { flex: 0 0 auto; }   /* impede os itens de encolher/sumir */
+
+  /* ===== GRIDS em 1 COLUNA — reforçado (problemas 1 e 2) ===== */
+  .form-grid,
+  .secao-grid,
+  .modal-grid-2col,
+  .modal-grid-excluir {
+    display: block !important;             /* mata o grid de 2 colunas de vez */
+  }
+  .form-grid > *,
+  .secao-grid > *,
+  .modal-grid-2col > *,
+  .modal-grid-excluir > * {
+    width: 100%;
+    margin-bottom: 14px;
+  }
+  /* Campos ocupam a largura toda e ficam mais altos e legíveis */
+  .form-group input,
+  .form-group select,
+  .secao-col input,
+  .secao-col select { width: 100%; }
+
+  /* CARDS ocupam a largura com margem confortável */
+  .card-empresa, .card-setores, .home-card, .login-card, .signup-card,
+  .card-secao, .card-entrar, .card-complementar {
+    width: 100%;
+    max-width: 100%;
+    padding: 24px 18px;
+  }
+  .page-center { padding: 14px; }
+
+  /* ===== BOTÕES menos "gordinhos" (problema 2) ===== */
+  .btn { padding: 10px 18px; font-size: 14px; }
+  .secao-actions { flex-direction: column; gap: 10px; }
+  .secao-actions .btn { width: 100%; }
+  .btn-md, .btn-lg, .btn-full { padding: 11px 16px; font-size: 14px; }
+  /* Rodapé da tabela (EPIs): botões empilhados, largura total, rótulo numa linha só */
+  .table-footer { flex-direction: column; padding: 16px 20px; }
+  .table-footer .btn { width: 100%; }
+  .table-footer .btn, .epis-body .btn { padding: 11px 16px; font-size: 14px; }
+
+  /* FILTROS empilhados */
+  .filter-bar { flex-direction: column; align-items: stretch; gap: 10px; }
+  .filter-bar .input-busca, .filter-bar .select-wrap,
+  .filter-bar select, .filter-bar input { width: 100%; }
+
+  /* MODAIS quase tela cheia */
+  .modal { width: 100%; max-width: 100%; padding: 22px 16px; max-height: 90vh; overflow-y: auto; }
+  .modal-overlay { padding: 10px; }
+  .modal-footer { flex-direction: column; }
+  .modal-footer .btn { width: 100%; }
+
+  /* ===== DASHBOARD: 1 coluna + ESCONDER OS GRÁFICOS (problema 4) ===== */
+  .dashboard-body { display: block; padding: 16px; }
+  .dashboard-body > * { margin-bottom: 16px; }
+  .grafico-barras,
+  .grafico-linha {
+    display: none;   /* gráficos não aparecem no mobile — decisão consciente */
+  }
+
+  /* TABELAS mantêm rolagem horizontal legível */
+  .table-overflow table { min-width: 560px; }
+  .acoes-nowrap { white-space: normal; }
+
+  .page-title { font-size: 22px; }
+  .recaptcha-box { transform: scale(0.95); transform-origin: center; }
+
+  .kpi-card { align-items: center; text-align: center; justify-content: center; }
+
+  .historico-body .filter-bar { align-items: flex-start; }
+  .label-filtro-data { align-self: flex-start; margin-bottom: 4px; }
+}
+
+/* ===================== CELULAR PEQUENO (≤380px) ===================== */
+@media (max-width: 380px) {
+  .main-area { padding: 8px 10px 20px; }
+  .header { padding: 10px 12px; }
+  .logo-title { font-size: 18px; }
+  .page-title { font-size: 20px; }
+  .inner-nav { gap: 14px; padding: 12px 12px; }
+  .inner-nav a { font-size: 14px; }
+  .epis-body, .func-body, .historico-body { padding: 14px 12px; }
+  .table-footer { padding: 12px 12px; }
+  .btn { padding: 10px 14px; font-size: 14px; }
+  .table-footer .btn, .epis-body .btn { padding: 11px 14px; }
+  .card-empresa, .card-setores, .home-card, .login-card, .signup-card,
+  .card-secao, .card-entrar, .card-complementar { padding: 20px 14px; }
+  .modal { padding: 18px 12px; }
+  .modal-overlay { padding: 6px; }
+  .table-overflow table { min-width: 480px; }
+  .recaptcha-box { transform: scale(0.86); transform-origin: left center; }
+}
