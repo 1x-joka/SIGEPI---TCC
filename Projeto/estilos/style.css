@@ -1466,3 +1466,10 @@ input[type="number"]::-webkit-outer-spin-button {
   gap: 5px;
   font-size: 14px;
 }
+
+/* Tela de cadastro: elimina o scroll fantasma de poucos pixels */
+.signup-scroll-fix {
+  overflow-y: visible;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
