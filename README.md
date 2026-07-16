@@ -15,7 +15,7 @@ Segundo pesquisa da plataforma Flash, 48% das empresas brasileiras ainda utiliza
 
 ## ✨ Funcionalidades
 
-- **Autenticação** com criptografia de senhas e validação por CAPTCHA
+- **Autenticação** com criptografia de senhas e validação por reCAPTCHA
 - **Auto-cadastro do funcionário** e controle por empresa e setor
 - **Cadastro e gestão de EPIs** com categorias e validade
 - **Controle de estoque** com alertas automáticos de reposição
@@ -105,19 +105,20 @@ Protótipos desenvolvidos no Figma para os diferentes formatos de tela:
 
 | Formato | Link |
 |---------|------|
-| 🖥️ Desktop (Mac e Windows) | [Abrir no Figma](COLE_AQUI_O_LINK_DESKTOP) |
-| 📱 Mobile | [Abrir no Figma](COLE_AQUI_O_LINK_MOBILE) |
+| 🖥️ Desktop (Mac e Windows) | [Abrir no Figma](https://www.figma.com/design/DDS2raMUfaX0Cw292iuYP5/Prototipa%C3%A7%C3%A3o-do-SIGEPI---Desktop?node-id=0-1&p=f&t=PYUyYww3dqNHNQgO-0) |
+| 📱 Mobile | [Abrir no Figma](https://www.figma.com/design/UwsJ5lHa5mrJwR0BePkF0z/Prototipa%C3%A7%C3%A3o-do-SIGEPI---Mobile?t=PYUyYww3dqNHNQgO-0) |
 | 📲 Tablet (iPad) | [Abrir no Figma](COLE_AQUI_O_LINK_IPAD) |
 
 > 🔗 [Protótipo completo (todas as telas)](https://www.figma.com/design/DDS2raMUfaX0Cw292iuYP5/Prototipa%C3%A7%C3%A3o-do-SIGEPI?node-id=0-1&t=oVStPrEXnrAm0S5V-1)
 
 ## 📚 Documentação
 
-A documentação completa do projeto está na pasta `/docs`, incluindo:
+A documentação completa do projeto está na pasta `/Documentação`, incluindo:
 
 - Regras de negócio
 - Requisitos funcionais e não funcionais
 - Diagrama de casos de uso
+- Tecnologias Adotadas
 - Modelo entidade-relacionamento (MER)
 - Cronograma de desenvolvimento
 
