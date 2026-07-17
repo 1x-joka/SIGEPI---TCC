@@ -49,6 +49,15 @@ body.layout-flex {
   flex-direction: column;
 }
 
+/* Páginas de card centralizado (login, cadastro, empresa, termos...):
+   trava a altura no viewport para o scroll ficar DENTRO do .page-center,
+   e não na página inteira. Não afeta as telas de admin (sem .page-center). */
+body.layout-flex:has(.page-center) {
+  height: 100vh;
+  height: 100dvh; /* mobile: desconta a barra do navegador (iOS/Android) */
+  overflow: hidden;
+}
+
 .page-center {
   flex: 1;
   min-height: 0;
@@ -965,27 +974,6 @@ tr.row-yellow td {
 .google-btn:hover {
   transform: scale(1.1);
 }
-
-
-/* ===== HOME CARD ===== */
-
-.home-card {
-  background: white;
-  border-radius: 20px;
-  padding: 56px 72px;
-  width: 100%;
-  max-width: 500px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-  text-align: center;
-}
-
-.home-card h1 {
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 32px;
-  letter-spacing: 1px;
-}
-
 
 /* ===== ENTRAR EMPRESA CARD ===== */
 

@@ -273,13 +273,31 @@ function verificarCheckboxes() {
 }
 
 function aceitar() {
-  // Em produção: registrar aceite com timestamp e versão dos termos
+  // Registra o aceite (versão + data/hora) — base para auditoria de LGPD
+  localStorage.setItem('termosAceitos', JSON.stringify({
+    versao: '1.0',
+    aceitoEm: new Date().toISOString()
+  }));
   window.location.href = 'loginpage.html';
 }
 
 function recusar() {
-  alert('Por não aceitar os Termos e Condições de Uso, você não poderá utilizar o SIGEPI. A aba será fechada.');
-  window.close();
+  alert('Por não aceitar os Termos e Condições de Uso, você não poderá utilizar o SIGEPI.');
+  window.close(); // só fecha se a aba foi aberta via script; o navegador bloqueia abas normais
+
+  // Fallback: se a aba não fechar, bloqueia a tela para impedir o uso do sistema
+  document.body.replaceChildren();
+  document.body.style.cssText = 'display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#3c98bd;color:#fff;text-align:center;padding:24px;font-family:sans-serif';
+
+  const box = document.createElement('div');
+  const titulo = document.createElement('h1');
+  titulo.textContent = 'Acesso não autorizado';
+  titulo.style.margin = '0 0 12px';
+  const msg = document.createElement('p');
+  msg.textContent = 'Você recusou os Termos de Uso do SIGEPI. Para utilizar o sistema é necessário aceitá-los. Você já pode fechar esta aba.';
+  msg.style.cssText = 'max-width:420px;line-height:1.5;margin:0';
+  box.append(titulo, msg);
+  document.body.append(box);
 }
 
 
