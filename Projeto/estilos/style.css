@@ -41,7 +41,6 @@ body {
   min-height: 100vh;
 }
 
-
 /* ===== LAYOUT BASE ===== */
 
 body.layout-flex {
@@ -69,9 +68,10 @@ body.layout-flex:has(.page-center) {
 }
 
 .page-center--top {
-  align-items: flex-start;
-  padding: 24px;
-}
+    align-items: stretch;
+    overflow: hidden;
+    padding: 24px;
+  }
 
 .main-area {
   padding: 16px 24px 32px;
@@ -139,7 +139,6 @@ body.layout-flex:has(.page-center) {
   justify-content: center;
 }
 
-
 /* ===== DROPDOWN MENU ===== */
 
 .dropdown-menu {
@@ -174,7 +173,6 @@ body.layout-flex:has(.page-center) {
 .dropdown-menu a:hover {
   background: #f5f5f5;
 }
-
 
 /* ===== CARD BASE ===== */
 
@@ -273,8 +271,14 @@ textarea:focus {
 }
 
 /* ===== TOGGLE MOSTRAR/OCULTAR SENHA (olhinho) ===== */
-.senha-wrap { position: relative; display: flex; align-items: center; }
-.senha-wrap input { padding-right: 44px; }
+.senha-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.senha-wrap input {
+  padding-right: 44px;
+}
 .btn-olho {
   position: absolute;
   right: 10px;
@@ -287,7 +291,9 @@ textarea:focus {
   display: flex;
   align-items: center;
 }
-.btn-olho:hover { color: var(--text-dark); }
+.btn-olho:hover {
+  color: var(--text-dark);
+}
 
 textarea {
   border-radius: 12px;
@@ -471,6 +477,7 @@ select.select-readonly {
 }
 
 .btn-outline-recusar:hover {
+  transition: .4s;
   border-color: var(--btn-danger);
   color: var(--btn-danger);
   background: transparent;
@@ -549,7 +556,6 @@ select.select-readonly {
   padding: 12px;
   font-size: 15px;
 }
-
 
 /* ===== TABLES ===== */
 
@@ -661,7 +667,6 @@ tr.row-yellow td {
   gap: 6px;
 }
 
-
 /* ===== FILTER BAR ===== */
 
 .filter-bar {
@@ -671,7 +676,6 @@ tr.row-yellow td {
   margin-bottom: 20px;
   flex-wrap: wrap;
 }
-
 
 /* ===== ALERT BANNER ===== */
 
@@ -687,7 +691,6 @@ tr.row-yellow td {
   font-size: 15px;
   margin-bottom: 20px;
 }
-
 
 /* ===== MODAL OVERLAY ===== */
 
@@ -781,7 +784,6 @@ tr.row-yellow td {
   margin-bottom: 20px;
 }
 
-
 /* ===== ERROR MESSAGE ===== */
 
 .error-msg {
@@ -798,7 +800,6 @@ tr.row-yellow td {
 .error-msg--estoque {
   font-size: 13px;
 }
-
 
 /* ===== STATUS BADGES ===== */
 
@@ -842,7 +843,6 @@ tr.row-yellow td {
   color: #e53935;
 }
 
-
 /* ===== CHECKBOX ===== */
 
 .checkbox-row {
@@ -876,6 +876,125 @@ tr.row-yellow td {
   margin-bottom: 28px;
 }
 
+/* ===== PÁGINA DE TERMOS ===== */
+
+body.layout-flex:has(.termos-page-wrap) {
+    height: 100dvh;
+    overflow: hidden;
+}
+
+.termos-page-wrap {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.termos-titulo {
+  color: #fff;
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.termos-subtitulo {
+  color: rgba(255,255,255,0.85);
+  font-size: 15px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.termos-card {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    padding: 28px;
+}
+
+.termos-conteudo {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin-bottom: 24px;
+}
+
+.termos-secao {
+  margin-bottom: 20px;
+}
+.termos-secao:last-child {
+  margin-bottom: 0;
+}
+
+.termos-secao-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.termos-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  background: var(--btn-primary);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+.termos-secao-titulo {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.termos-texto {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-body);
+  margin-bottom: 8px;
+}
+.termos-texto:last-child { 
+  margin-bottom: 0; 
+}
+
+.termos-confirmacao { 
+  text-align: center; 
+}
+.termos-confirmacao-titulo { 
+  font-size: 18px; 
+  font-weight: 600;
+  color: var(--text-dark); 
+  margin-bottom: 4px;
+}
+.termos-confirmacao-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+.termos-confirmacao .checkbox-row {
+  text-align: left;
+}
+
+.termos-acoes {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
 
 /* ===== AVISO AMARELO ===== */
 
@@ -907,7 +1026,6 @@ tr.row-yellow td {
   display: inline;
 }
 
-
 /* ===== CONFIRMAÇÃO INLINE SETORES ===== */
 
 .confirm-inline {
@@ -926,7 +1044,6 @@ tr.row-yellow td {
   font-size: 13px;
 }
 
-
 /* ===== AVISO PENDENTE ===== */
 
 .aviso-pendente {
@@ -939,7 +1056,6 @@ tr.row-yellow td {
 .aviso-pendente.show {
   display: block;
 }
-
 
 /* ===== LOGIN / SIGNUP CARD ===== */
 
@@ -1071,7 +1187,6 @@ tr.row-yellow td {
   color: var(--nav-link);
   font-weight: 600;
 }
-
 
 /* ===== SETORES EMPRESA CARD ===== */
 
@@ -1258,7 +1373,6 @@ tr.row-yellow td {
   gap: 16px;
 }
 
-
 /* ===== MEUS EQUIPAMENTOS ===== */
 
 .meus-eq-body {
@@ -1284,7 +1398,6 @@ tr.row-yellow td {
   color: #333;
   line-height: 1.7;
 }
-
 
 /* ===== SEÇÕES (empresa / setores) ===== */
 
@@ -1430,13 +1543,19 @@ input[type="number"]::-webkit-outer-spin-button {
   gap: 6px;
   margin: 14px 0;
 }
-.recaptcha-box .error-msg { text-align: center; }
+.recaptcha-box .error-msg {
+  text-align: center;
+}
 
 /* Título "Minhas Solicitações" com espaçamento */
-.titulo-secao-espaco { margin-top: 32px; }
+.titulo-secao-espaco {
+  margin-top: 32px;
+}
 
 /* Botão copiar código na Seção Empresa */
-.btn-copiar-codigo { margin-top: 6px; }
+.btn-copiar-codigo {
+  margin-top: 6px;
+}
 
 /* CPF/alvo em cinza pequeno (sob nome no histórico e tabelas) */
 .subtexto-cinza {
@@ -1452,8 +1571,12 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 /* Espaçamento entre botões de ação nas tabelas */
-.btn-acao-espaco { margin: 2px; }
-.acoes-nowrap { white-space: nowrap; }
+.btn-acao-espaco {
+  margin: 2px;
+}
+.acoes-nowrap {
+  white-space: nowrap;
+}
 
 /* Card KPI do dashboard (número grande centralizado) */
 .kpi-centralizado {
@@ -1462,7 +1585,9 @@ input[type="number"]::-webkit-outer-spin-button {
   flex-direction: column;
   justify-content: center;
 }
-.kpi-valor-grande { font-size: 72px; }
+.kpi-valor-grande {
+  font-size: 72px;
+}
 
 /* Label de cada checkbox de setor no modal de EPI */
 .chk-setor-label {
@@ -1485,20 +1610,56 @@ input[type="number"]::-webkit-outer-spin-button {
 
 /* ===================== TABLET / NOTEBOOK PEQUENO (≤1024px) ===================== */
 @media (max-width: 1024px) {
-  .main-area { padding: 12px 16px 24px; }
-  .header { padding: 14px 20px; }
-  .inner-nav { gap: 22px; padding: 14px 20px; }
-  .epis-body, .func-body, .historico-body { padding: 18px 20px; }
-  .table-footer { padding: 16px 20px; }
-  .modal { width: 94%; padding: 28px; }
-  .form-grid { gap: 14px; }
-  .modal-grid-2col { gap: 14px 20px; }
-  .secao-grid { gap: 16px 24px; }
+  .main-area {
+    padding: 12px 16px 24px;
+  }
+
+  .header {
+    padding: 14px 20px;
+  }
+
+  .inner-nav {
+    gap: 22px;
+    padding: 14px 20px;
+  }
+
+  .epis-body,
+  .func-body,
+  .historico-body {
+    padding: 18px 20px;
+  }
+
+  .table-footer {
+    padding: 16px 20px;
+  }
+
+  .modal {
+    width: 94%;
+    padding: 28px;
+  }
+
+  .form-grid {
+    gap: 14px;
+  }
+
+  .modal-grid-2col {
+    gap: 14px 20px;
+  }
+
+  .secao-grid {
+    gap: 16px 24px;
+  }
 
   /* Dashboard: o grid de 4 colunas (1fr 1fr 180px 1fr) não cabe num tablet →
      empilha em bloco, mas MANTÉM os gráficos (tablet tem espaço vertical de sobra) */
-  .dashboard-body { display: block; padding: 20px; }
-  .dashboard-body > * { margin-bottom: 16px; }
+  .dashboard-body {
+    display: block;
+    padding: 20px;
+  }
+
+  .dashboard-body > * {
+    margin-bottom: 16px;
+  }
 }
 
 /* ---------- MOBILE (≤ 640px) ---------- */
@@ -1512,8 +1673,12 @@ input[type="number"]::-webkit-outer-spin-button {
     padding: 12px 16px;
     text-align: center;
   }
-  .header-right { justify-content: center; }
-  .dropdown-menu { right: auto; }
+  .header-right {
+    justify-content: center;
+  }
+  .dropdown-menu {
+    right: auto;
+  }
 
   /* ===== NAV DO ADMIN — rolagem horizontal garantida (problema 3) ===== */
   .inner-nav {
@@ -1525,14 +1690,16 @@ input[type="number"]::-webkit-outer-spin-button {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
   }
-  .inner-nav a { flex: 0 0 auto; }   /* impede os itens de encolher/sumir */
+  .inner-nav a {
+    flex: 0 0 auto; /* impede os itens de encolher/sumir */
+  }
 
   /* ===== GRIDS em 1 COLUNA — reforçado (problemas 1 e 2) ===== */
   .form-grid,
   .secao-grid,
   .modal-grid-2col,
   .modal-grid-excluir {
-    display: block !important;             /* mata o grid de 2 colunas de vez */
+    display: block !important; /* mata o grid de 2 colunas de vez */
   }
   .form-grid > *,
   .secao-grid > *,
@@ -1545,75 +1712,252 @@ input[type="number"]::-webkit-outer-spin-button {
   .form-group input,
   .form-group select,
   .secao-col input,
-  .secao-col select { width: 100%; }
+  .secao-col select {
+    width: 100%;
+  }
 
   /* CARDS ocupam a largura com margem confortável */
-  .card-empresa, .card-setores, .home-card, .login-card, .signup-card,
-  .card-secao, .card-entrar, .card-complementar {
+  .card-empresa,
+  .card-setores,
+  .home-card,
+  .login-card,
+  .signup-card,
+  .card-secao,
+  .card-entrar,
+  .card-complementar {
     width: 100%;
     max-width: 100%;
     padding: 24px 18px;
   }
-  .page-center { padding: 14px; }
+
+  .page-center {
+    padding: 14px;
+  }
 
   /* ===== BOTÕES menos "gordinhos" (problema 2) ===== */
-  .btn { padding: 10px 18px; font-size: 14px; }
-  .secao-actions { flex-direction: column; gap: 10px; }
-  .secao-actions .btn { width: 100%; }
-  .btn-md, .btn-lg, .btn-full { padding: 11px 16px; font-size: 14px; }
+  .btn {
+    padding: 10px 18px;
+    font-size: 14px;
+  }
+
+  .secao-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .secao-actions .btn {
+    width: 100%;
+  }
+
+  .btn-md, .btn-lg, .btn-full {
+    padding: 11px 16px;
+    font-size: 14px;
+  }
+
   /* Rodapé da tabela (EPIs): botões empilhados, largura total, rótulo numa linha só */
-  .table-footer { flex-direction: column; padding: 16px 20px; }
-  .table-footer .btn { width: 100%; }
-  .table-footer .btn, .epis-body .btn { padding: 11px 16px; font-size: 14px; }
+  .table-footer {
+    flex-direction: column;
+    padding: 16px 20px;
+  }
+
+  .table-footer .btn {
+    width: 100%;
+  }
+
+  .table-footer .btn, 
+  .epis-body .btn {
+    padding: 11px 16px;
+    font-size: 14px;
+  }
 
   /* FILTROS empilhados */
-  .filter-bar { flex-direction: column; align-items: stretch; gap: 10px; }
-  .filter-bar .input-busca, .filter-bar .select-wrap,
-  .filter-bar select, .filter-bar input { width: 100%; }
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .filter-bar .input-busca,
+  .filter-bar .select-wrap,
+  .filter-bar select,
+  .filter-bar input {
+    width: 100%;
+  }
 
   /* MODAIS quase tela cheia */
-  .modal { width: 100%; max-width: 100%; padding: 22px 16px; max-height: 90vh; overflow-y: auto; }
-  .modal-overlay { padding: 10px; }
-  .modal-footer { flex-direction: column; }
-  .modal-footer .btn { width: 100%; }
+  .modal {
+    width: 100%;
+    max-width: 100%;
+    padding: 22px 16px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-overlay {
+    padding: 10px;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+  }
 
   /* ===== DASHBOARD: 1 coluna + ESCONDER OS GRÁFICOS (problema 4) ===== */
-  .dashboard-body { display: block; padding: 16px; }
-  .dashboard-body > * { margin-bottom: 16px; }
+  .dashboard-body {
+    display: block;
+    padding: 16px;
+  }
+
+  .dashboard-body > * {
+    margin-bottom: 16px;
+  }
+
   .grafico-barras,
   .grafico-linha {
-    display: none;   /* gráficos não aparecem no mobile — decisão consciente */
+    display: none; /* gráficos não aparecem no mobile — decisão consciente */
   }
 
   /* TABELAS mantêm rolagem horizontal legível */
-  .table-overflow table { min-width: 560px; }
-  .acoes-nowrap { white-space: normal; }
+  .table-overflow table {
+    min-width: 560px;
+  }
+  .acoes-nowrap {
+    white-space: normal;
+  }
 
-  .page-title { font-size: 22px; }
-  .recaptcha-box { transform: scale(0.95); transform-origin: center; }
+  .page-title {
+    font-size: 22px;
+  }
+  .recaptcha-box {
+    transform: scale(0.95);
+    transform-origin: center;
+  }
 
-  .kpi-card { align-items: center; text-align: center; justify-content: center; }
+  .kpi-card {
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+  }
 
-  .historico-body .filter-bar { align-items: flex-start; }
-  .label-filtro-data { align-self: flex-start; margin-bottom: 4px; }
+  .historico-body .filter-bar {
+    align-items: flex-start;
+  }
+
+  .label-filtro-data {
+    align-self: flex-start;
+    margin-bottom: 4px;
+  }
+
+  /* Termos */
+  .termos-titulo {
+    font-size: 24px;
+  }
+
+  .termos-subtitulo { font-size: 14px;
+  }
+
+  .termos-card {
+    padding: 20px 16px;
+  }
+
+  .termos-conteudo {
+    max-height: 44vh;
+    padding: 16px;
+  }
+
+  .termos-acoes {
+    flex-direction: column;
+  }
+
+  .termos-acoes .btn {
+    width: 100%;
+  }
 }
 
 /* ===================== CELULAR PEQUENO (≤380px) ===================== */
 @media (max-width: 380px) {
-  .main-area { padding: 8px 10px 20px; }
-  .header { padding: 10px 12px; }
-  .logo-title { font-size: 18px; }
-  .page-title { font-size: 20px; }
-  .inner-nav { gap: 14px; padding: 12px 12px; }
-  .inner-nav a { font-size: 14px; }
-  .epis-body, .func-body, .historico-body { padding: 14px 12px; }
-  .table-footer { padding: 12px 12px; }
-  .btn { padding: 10px 14px; font-size: 14px; }
-  .table-footer .btn, .epis-body .btn { padding: 11px 14px; }
-  .card-empresa, .card-setores, .home-card, .login-card, .signup-card,
-  .card-secao, .card-entrar, .card-complementar { padding: 20px 14px; }
-  .modal { padding: 18px 12px; }
-  .modal-overlay { padding: 6px; }
-  .table-overflow table { min-width: 480px; }
-  .recaptcha-box { transform: scale(0.86); transform-origin: left center; }
+  .main-area {
+    padding: 8px 10px 20px;
+  }
+
+  .header {
+    padding: 10px 12px;
+  }
+
+  .logo-title {
+    font-size: 18px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .inner-nav {
+    gap: 14px;
+    padding: 12px 12px;
+  }
+
+  .inner-nav a {
+    font-size: 14px;
+  }
+
+  .epis-body,
+  .func-body,
+  .historico-body {
+    padding: 14px 12px;
+  }
+
+  .table-footer {
+    padding: 12px 12px;
+  }
+
+  .btn {
+    padding: 10px 14px; 
+    font-size: 14px;
+  }
+
+  .table-footer .btn,
+  .epis-body .btn {
+    padding: 11px 14px;
+  }
+
+  .card-empresa,
+  .card-setores,
+  .home-card,
+  .login-card,
+  .signup-card,
+  .card-secao,
+  .card-entrar,
+  .card-complementar {
+    padding: 20px 14px;
+  }
+
+  .modal {
+    padding: 18px 12px;
+  }
+
+  .modal-overlay {
+    padding: 6px;
+  }
+
+  .table-overflow table {
+    min-width: 480px;
+  }
+
+  .recaptcha-box {
+    transform: scale(0.86);
+    transform-origin: left center;
+  }
+
+  /* Termos */
+  .termos-titulo {
+    font-size: 22px;
+  }
+
+  .termos-card {
+    padding: 16px 12px;
+  }
 }
