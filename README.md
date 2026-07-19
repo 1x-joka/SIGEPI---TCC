@@ -57,30 +57,43 @@ Segundo pesquisa da plataforma Flash, 48% das empresas brasileiras ainda utiliza
 - [Node.js](https://nodejs.org/) v18 ou superior
 - [MySQL](https://www.mysql.com/) v8 ou superior
 - [Git](https://git-scm.com/)
+- Extensão [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) no VS Code
+- Chaves do [Google reCAPTCHA v2](https://www.google.com/recaptcha/admin) (site key e secret key)
 
-### Instalação
+### 1. Clone o repositório
 
 ```bash
-# 1. Clone o repositório
-git clone https://github.com/seu-usuario/sigepi.git
-cd sigepi
+git clone https://github.com/1x-joka/SIGEPI---TCC.git
+cd "SIGEPI - TCC"
+```
 
-# 2. Instale as dependências do back-end
+### 2. Crie o banco de dados
+
+```bash
+mysql -u root -p < "Projeto/banco de dados/Códigos SQL/codigo.sql"
+```
+
+### 3. Configure e inicie o back-end
+
+```bash
 cd Projeto/API
 npm install
-
-# 3. Configure as variáveis de ambiente
 cp .env.example .env
-# Edite o arquivo .env com suas credenciais do banco de dados
+```
 
-# 4. Execute os scripts SQL para criar o banco
-mysql -u root -p < Projeto/banco de dados/Códigos SQL/codigo.sql
+Edite o `.env` com as credenciais do seu banco, o `JWT_SECRET` e a chave secreta do reCAPTCHA. Depois:
 
-# 5. Inicie o servidor
+```bash
 npm start
 ```
 
-Acesse em: `http://localhost:3000`
+A API sobe em `http://localhost:3000` — ao acessar, deve responder `{"mensagem":"API SIGEPI funcionando!"}`.
+
+### 4. Inicie o front-end
+
+Com a API rodando, abra o VS Code na raiz do projeto, clique com o botão direito em `Projeto/index.html` e escolha **Open with Live Server**.
+
+O sistema abre em `http://127.0.0.1:5500/Projeto/index.html`.
 
 ---
 
@@ -94,7 +107,7 @@ Acesse em: `http://localhost:3000`
 | Desenvolvimento Front-end | ✅ Concluído |
 | Desenvolvimento Back-end | ✅ Concluído |
 | Responsividade | ✅ Concluído |
-| Adaptação PWA | ⏳ Previsto |
+| Adaptação PWA | ✅ Concluído |
 | Testes e Ajustes Finais | ⏳ Previsto |
 
 ---
@@ -119,6 +132,7 @@ A documentação completa do projeto está na pasta `/Documentação`, incluindo
 - Requisitos funcionais e não funcionais
 - Diagrama de casos de uso
 - Tecnologias Adotadas
+- Viabilidades
 - Modelo entidade-relacionamento (MER)
 - Cronograma de desenvolvimento
 
