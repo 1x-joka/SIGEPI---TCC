@@ -23,7 +23,7 @@ async function cadastrar(req, res) {
   }
 
   try {
-    const [existe] = await db.query(
+    const [existe] = await db.execute(
       'SELECT email_usuario, cpf_usuario FROM tb_usuario WHERE email_usuario = ? OR cpf_usuario = ?', [email, cpf]
     );
     if (existe.length > 0) {
@@ -35,7 +35,7 @@ async function cadastrar(req, res) {
 
     const hash = await bcrypt.hash(senha, 10);
 
-    await db.query(
+    await db.execute(
       `INSERT INTO tb_usuario
         (nm_usuario, email_usuario, senha_usuario, cpf_usuario, st_usuario, dt_cadastro_usuario, tb_tipousuario_id_tipousuario)
        VALUES (?, ?, ?, ?, 'A', CURDATE(), ?)`,
@@ -76,7 +76,7 @@ async function login(req, res) {
   }
 
   try {
-    const [rows] = await db.query(
+    const [rows] = await db.execute(
       'SELECT * FROM tb_usuario WHERE email_usuario = ?', [email]
     );
 
@@ -98,7 +98,7 @@ async function login(req, res) {
     // A ordem importa: colocamos depois de validar a senha de propósito. Assim, quem erra a senha recebe "credenciais inválidas" (sem revelar que a conta existe), e só quem acerta a senha de uma conta inativa é que descobre que está bloqueado. É um detalhe de segurança (não vazar informação a quem nem sabe a senha).
 
     // Descobre se o funcionário já completou o cadastro (tem linha em tb_funcionario)
-    const [func] = await db.query(
+    const [func] = await db.execute(
       'SELECT id_funcionario FROM tb_funcionario WHERE tb_usuario_id_usuario = ?',
       [usuario.id_usuario]
     );

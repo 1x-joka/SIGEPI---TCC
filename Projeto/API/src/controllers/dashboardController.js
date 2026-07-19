@@ -14,16 +14,16 @@ async function obterDashboard(req, res) {
     if (mes) { condMes = ' AND MONTH(e.dt_entrega) = ?'; filtroEntrega.push(mes); }
 
     // 1) EPI ENTREGUE (total no período) — COUNT conta linhas
-    const [totalEntregas] = await db.query(
+    const [totalEntregas] = await db.execute(
       `SELECT COUNT(*) AS total
        FROM tb_entrega e
        JOIN tb_funcionario f ON f.id_funcionario = e.tb_funcionario_id_funcionario
-       WHERE f.tb_empresa_id_empresa = ? AND YEAR(e.dt_entrega) = ?${condMes}`,
+       WHERE f.tb_empresa_id_empresa = ? AND YEAR(e.dt_entrega) = ?${condMes}`, // Pela interpolação (${condMes}) parece que é falha de proteção contra SQL Injection, mas não é! condMes é uma string fixa escrita por mim,  o valor do mês nunca entra ali, ele vai no array. Ou seja, eu interpolo estrutura, não dado.
       filtroEntrega
     );
 
     // 2) EPI COM NECESSIDADE DE COMPRA (estoque abaixo do mínimo) — estado atual
-    const [necessidadeCompra] = await db.query(
+    const [necessidadeCompra] = await db.execute(
       `SELECT epi.nm_epi, epi.ca_epi,
               SUM(es.qtd_disponivel_estoque) AS disponivel,
               SUM(es.qtd_minima_estoque)    AS minimo,
@@ -38,7 +38,7 @@ async function obterDashboard(req, res) {
     );
 
     // 3) STATUS DE CA (Válido / A vencer / Vencido) — estado atual
-    const [statusCa] = await db.query(
+    const [statusCa] = await db.execute(
       `SELECT
          COALESCE(SUM(CASE WHEN dt_validade_ca < CURDATE() THEN 1 ELSE 0 END), 0) AS vencido,
          COALESCE(SUM(CASE WHEN dt_validade_ca BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE 0 END), 0) AS a_vencer,
@@ -49,7 +49,7 @@ async function obterDashboard(req, res) {
     );
 
     // 4) 5 EPIs MAIS ENTREGUES (no período) — agrupa por EPI e conta
-    const [topEpis] = await db.query(
+    const [topEpis] = await db.execute(
       `SELECT epi.nm_epi, COUNT(*) AS total
        FROM tb_entrega e
        JOIN tb_funcionario f ON f.id_funcionario = e.tb_funcionario_id_funcionario
@@ -62,7 +62,7 @@ async function obterDashboard(req, res) {
     );
 
     // 5) ENTREGAS POR MÊS (gráfico anual) — usa só o ANO
-    const [porMes] = await db.query(
+    const [porMes] = await db.execute(
       `SELECT MONTH(e.dt_entrega) AS mes, COUNT(*) AS total
        FROM tb_entrega e
        JOIN tb_funcionario f ON f.id_funcionario = e.tb_funcionario_id_funcionario

@@ -76,6 +76,8 @@ function toggleSenha(idInput, btn) {
   btn.setAttribute('aria-label', vaiMostrar ? 'Ocultar senha' : 'Mostrar senha');
 }
 
+// VALIDAR CPF E VALIDAR CNPJ NÃO É PREVENÇÃO (isso é parametrização/prepared statements), É CONTENÇÃO/DEFESA EM PROFUNDIDADE (validação de input's)
+
 function validarCPF(cpf) {
   if (!cpf) return false;
   cpf = cpf.replace(/\D/g, '');
@@ -1779,6 +1781,16 @@ async function carregarSetoresCheckbox() {
   } catch (err) {}
 }
 document.addEventListener('DOMContentLoaded', carregarSetoresCheckbox);
+
+// Registro do Service Worker (PWA)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    const raiz = location.pathname.includes('/paginas/') ? '../' : './';
+    navigator.serviceWorker.register(raiz + 'sw.js')
+      .then(() => console.log('Service Worker registrado com sucesso'))
+      .catch(erro => console.error('Falha ao registrar o Service Worker:', erro));
+  });
+}
 
 // ============================================================
 //  COMENTÁRIOS

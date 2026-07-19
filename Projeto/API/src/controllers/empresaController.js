@@ -19,7 +19,7 @@ async function cadastrarEmpresa(req, res) {
   }
 
   try {
-    const [existe] = await db.query(
+    const [existe] = await db.execute(
       'SELECT id_empresa FROM tb_empresa WHERE cnpj_empresa = ?', [cnpj]
     );
     if (existe.length > 0) {
@@ -28,7 +28,7 @@ async function cadastrarEmpresa(req, res) {
 
     const codigo = Math.floor(1000000000 + Math.random() * 9000000000).toString(); // Código da empresa gerado automaticamente após o cadastro
 
-    const [result] = await db.query(
+    const [result] = await db.execute(
       `INSERT INTO tb_empresa 
        (nm_empresa, cnpj_empresa, responsavel_empresa, email_empresa, tel_empresa, codigo_empresa, st_empresa, dt_cadastro_empresa)
        VALUES (?, ?, ?, ?, ?, ?, 'A', CURDATE())`,
@@ -37,13 +37,13 @@ async function cadastrarEmpresa(req, res) {
 
     const id_empresa = result.insertId;
 
-    await db.query(
+    await db.execute(
       'UPDATE tb_usuario SET tb_empresa_id_empresa = ?, tb_tipousuario_id_tipousuario = 1 WHERE id_usuario = ?',
       [id_empresa, req.usuario.id]
     );
 
     if (setor) {
-      await db.query(
+      await db.execute(
         'INSERT INTO tb_setor (nm_setor, tb_empresa_id_empresa) VALUES (?, ?)',
         [setor, id_empresa]
       );
@@ -69,7 +69,7 @@ async function obterEmpresa(req, res) {
   const empresa = req.usuario.empresa;
   if (!empresa) return res.status(404).json({ erro: 'Nenhuma empresa vinculada.' });
   try {
-    const [rows] = await db.query(
+    const [rows] = await db.execute(
       `SELECT id_empresa, nm_empresa, cnpj_empresa, codigo_empresa, responsavel_empresa, email_empresa, tel_empresa
        FROM tb_empresa WHERE id_empresa = ?`, [empresa]
     );
@@ -83,7 +83,7 @@ async function atualizarEmpresa(req, res) {
   const { responsavel, email, telefone } = req.body;
   if (!empresa) return res.status(404).json({ erro: 'Nenhuma empresa vinculada.' });
   try {
-    await db.query(
+    await db.execute(
       `UPDATE tb_empresa SET responsavel_empresa = ?, email_empresa = ?, tel_empresa = ? WHERE id_empresa = ?`,
       [responsavel || null, email || null, telefone || null, empresa]
     );

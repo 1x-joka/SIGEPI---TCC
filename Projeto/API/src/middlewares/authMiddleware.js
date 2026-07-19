@@ -16,7 +16,7 @@ async function autenticar(req, res, next) {
     req.usuario = dados;
     
     // Empresa vem do banco (fonte confiável), nunca do cliente
-    const [rows] = await db.query(
+    const [rows] = await db.execute(
       'SELECT tb_empresa_id_empresa, tb_tipousuario_id_tipousuario FROM tb_usuario WHERE id_usuario = ?',
       [dados.id]
     );

@@ -542,14 +542,6 @@ select.select-readonly {
   border-radius: 6px;
 }
 
-.btn-home {
-  display: block;
-  width: 200px;
-  margin: 0 auto 16px;
-  padding: 12px 20px;
-  font-size: 14px;
-}
-
 .btn-entrar {
   width: 100%;
   margin-top: 8px;
@@ -1719,7 +1711,6 @@ input[type="number"]::-webkit-outer-spin-button {
   /* CARDS ocupam a largura com margem confortável */
   .card-empresa,
   .card-setores,
-  .home-card,
   .login-card,
   .signup-card,
   .card-secao,
@@ -1926,7 +1917,6 @@ input[type="number"]::-webkit-outer-spin-button {
 
   .card-empresa,
   .card-setores,
-  .home-card,
   .login-card,
   .signup-card,
   .card-secao,

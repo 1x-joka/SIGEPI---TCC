@@ -12,7 +12,7 @@ async function cadastrarSetor(req, res) {
 
     try {
         // Impede setor duplicado dentro da mesma empresa
-        const [existe] = await db.query(
+        const [existe] = await db.execute(
             'SELECT id_setor FROM tb_setor WHERE nm_setor = ? AND tb_empresa_id_empresa = ?',
             [nome, empresa]
         );
@@ -20,7 +20,7 @@ async function cadastrarSetor(req, res) {
             return res.status(409).json({ erro: 'Já existe um setor com esse nome'});
         }
 
-        const [result] = await db.query(
+        const [result] = await db.execute(
             'INSERT INTO tb_setor (nm_setor, tb_empresa_id_empresa) VALUES (?, ?)',
             [nome, empresa]
         );
@@ -41,7 +41,7 @@ async function listarSetores(req, res) {
     const empresa = req.usuario.empresa;
 
     try{
-        const [setores] = await db.query(
+        const [setores] = await db.execute(
             'SELECT id_setor, nm_setor FROM tb_setor WHERE tb_empresa_id_empresa = ? ORDER BY nm_setor',
             [empresa]
         );
@@ -60,7 +60,7 @@ async function deletarSetor(req, res) {
 
   try {
     // O setor precisa ser desta empresa
-    const [setores] = await db.query(
+    const [setores] = await db.execute(
       'SELECT id_setor FROM tb_setor WHERE id_setor = ? AND tb_empresa_id_empresa = ?',
       [id_setor, empresa]
     );
@@ -69,7 +69,7 @@ async function deletarSetor(req, res) {
     }
 
     // TRAVA: não excluir se houver funcionário no setor
-    const [funcs] = await db.query(
+    const [funcs] = await db.execute(
       'SELECT COUNT(*) AS total FROM tb_funcionario WHERE tb_setor_id_setor = ?',
       [id_setor]
     );
@@ -79,7 +79,7 @@ async function deletarSetor(req, res) {
       });
     }
 
-    await db.query('DELETE FROM tb_setor WHERE id_setor = ?', [id_setor]);
+    await db.execute('DELETE FROM tb_setor WHERE id_setor = ?', [id_setor]);
     return res.status(200).json({ mensagem: 'Setor excluído com sucesso.' });
 
   } catch (err) {

@@ -19,7 +19,7 @@ async function registrarEntrada(req, res) {
 
   try {
     // Segurança: o EPI precisa pertencer À MESMA empresa do admin logado
-    const [epis] = await conexao.query(
+    const [epis] = await conexao.execute(
       'SELECT id_epi, nm_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ?',
       [epi, empresa]
     );
@@ -32,7 +32,7 @@ async function registrarEntrada(req, res) {
     await conexao.beginTransaction();
 
     // 1) Cria o LOTE em tb_estoque (Opção A: cada entrada é uma linha nova)
-    const [resultEstoque] = await conexao.query(
+    const [resultEstoque] = await conexao.execute(
       `INSERT INTO tb_estoque
         (qtd_disponivel_estoque, qtd_minima_estoque, dt_validade_estoque, tb_empresa_id_empresa, tb_epi_id_epi)
        VALUES (?, ?, ?, ?, ?)`,
@@ -41,7 +41,7 @@ async function registrarEntrada(req, res) {
     const id_estoque = resultEstoque.insertId;
 
     // 2) Registra a MOVIMENTAÇÃO (histórico da entrada)
-    await conexao.query(
+    await conexao.execute(
       `INSERT INTO tb_movimentacao
         (tipo_movimentacao, qtd_movimentacao, dt_movimentacao, desc_movimentacao, tb_estoque_id_estoque)
        VALUES ('E', ?, CURDATE(), ?, ?)`,
@@ -74,7 +74,7 @@ async function listarEstoque(req, res) {
   const empresa = req.usuario.empresa;
 
   try {
-    const [estoque] = await db.query(
+    const [estoque] = await db.execute(
       `SELECT e.id_estoque, e.qtd_disponivel_estoque, e.qtd_minima_estoque,
               e.dt_validade_estoque, epi.nm_epi
        FROM tb_estoque e
@@ -103,7 +103,7 @@ async function registrarSaida(req, res) {
   const conexao = await db.getConnection();
   try {
     // Estoque total disponível deste EPI (soma dos lotes) — fonte confiável
-    const [tot] = await conexao.query(
+    const [tot] = await conexao.execute(
       `SELECT COALESCE(SUM(qtd_disponivel_estoque),0) AS total
        FROM tb_estoque WHERE tb_epi_id_epi = ? AND tb_empresa_id_empresa = ?`,
       [epi, empresa]
@@ -117,7 +117,7 @@ async function registrarSaida(req, res) {
 
     // Baixa FIFO: retira dos lotes mais antigos (validade mais próxima) primeiro
     let restante = quantidade;
-    const [lotes] = await conexao.query(
+    const [lotes] = await conexao.execute(
       `SELECT id_estoque, qtd_disponivel_estoque
        FROM tb_estoque
        WHERE tb_epi_id_epi = ? AND tb_empresa_id_empresa = ? AND qtd_disponivel_estoque > 0
@@ -128,11 +128,11 @@ async function registrarSaida(req, res) {
     for (const lote of lotes) {
       if (restante <= 0) break;
       const baixa = Math.min(lote.qtd_disponivel_estoque, restante);
-      await conexao.query(
+      await conexao.execute(
         'UPDATE tb_estoque SET qtd_disponivel_estoque = qtd_disponivel_estoque - ? WHERE id_estoque = ?',
         [baixa, lote.id_estoque]
       );
-      await conexao.query(
+      await conexao.execute(
         `INSERT INTO tb_movimentacao
           (tipo_movimentacao, qtd_movimentacao, dt_movimentacao, desc_movimentacao, tb_estoque_id_estoque)
          VALUES ('S', ?, CURDATE(), ?, ?)`,
@@ -141,7 +141,7 @@ async function registrarSaida(req, res) {
       restante -= baixa;
     }
 
-    const [epiNome] = await db.query('SELECT nm_epi FROM tb_epi WHERE id_epi = ?', [epi]);
+    const [epiNome] = await db.execute('SELECT nm_epi FROM tb_epi WHERE id_epi = ?', [epi]);
 
     await registrarLog({ empresa, tipo: 'SAIDA_ESTOQUE', descricao: 'Retirada de estoque', equipamento: epiNome[0]?.nm_epi || null, quantidade, motivo: motivo || null, responsavel: req.usuario.id });
 

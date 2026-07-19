@@ -1,0 +1,17 @@
+{
+  "name": "SIGEPI — Gerenciador de EPI Online",
+  "short_name": "SIGEPI",
+  "description": "Sistema de gerenciamento de Equipamentos de Proteção Individual",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "pt-BR",
+  "background_color": "#3c98bd",
+  "theme_color": "#3c98bd",
+  "icons": [
+    { "src": "imagens/icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "imagens/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "imagens/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

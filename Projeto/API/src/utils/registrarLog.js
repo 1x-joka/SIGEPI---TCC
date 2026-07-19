@@ -5,7 +5,7 @@ const db = require('../config/db');
 // Registra uma ação no histórico de auditoria. Campos não aplicáveis vão como null.
 async function registrarLog({ empresa, tipo, descricao = null, equipamento = null, quantidade = null, motivo = null, responsavel = null }) {
   try {
-    await db.query(
+    await db.execute(
       `INSERT INTO tb_log
         (tipo_acao, descricao, equipamento, quantidade, motivo, responsavel, tb_empresa_id_empresa)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,

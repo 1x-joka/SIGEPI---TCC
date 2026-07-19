@@ -3,7 +3,7 @@ const db = require('../config/db');
 async function listarLog(req, res) {
   const empresa = req.usuario.empresa;
   try {
-    const [logs] = await db.query(
+    const [logs] = await db.execute(
       `SELECT l.id_log, l.dt_log, l.tipo_acao, l.equipamento, l.quantidade, l.motivo,
               u.nm_usuario, u.cpf_usuario
        FROM tb_log l

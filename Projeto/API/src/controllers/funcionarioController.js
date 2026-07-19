@@ -20,7 +20,7 @@ async function entrarEmpresa(req, res) {
 
   try {
     // Acha a empresa pelo código (fonte confiável: banco)
-    const [empresas] = await db.query(
+    const [empresas] = await db.execute(
       'SELECT id_empresa FROM tb_empresa WHERE codigo_empresa = ?',
       [codigo]
     );
@@ -31,7 +31,7 @@ async function entrarEmpresa(req, res) {
     const id_empresa = empresas[0].id_empresa;
 
     // Vincula o usuário à empresa e o marca como Funcionário (tipo 2)
-    await db.query(
+    await db.execute(
       'UPDATE tb_usuario SET tb_empresa_id_empresa = ?, tb_tipousuario_id_tipousuario = 2 WHERE id_usuario = ?',
       [id_empresa, req.usuario.id]
     );
@@ -57,7 +57,7 @@ async function completarCadastro(req, res) {
 
   try {
     // Impede completar duas vezes
-    const [jaExiste] = await db.query(
+    const [jaExiste] = await db.execute(
       'SELECT id_funcionario FROM tb_funcionario WHERE tb_usuario_id_usuario = ?',
       [req.usuario.id]
     );
@@ -66,7 +66,7 @@ async function completarCadastro(req, res) {
     }
 
     // O setor precisa ser da empresa do funcionário (isolamento)
-    const [setores] = await db.query(
+    const [setores] = await db.execute(
       'SELECT id_setor FROM tb_setor WHERE id_setor = ? AND tb_empresa_id_empresa = ?',
       [setor, empresa]
     );
@@ -85,13 +85,13 @@ async function completarCadastro(req, res) {
     }
 
     // Nome vem da conta (nm_usuario), definido no cadastro
-    const [usuarios] = await db.query(
+    const [usuarios] = await db.execute(
       'SELECT nm_usuario FROM tb_usuario WHERE id_usuario = ?',
       [req.usuario.id]
     );
     const nomeCompleto = usuarios[0].nm_usuario;
 
-    const [result] = await db.query(
+    const [result] = await db.execute(
       `INSERT INTO tb_funcionario
         (nm_funcionario, dt_nascimento_funcionario, st_funcionario, dt_cadastro_funcionario, tb_empresa_id_empresa, tb_setor_id_setor, tb_usuario_id_usuario)
        VALUES (?, ?, 'A', CURDATE(), ?, ?, ?)`,
@@ -113,7 +113,7 @@ async function listarFuncionarios(req, res) {
   const empresa = req.usuario.empresa;
 
   try {
-    const [funcionarios] = await db.query(
+    const [funcionarios] = await db.execute(
       `SELECT f.id_funcionario, f.nm_funcionario, f.sobrenome_funcionario, f.st_funcionario,
               s.nm_setor, u.cpf_usuario,
               (SELECT COUNT(*) FROM tb_entrega e WHERE e.tb_funcionario_id_funcionario = f.id_funcionario AND e.st_entrega = 'A') AS total_epis
@@ -148,7 +148,7 @@ async function inativarFuncionario(req, res) {
   try {
     // Segurança: o funcionário precisa ser DESTA empresa e ainda estar ATIVO.
     // Traz também o id_usuario para bloquear o login.
-    const [funcs] = await conexao.query(
+    const [funcs] = await conexao.execute(
       `SELECT id_funcionario, st_funcionario, tb_usuario_id_usuario
        FROM tb_funcionario
        WHERE id_funcionario = ? AND tb_empresa_id_empresa = ?`,
@@ -172,7 +172,7 @@ async function inativarFuncionario(req, res) {
     // 1) Exclusão lógica do funcionário (guarda motivo e data)
     // data_inativacao = CURDATE():  o "quando" fica registrado, junto com o "por quê" (motivo). Isso é a auditoria que o NF12.1 pede.
 
-    await conexao.query(
+    await conexao.execute(
       `UPDATE tb_funcionario
        SET st_funcionario = 'I', motivo_inativacao_funcionario = ?, data_inativacao = CURDATE()
        WHERE id_funcionario = ?`,
@@ -181,7 +181,7 @@ async function inativarFuncionario(req, res) {
 
     // 2) Bloqueia o acesso: usuário vinculado vira inativo (NF12.1)
     if (id_usuario) {
-      await conexao.query(
+      await conexao.execute(
         `UPDATE tb_usuario SET st_usuario = 'I' WHERE id_usuario = ?`,
         [id_usuario]
       );
@@ -189,7 +189,7 @@ async function inativarFuncionario(req, res) {
 
     await conexao.commit();
 
-    const [dadosFunc] = await db.query(
+    const [dadosFunc] = await db.execute(
       `SELECT f.nm_funcionario, u.cpf_usuario FROM tb_funcionario f
        LEFT JOIN tb_usuario u ON u.id_usuario = f.tb_usuario_id_usuario
        WHERE f.id_funcionario = ?`, [id_funcionario]
@@ -220,7 +220,7 @@ async function editarFuncionario(req, res) {
 
   try {
     // O funcionário precisa ser desta empresa (isolamento)
-    const [funcs] = await db.query(
+    const [funcs] = await db.execute(
       "SELECT id_funcionario FROM tb_funcionario WHERE id_funcionario = ? AND tb_empresa_id_empresa = ? AND st_funcionario = 'A'",
       [id_funcionario, empresa]
     );
@@ -230,7 +230,7 @@ async function editarFuncionario(req, res) {
 
     // Se informou setor, ele precisa ser desta empresa. Vazio = desvincular (null).
     if (setor) {
-      const [setores] = await db.query(
+      const [setores] = await db.execute(
         'SELECT id_setor FROM tb_setor WHERE id_setor = ? AND tb_empresa_id_empresa = ?',
         [setor, empresa]
       );
@@ -239,12 +239,12 @@ async function editarFuncionario(req, res) {
       }
     }
 
-    await db.query(
+    await db.execute(
       'UPDATE tb_funcionario SET nm_funcionario = ?, tb_setor_id_setor = ? WHERE id_funcionario = ?',
       [nome, setor || null, id_funcionario]
     );
 
-    const [dadosFunc] = await db.query(
+    const [dadosFunc] = await db.execute(
       `SELECT f.nm_funcionario, u.cpf_usuario FROM tb_funcionario f
        LEFT JOIN tb_usuario u ON u.id_usuario = f.tb_usuario_id_usuario
        WHERE f.id_funcionario = ?`, [id_funcionario]

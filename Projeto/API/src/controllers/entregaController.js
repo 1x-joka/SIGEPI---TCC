@@ -16,7 +16,7 @@ async function registrarEntrega(req, res) {
 
   try {
     // 1) O funcionário precisa ser DESTA empresa (segurança/isolamento)
-    const [funcs] = await db.query(
+    const [funcs] = await db.execute(
       'SELECT id_funcionario FROM tb_funcionario WHERE id_funcionario = ? AND tb_empresa_id_empresa = ? AND st_funcionario = "A"',
       [funcionario, empresa]
     );
@@ -25,7 +25,7 @@ async function registrarEntrega(req, res) {
     }
 
     // 2) O EPI precisa ser DESTA empresa
-    const [epis] = await db.query(
+    const [epis] = await db.execute(
       'SELECT id_epi, nm_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ?',
       [epi, empresa]
     );
@@ -35,7 +35,7 @@ async function registrarEntrega(req, res) {
 
     // 3) VERIFICAÇÃO DE ESTOQUE: existe algum lote com quantidade disponível?
     // A verificação usa SUM(...). Como cada entrada é um lote (linha) separado, um EPI pode ter vários lotes. O SUM soma a quantidade de todos os lotes daquele EPI para saber o total disponível. Se o total for < 1, recusa.
-    const [estoque] = await db.query(
+    const [estoque] = await db.execute(
       `SELECT SUM(qtd_disponivel_estoque) AS total
        FROM tb_estoque
        WHERE tb_epi_id_epi = ? AND tb_empresa_id_empresa = ?`,
@@ -47,7 +47,7 @@ async function registrarEntrega(req, res) {
     }
 
     // 4) Registra a entrega. O TRIGGER desconta 1 do estoque (FIFO) automaticamente.
-    const [result] = await db.query(
+    const [result] = await db.execute(
       `INSERT INTO tb_entrega
         (dt_entrega, st_entrega, tb_funcionario_id_funcionario, tb_epi_id_epi, tb_usuario_id_usuario)
        VALUES (CURDATE(), 'A', ?, ?, ?)`,
@@ -71,7 +71,7 @@ async function listarEntregas(req, res) {
   const empresa = req.usuario.empresa;
 
   try {
-    const [entregas] = await db.query(
+    const [entregas] = await db.execute(
       `SELECT e.id_entrega, e.dt_entrega, e.dt_devolucao, e.st_entrega,
               f.nm_funcionario, f.sobrenome_funcionario, epi.nm_epi
        FROM tb_entrega e
@@ -96,7 +96,7 @@ async function registrarDevolucao(req, res) {
 
   try {
     // Segurança: a entrega precisa existir, ser DESTA empresa e ainda estar ATIVA
-    const [entregas] = await db.query(
+    const [entregas] = await db.execute(
       `SELECT e.id_entrega, e.st_entrega
        FROM tb_entrega e
        JOIN tb_funcionario f ON f.id_funcionario = e.tb_funcionario_id_funcionario
@@ -112,7 +112,7 @@ async function registrarDevolucao(req, res) {
     }
 
     // Atualiza: marca como devolvido e grava a data. (Opção A: NÃO repõe estoque.)
-    await db.query(
+    await db.execute(
       `UPDATE tb_entrega
        SET st_entrega = 'D', dt_devolucao = CURDATE()
        WHERE id_entrega = ?`,
@@ -136,7 +136,7 @@ async function historicoFuncionario(req, res) {
   try {
     // Funcionário precisa ser DESTA empresa. NÃO filtramos por status de propósito:
     // o histórico deve existir mesmo para quem foi inativado (é o valor da exclusão lógica).
-    const [funcs] = await db.query(
+    const [funcs] = await db.execute(
       `SELECT id_funcionario, nm_funcionario, sobrenome_funcionario, st_funcionario
        FROM tb_funcionario WHERE id_funcionario = ? AND tb_empresa_id_empresa = ?`,
       [id_funcionario, empresa]
@@ -145,7 +145,7 @@ async function historicoFuncionario(req, res) {
       return res.status(404).json({ erro: 'Funcionário não encontrado para esta empresa.' });
     }
 
-    const [historico] = await db.query(
+    const [historico] = await db.execute(
       `SELECT e.id_entrega, e.dt_entrega, e.dt_devolucao, e.st_entrega, epi.nm_epi
        FROM tb_entrega e
        JOIN tb_epi epi ON epi.id_epi = e.tb_epi_id_epi
@@ -170,7 +170,7 @@ async function meusEquipamentos(req, res) {
 
   try {
     // Ponte usuário -> funcionário (só vê os próprios; admin cai fora aqui)
-    const [funcs] = await db.query(
+    const [funcs] = await db.execute(
       `SELECT id_funcionario FROM tb_funcionario
        WHERE tb_usuario_id_usuario = ? AND tb_empresa_id_empresa = ?`,
       [req.usuario.id, empresa]
@@ -180,7 +180,7 @@ async function meusEquipamentos(req, res) {
     }
     const id_funcionario = funcs[0].id_funcionario;
 
-    const [equipamentos] = await db.query(
+    const [equipamentos] = await db.execute(
       `SELECT e.id_entrega, e.dt_entrega, e.dt_devolucao, e.st_entrega, epi.nm_epi
        FROM tb_entrega e
        JOIN tb_epi epi ON epi.id_epi = e.tb_epi_id_epi

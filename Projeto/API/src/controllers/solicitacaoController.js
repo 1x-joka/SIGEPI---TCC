@@ -30,7 +30,7 @@ async function criarSolicitacao(req, res) {
   try {
     // PONTE usuário -> funcionário: quem está logado é um usuário;
     // a solicitação se liga ao id_funcionario. Também barra o admin (que não tem funcionário).
-    const [funcs] = await db.query(
+    const [funcs] = await db.execute(
       `SELECT id_funcionario FROM tb_funcionario
        WHERE tb_usuario_id_usuario = ? AND tb_empresa_id_empresa = ? AND st_funcionario = 'A'`,
       [req.usuario.id, empresa]
@@ -41,7 +41,7 @@ async function criarSolicitacao(req, res) {
     const id_funcionario = funcs[0].id_funcionario;
 
     // O EPI precisa ser DESTA empresa = Validação
-    const [epis] = await db.query(
+    const [epis] = await db.execute(
       'SELECT id_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ?',
       [epi, empresa]
     );
@@ -50,7 +50,7 @@ async function criarSolicitacao(req, res) {
     }
 
     // O EPI precisa estar vinculado ao SETOR do funcionário
-    const [permitido] = await db.query(
+    const [permitido] = await db.execute(
       `SELECT 1 FROM tb_epi_setor eps
        JOIN tb_funcionario f ON f.tb_setor_id_setor = eps.tb_setor_id_setor
        WHERE eps.tb_epi_id_epi = ? AND f.id_funcionario = ?`,
@@ -61,7 +61,7 @@ async function criarSolicitacao(req, res) {
     }
 
     // TRAVA: não pode existir solicitação PENDENTE para o MESMO EPI (F10)
-    const [pendentes] = await db.query(
+    const [pendentes] = await db.execute(
       `SELECT id_solicitacao FROM tb_solicitacao
        WHERE tb_funcionario_id_funcionario = ? AND tb_epi_id_epi = ? AND st_solicitacao = 'P'`,
       [id_funcionario, epi]
@@ -73,7 +73,7 @@ async function criarSolicitacao(req, res) {
     // NF10.2: previsão de 3 dias úteis
     const previsao = calcularPrevisao(3);
 
-    const [result] = await db.query(
+    const [result] = await db.execute(
       `INSERT INTO tb_solicitacao
         (dt_solicitacao, st_solicitacao, desc_motivo_solicitacao, dt_previsao, tb_funcionario_id_funcionario, tb_epi_id_epi)
        VALUES (CURDATE(), 'P', ?, ?, ?, ?)`,
@@ -96,7 +96,7 @@ async function listarMinhasSolicitacoes(req, res) {
   const empresa = req.usuario.empresa;
 
   try {
-    const [funcs] = await db.query(
+    const [funcs] = await db.execute(
       `SELECT id_funcionario FROM tb_funcionario
        WHERE tb_usuario_id_usuario = ? AND tb_empresa_id_empresa = ?`,
       [req.usuario.id, empresa]
@@ -106,7 +106,7 @@ async function listarMinhasSolicitacoes(req, res) {
     }
     const id_funcionario = funcs[0].id_funcionario;
 
-    const [solicitacoes] = await db.query(
+    const [solicitacoes] = await db.execute(
       `SELECT s.id_solicitacao, s.dt_solicitacao, s.st_solicitacao,
               s.desc_motivo_solicitacao, s.dt_previsao, epi.nm_epi
        FROM tb_solicitacao s
@@ -128,7 +128,7 @@ async function listarPendentes(req, res) {
   const empresa = req.usuario.empresa;
 
   try {
-    const [solicitacoes] = await db.query(
+    const [solicitacoes] = await db.execute(
       `SELECT s.id_solicitacao, s.dt_solicitacao, s.desc_motivo_solicitacao, s.dt_previsao,
               f.id_funcionario, f.nm_funcionario, f.sobrenome_funcionario,
               epi.nm_epi,
@@ -162,7 +162,7 @@ async function responderSolicitacao(req, res) {
 
   try {
     // Segurança: a solicitação precisa existir, ser DESTA empresa e ainda estar PENDENTE
-    const [solics] = await db.query(
+    const [solics] = await db.execute(
       `SELECT s.id_solicitacao, s.st_solicitacao, epi.nm_epi,
               f.nm_funcionario, u.cpf_usuario
        FROM tb_solicitacao s
@@ -183,7 +183,7 @@ async function responderSolicitacao(req, res) {
     // A checagem st_solicitacao !== 'P' evita "responder duas vezes" (aprovar uma solicitação já recusada, por exemplo).
 
     // Atualiza o status (Opção A: só decide, não gera entrega)
-    await db.query(
+    await db.execute(
       'UPDATE tb_solicitacao SET st_solicitacao = ? WHERE id_solicitacao = ?',
       [decisao, id_solicitacao]
     );
