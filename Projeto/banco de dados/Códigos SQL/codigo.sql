@@ -110,7 +110,6 @@ create table tb_usuario (
 create table tb_funcionario (
     id_funcionario int primary key auto_increment,
     nm_funcionario varchar(45) not null,
-    sobrenome_funcionario varchar(60) not null,
     dt_nascimento_funcionario date,
     st_funcionario enum('A','I') default 'A', -- A (Ativo - funcionário na empresa); I (Inativo - funcionário desligado/exclusão pelo admin) 
     dt_cadastro_funcionario date,
@@ -217,4 +216,23 @@ create table tb_log (
 alter table tb_epi
 add dt_validade_ca date;
 
-SELECT * FROM tb_epi; SELECT * FROM tb_estoque;
+select * from tb_epi;
+select * from tb_estoque;
+
+-- Retirando a distinção entre nome e sobrenome do funcionário no cadastro (agora é somente nome completo/nome)
+alter table db_SIGEPI.tb_funcionario
+drop column sobrenome_funcionario;
+
+alter table db_SIGEPI.tb_funcionario
+modify nm_funcionario varchar(120) not null;
+
+-- Ajustando os status por conta que o funcionário precisa aceitar ou recusar a entrega para normas e segurança da empresa
+alter table db_SIGEPI.tb_entrega 
+modify st_entrega enum('P','A','D','R') default 'P';
+
+ALTER TABLE db_SIGEPI.tb_entrega 
+add column dt_confirmacao date after dt_entrega,
+add column motivo_recusa varchar(255) after dt_devolucao;
+
+alter table db_SIGEPI.tb_log 
+modify tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC','SOLICITACAO_APROVADA','SOLICITACAO_RECUSADA','ENTREGA_CONFIRMADA','ENTREGA_RECUSADA') not null;

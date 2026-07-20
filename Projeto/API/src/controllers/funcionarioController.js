@@ -114,7 +114,7 @@ async function listarFuncionarios(req, res) {
 
   try {
     const [funcionarios] = await db.execute(
-      `SELECT f.id_funcionario, f.nm_funcionario, f.sobrenome_funcionario, f.st_funcionario,
+      `SELECT f.id_funcionario, f.nm_funcionario, f.st_funcionario,
               s.nm_setor, u.cpf_usuario,
               (SELECT COUNT(*) FROM tb_entrega e WHERE e.tb_funcionario_id_funcionario = f.id_funcionario AND e.st_entrega = 'A') AS total_epis
        FROM tb_funcionario f

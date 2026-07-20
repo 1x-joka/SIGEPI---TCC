@@ -130,7 +130,7 @@ async function listarPendentes(req, res) {
   try {
     const [solicitacoes] = await db.execute(
       `SELECT s.id_solicitacao, s.dt_solicitacao, s.desc_motivo_solicitacao, s.dt_previsao,
-              f.id_funcionario, f.nm_funcionario, f.sobrenome_funcionario,
+              f.id_funcionario, f.nm_funcionario,
               epi.nm_epi,
               COALESCE((SELECT SUM(es.qtd_disponivel_estoque) FROM tb_estoque es
                         WHERE es.tb_epi_id_epi = epi.id_epi AND es.tb_empresa_id_empresa = ?), 0) AS estoque

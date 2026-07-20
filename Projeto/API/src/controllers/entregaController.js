@@ -50,7 +50,7 @@ async function registrarEntrega(req, res) {
     const [result] = await db.execute(
       `INSERT INTO tb_entrega
         (dt_entrega, st_entrega, tb_funcionario_id_funcionario, tb_epi_id_epi, tb_usuario_id_usuario)
-       VALUES (CURDATE(), 'A', ?, ?, ?)`,
+       VALUES (CURDATE(), 'P', ?, ?, ?)`,
       [funcionario, epi, admin]
     );
 
@@ -73,7 +73,7 @@ async function listarEntregas(req, res) {
   try {
     const [entregas] = await db.execute(
       `SELECT e.id_entrega, e.dt_entrega, e.dt_devolucao, e.st_entrega,
-              f.nm_funcionario, f.sobrenome_funcionario, epi.nm_epi
+              f.nm_funcionario, epi.nm_epi
        FROM tb_entrega e
        JOIN tb_funcionario f ON f.id_funcionario = e.tb_funcionario_id_funcionario
        JOIN tb_epi epi        ON epi.id_epi = e.tb_epi_id_epi
@@ -137,7 +137,7 @@ async function historicoFuncionario(req, res) {
     // Funcionário precisa ser DESTA empresa. NÃO filtramos por status de propósito:
     // o histórico deve existir mesmo para quem foi inativado (é o valor da exclusão lógica).
     const [funcs] = await db.execute(
-      `SELECT id_funcionario, nm_funcionario, sobrenome_funcionario, st_funcionario
+      `SELECT id_funcionario, nm_funcionario, st_funcionario
        FROM tb_funcionario WHERE id_funcionario = ? AND tb_empresa_id_empresa = ?`,
       [id_funcionario, empresa]
     );
@@ -184,7 +184,7 @@ async function meusEquipamentos(req, res) {
       `SELECT e.id_entrega, e.dt_entrega, e.dt_devolucao, e.st_entrega, epi.nm_epi
        FROM tb_entrega e
        JOIN tb_epi epi ON epi.id_epi = e.tb_epi_id_epi
-       WHERE e.tb_funcionario_id_funcionario = ?
+       WHERE e.tb_funcionario_id_funcionario = ? AND e.st_entrega IN ('A','D')
        ORDER BY e.dt_entrega DESC`,
       [id_funcionario]
     );
@@ -196,4 +196,123 @@ async function meusEquipamentos(req, res) {
   }
 }
 
-module.exports = { registrarEntrega, listarEntregas, registrarDevolucao, historicoFuncionario, meusEquipamentos };
+// FUNCIONÁRIO: entregas aguardando a confirmação de recebimento
+async function pendentesConfirmacao(req, res) {
+  const empresa = req.usuario.empresa;
+
+  try {
+    const [funcs] = await db.execute(
+      `SELECT id_funcionario FROM tb_funcionario
+       WHERE tb_usuario_id_usuario = ? AND tb_empresa_id_empresa = ?`,
+      [req.usuario.id, empresa]
+    );
+    if (funcs.length === 0) {
+      return res.status(403).json({ erro: 'Apenas funcionários possuem entregas.' });
+    }
+
+    const [pendentes] = await db.execute(
+      `SELECT e.id_entrega, e.dt_entrega, epi.nm_epi, u.nm_usuario AS entregue_por
+       FROM tb_entrega e
+       JOIN tb_epi epi ON epi.id_epi = e.tb_epi_id_epi
+       JOIN tb_usuario u ON u.id_usuario = e.tb_usuario_id_usuario
+       WHERE e.tb_funcionario_id_funcionario = ? AND e.st_entrega = 'P'
+       ORDER BY e.dt_entrega DESC`,
+      [funcs[0].id_funcionario]
+    );
+
+    return res.status(200).json(pendentes);
+
+  } catch (err) {
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+}
+
+// FUNCIONÁRIO: confirma que recebeu o EPI (evidência de recebimento — NR-6)
+async function confirmarRecebimento(req, res) {
+  const { id } = req.params;
+  const empresa = req.usuario.empresa;
+
+  try {
+    // A entrega precisa ser DESTE funcionário e estar pendente (segurança)
+    const [linhas] = await db.execute(
+      `SELECT e.id_entrega, epi.nm_epi
+       FROM tb_entrega e
+       JOIN tb_funcionario f ON f.id_funcionario = e.tb_funcionario_id_funcionario
+       JOIN tb_epi epi ON epi.id_epi = e.tb_epi_id_epi
+       WHERE e.id_entrega = ? AND f.tb_usuario_id_usuario = ?
+         AND f.tb_empresa_id_empresa = ? AND e.st_entrega = 'P'`,
+      [id, req.usuario.id, empresa]
+    );
+    if (linhas.length === 0) {
+      return res.status(404).json({ erro: 'Entrega não encontrada ou já respondida.' });
+    }
+
+    await db.execute(
+      `UPDATE tb_entrega SET st_entrega = 'A', dt_confirmacao = CURDATE() WHERE id_entrega = ?`,
+      [id]
+    );
+
+    await registrarLog({
+      empresa,
+      tipo: 'ENTREGA_CONFIRMADA',
+      descricao: 'Recebimento confirmado pelo funcionário',
+      equipamento: linhas[0].nm_epi,
+      quantidade: 1,
+      responsavel: req.usuario.id
+    });
+
+    return res.status(200).json({ mensagem: 'Recebimento confirmado com sucesso.' });
+
+  } catch (err) {
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+}
+
+// FUNCIONÁRIO: recusa o recebimento (o estoque NÃO volta — só com devolução física)
+async function recusarRecebimento(req, res) {
+  const { id } = req.params;
+  const { motivo } = req.body;
+  const empresa = req.usuario.empresa;
+
+  if (!motivo || motivo.trim().length < 5) {
+    return res.status(400).json({ erro: 'Informe o motivo da recusa (mínimo 5 caracteres).' });
+  }
+
+  try {
+    const [linhas] = await db.execute(
+      `SELECT e.id_entrega, epi.nm_epi
+       FROM tb_entrega e
+       JOIN tb_funcionario f ON f.id_funcionario = e.tb_funcionario_id_funcionario
+       JOIN tb_epi epi ON epi.id_epi = e.tb_epi_id_epi
+       WHERE e.id_entrega = ? AND f.tb_usuario_id_usuario = ?
+         AND f.tb_empresa_id_empresa = ? AND e.st_entrega = 'P'`,
+      [id, req.usuario.id, empresa]
+    );
+    if (linhas.length === 0) {
+      return res.status(404).json({ erro: 'Entrega não encontrada ou já respondida.' });
+    }
+
+    await db.execute(
+      `UPDATE tb_entrega SET st_entrega = 'R', motivo_recusa = ?, dt_confirmacao = CURDATE()
+       WHERE id_entrega = ?`,
+      [motivo.trim(), id]
+    );
+
+    await registrarLog({
+      empresa,
+      tipo: 'ENTREGA_RECUSADA',
+      descricao: 'Recebimento recusado pelo funcionário',
+      equipamento: linhas[0].nm_epi,
+      quantidade: 1,
+      motivo: motivo.trim(),
+      responsavel: req.usuario.id
+    });
+
+    return res.status(200).json({ mensagem: 'Recebimento recusado. O administrador será notificado.' });
+
+  } catch (err) {
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+}
+
+module.exports = { registrarEntrega, listarEntregas, registrarDevolucao, historicoFuncionario, meusEquipamentos, pendentesConfirmacao, confirmarRecebimento, recusarRecebimento };

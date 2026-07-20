@@ -3,6 +3,7 @@ const router = express.Router();
 const entregaController = require('../controllers/entregaController');
 const { autenticar, exigirEmpresa, exigirAdmin } = require('../middlewares/authMiddleware');
 
+
 // Só o ADMIN registra entregas
 router.post('/registrar', autenticar, exigirEmpresa, exigirAdmin, entregaController.registrarEntrega);
 
@@ -17,5 +18,12 @@ router.get('/funcionario/:id', autenticar, exigirEmpresa, exigirAdmin, entregaCo
 
 // FUNCIONÁRIO: meus equipamentos
 router.get('/meus', autenticar, exigirEmpresa, entregaController.meusEquipamentos);
+
+// FUNCIONÁRIO: entregas aguardando confirmação de recebimento
+router.get('/pendentes', autenticar, exigirEmpresa, entregaController.pendentesConfirmacao);
+
+// FUNCIONÁRIO: confirma ou recusa o recebimento (só o próprio, validado no controller)
+router.put('/:id/confirmar', autenticar, exigirEmpresa, entregaController.confirmarRecebimento);
+router.put('/:id/recusar', autenticar, exigirEmpresa, entregaController.recusarRecebimento);
 
 module.exports = router;

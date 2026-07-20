@@ -831,7 +831,7 @@ function abrirExcluir(idFuncionario) {
   if (!f) return;
   funcExcluindo = f;
 
-  const nomeCompleto = `${f.nm_funcionario} ${f.sobrenome_funcionario || ''}`.trim();
+  const nomeCompleto = f.nm_funcionario;
   const titulo = document.getElementById('titulo-excluir');
   if (titulo) titulo.textContent = 'Inativação de ' + nomeCompleto;
 
@@ -1016,11 +1016,20 @@ async function carregarHistorico() {
       const logs = await resp.json();
       tbody.innerHTML = '';
       const nomesTipo = {
-        CADASTRO_EPI:'Cadastro de EPI', ENTRADA_ESTOQUE:'Entrada de Estoque',
-        SAIDA_ESTOQUE:'Retirada de Estoque', ENTREGA:'Entrega', DEVOLUCAO:'Devolução',
-        INATIVACAO_FUNC:'Inativação de Funcionário', INATIVACAO_EPI:'Inativação de EPI',
-        EDICAO_FUNC:'Edição de Funcionário', SOLICITACAO_APROVADA:'Solicitação Aprovada', SOLICITACAO_RECUSADA:'Solicitação Recusada'
+        CADASTRO_EPI:'Cadastro de EPI',
+        ENTRADA_ESTOQUE:'Entrada de Estoque',
+        SAIDA_ESTOQUE:'Retirada de Estoque',
+        ENTREGA:'Entrega',
+        ENTREGA_CONFIRMADA:'Recebimento Confirmado',
+        ENTREGA_RECUSADA:'Recebimento Recusado',
+        DEVOLUCAO:'Devolução',
+        INATIVACAO_FUNC:'Inativação de Funcionário',
+        INATIVACAO_EPI:'Inativação de EPI',
+        EDICAO_FUNC:'Edição de Funcionário',
+        SOLICITACAO_APROVADA:'Solicitação Aprovada',
+        SOLICITACAO_RECUSADA:'Solicitação Recusada'
       };
+      
       // Ações que envolvem funcionário: o "alvo" (nome + CPF) fica sob o Tipo
       const acoesDeFuncionario = ['INATIVACAO_FUNC', 'EDICAO_FUNC'];
 
@@ -1105,7 +1114,7 @@ async function carregarMeusEquipamentos() {
     }
   } catch (err) { alert('Não foi possível carregar seus equipamentos.'); }
 }
-document.addEventListener('DOMContentLoaded', carregarMeusEquipamentos);
+document.addEventListener('DOMContentLoaded', carregarMeusEquipamentos, carregarPendentesConfirmacao);
 
 const episSolicitacao = ['Máscara Respiratória', 'Óculos de Proteção', 'Luvas Nitrílicas (par)'];
 const justificativasSolicitacao = [];
@@ -1301,6 +1310,103 @@ function mostrarEtapaSolic(n) {
       el.style.display = i === n ? '' : 'none';
     }
   });
+}
+
+async function carregarPendentesConfirmacao() {
+  const lista = document.getElementById('lista-pendentes');
+  const vazio = document.getElementById('pendentes-vazio');
+  if (!lista) return;
+
+  try {
+    const resp = await fetchAutenticado('/entrega/pendentes');
+    if (!resp || !resp.ok) return;
+
+    const itens = await resp.json();
+    lista.innerHTML = '';
+    vazio.style.display = itens.length === 0 ? 'block' : 'none';
+
+    itens.forEach(i => {
+      const card = document.createElement('div');
+      card.className = 'pendente-card';
+
+      const info = document.createElement('div');
+      info.className = 'pendente-info';
+
+      const nome = document.createElement('strong');
+      nome.textContent = i.nm_epi;                                  // XSS-safe
+
+      const detalhe = document.createElement('span');
+      const data = i.dt_entrega ? new Date(i.dt_entrega).toLocaleDateString('pt-BR') : '—';
+      detalhe.textContent = `Entregue por ${i.entregue_por} em ${data}`;
+
+      info.append(nome, detalhe);
+
+      const acoes = document.createElement('div');
+      acoes.className = 'pendente-acoes';
+
+      const btnOk = document.createElement('button');
+      btnOk.className = 'btn btn-primary';
+      btnOk.textContent = 'Confirmar recebimento';
+      btnOk.onclick = () => confirmarRecebimento(i.id_entrega);
+
+      const btnNao = document.createElement('button');
+      btnNao.className = 'btn btn-outline-recusar';
+      btnNao.textContent = 'Recusar';
+      btnNao.onclick = () => recusarRecebimento(i.id_entrega);
+
+      acoes.append(btnOk, btnNao);
+      card.append(info, acoes);
+      lista.appendChild(card);
+    });
+  } catch (err) {
+    alert('Não foi possível carregar as entregas pendentes.');
+  }
+}
+
+async function confirmarRecebimento(idEntrega) {
+  if (!confirm('Confirma que você recebeu este equipamento?')) return;
+
+  try {
+    const resp = await fetchAutenticado(`/entrega/${idEntrega}/confirmar`, { method: 'PUT' });
+    const dados = await resp.json();
+
+    if (resp.ok) {
+      alert(dados.mensagem);
+      carregarPendentesConfirmacao();
+      carregarMeusEquipamentos();
+    } else {
+      alert(dados.erro || 'Não foi possível confirmar.');
+    }
+  } catch (err) {
+    alert('Erro ao confirmar o recebimento.');
+  }
+}
+
+async function recusarRecebimento(idEntrega) {
+  const motivo = prompt('Por que você está recusando este equipamento?\n(Ex.: tamanho errado, item danificado, não recebi)');
+  if (motivo === null) return;
+
+  if (motivo.trim().length < 5) {
+    alert('Descreva o motivo com pelo menos 5 caracteres.');
+    return;
+  }
+
+  try {
+    const resp = await fetchAutenticado(`/entrega/${idEntrega}/recusar`, {
+      method: 'PUT',
+      body: JSON.stringify({ motivo: motivo.trim() })
+    });
+    const dados = await resp.json();
+
+    if (resp.ok) {
+      alert(dados.mensagem);
+      carregarPendentesConfirmacao();
+    } else {
+      alert(dados.erro || 'Não foi possível recusar.');
+    }
+  } catch (err) {
+    alert('Erro ao recusar o recebimento.');
+  }
 }
 
 
@@ -1515,7 +1621,7 @@ function renderFuncionarios() {
   tbody.innerHTML = '';
 
   funcionariosCache.forEach(f => {
-    const nomeCompleto = `${f.nm_funcionario} ${f.sobrenome_funcionario || ''}`.trim();
+    const nomeCompleto = f.nm_funcionario;
     const semEpi = Number(f.total_epis) === 0;
     const ativo = f.st_funcionario === 'A';
 
