@@ -2,7 +2,7 @@
 //  INTEGRAÇÃO AO FRONT-END
 // ============================================================
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://sigepi-tcc-production.up.railway.app/api';
 
 // SEGURANÇA: páginas com "data-protegida" no <body> exigem login. Sem token, volta ao login.
 document.addEventListener('DOMContentLoaded', () => {

@@ -17,7 +17,7 @@ const logRoutes = require('./src/routes/logRoutes');
 
 const app = express();
 
-app.use(helmet()); // cabeçalhos de segurança HTTP
+app.use(cors({ origin: 'https://sigepi-tcc.vercel.app' }));
 app.use(cors());
 app.use(express.json());
 
