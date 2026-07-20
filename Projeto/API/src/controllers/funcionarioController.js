@@ -10,12 +10,16 @@ async function entrarEmpresa(req, res) {
   const { codigo } = req.body;
 
   if (!codigo) {
-    return res.status(400).json({ erro: 'Informe o código da empresa.' });
+    return res.status(400).json({
+      erro: 'Informe o código da empresa.'
+    });
   }
 
   // Se o usuário já tem empresa, não pode entrar em outra
   if (req.usuario.empresa) {
-    return res.status(409).json({ erro: 'Você já está vinculado a uma empresa.' });
+    return res.status(409).json({
+      erro: 'Você já está vinculado a uma empresa.'
+    });
   }
 
   try {
@@ -25,7 +29,9 @@ async function entrarEmpresa(req, res) {
       [codigo]
     );
     if (empresas.length === 0) {
-      return res.status(404).json({ erro: 'Código inválido: empresa não encontrada.' });
+      return res.status(404).json({
+        erro: 'Código inválido: empresa não encontrada.'
+      });
     }
 
     const id_empresa = empresas[0].id_empresa;
@@ -41,8 +47,11 @@ async function entrarEmpresa(req, res) {
       id_empresa
     });
 
-  } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.', detalhe: err.message
+    });
   }
 }
 
@@ -52,7 +61,9 @@ async function completarCadastro(req, res) {
   const empresa = req.usuario.empresa;
 
   if (!setor) {
-    return res.status(400).json({ erro: 'Selecione um setor.' });
+    return res.status(400).json({
+      erro: 'Selecione um setor.'
+    });
   }
 
   try {
@@ -62,7 +73,9 @@ async function completarCadastro(req, res) {
       [req.usuario.id]
     );
     if (jaExiste.length > 0) {
-      return res.status(409).json({ erro: 'Cadastro de funcionário já concluído.' });
+      return res.status(409).json({
+        erro: 'Cadastro de funcionário já concluído.'
+      });
     }
 
     // O setor precisa ser da empresa do funcionário (isolamento)
@@ -71,7 +84,9 @@ async function completarCadastro(req, res) {
       [setor, empresa]
     );
     if (setores.length === 0) {
-      return res.status(400).json({ erro: 'Setor inválido para esta empresa.' });
+      return res.status(400).json({
+        erro: 'Setor inválido para esta empresa.'
+      });
     }
 
     // Tendo como obrigatório o funcionário ter, pelo menos, 18 anos
@@ -80,8 +95,15 @@ async function completarCadastro(req, res) {
       const nasc = new Date(dataNascimento), hoje = new Date();
       let idade = hoje.getFullYear() - nasc.getFullYear();
       const m = hoje.getMonth() - nasc.getMonth();
-      if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
-      if (idade < 18) return res.status(400).json({ erro: 'O funcionário deve ter no mínimo 18 anos.' });
+
+      if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) {
+        idade--;
+      }
+      if (idade < 18) {
+        return res.status(400).json({
+          erro: 'O funcionário deve ter no mínimo 18 anos.'
+        });
+      }
     }
 
     // Nome vem da conta (nm_usuario), definido no cadastro
@@ -103,8 +125,12 @@ async function completarCadastro(req, res) {
       id_funcionario: result.insertId
     });
 
-  } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 
@@ -127,8 +153,12 @@ async function listarFuncionarios(req, res) {
 
     return res.status(200).json(funcionarios);
 
-  } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 
@@ -140,7 +170,9 @@ async function inativarFuncionario(req, res) {
 
   // NF12.2: motivo obrigatório
   if (!motivo) {
-    return res.status(400).json({ erro: 'Informe o motivo da inativação.' });
+    return res.status(400).json({
+      erro: 'Informe o motivo da inativação.'
+    });
   }
 
   const conexao = await db.getConnection();
@@ -157,11 +189,15 @@ async function inativarFuncionario(req, res) {
 
     if (funcs.length === 0) {
       conexao.release();
-      return res.status(404).json({ erro: 'Funcionário não encontrado para esta empresa.' });
+      return res.status(404).json({
+        erro: 'Funcionário não encontrado para esta empresa.'
+      });
     }
     if (funcs[0].st_funcionario === 'I') {
       conexao.release();
-      return res.status(409).json({ erro: 'Este funcionário já está inativo.' });
+      return res.status(409).json({
+        erro: 'Este funcionário já está inativo.'
+      });
     }
 
     const id_usuario = funcs[0].tb_usuario_id_usuario;
@@ -195,15 +231,28 @@ async function inativarFuncionario(req, res) {
        WHERE f.id_funcionario = ?`, [id_funcionario]
     );
     const alvo = dadosFunc[0] ? `${dadosFunc[0].nm_funcionario} (CPF: ${dadosFunc[0].cpf_usuario || '—'})` : null;
-    await registrarLog({ empresa, tipo: 'INATIVACAO_FUNC', descricao: 'Inativação de funcionário', equipamento: alvo, motivo: motivo, responsavel: req.usuario.id });
+    await registrarLog({
+      empresa,
+      tipo: 'INATIVACAO_FUNC',
+      descricao: 'Inativação de funcionário',
+      equipamento: alvo, motivo: motivo,
+      responsavel: req.usuario.id
+    });
 
-    return res.status(200).json({ mensagem: 'Funcionário inativado com sucesso.' });
+    return res.status(200).json({
+      mensagem: 'Funcionário inativado com sucesso.'
+    });
 
-  } catch (err) {
+  }
+  catch (err) {
     await conexao.rollback();
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
 
-  } finally {
+  }
+  finally {
     conexao.release();
   }
 }
@@ -215,7 +264,9 @@ async function editarFuncionario(req, res) {
   const empresa = req.usuario.empresa;
 
   if (!nome) {
-    return res.status(400).json({ erro: 'Informe o nome' });
+    return res.status(400).json({
+      erro: 'Informe o nome'
+    });
   }
 
   try {
@@ -225,7 +276,9 @@ async function editarFuncionario(req, res) {
       [id_funcionario, empresa]
     );
     if (funcs.length === 0) {
-      return res.status(404).json({ erro: 'Funcionário não encontrado ou inativo.' });
+      return res.status(404).json({
+        erro: 'Funcionário não encontrado ou inativo.'
+      });
     }
 
     // Se informou setor, ele precisa ser desta empresa. Vazio = desvincular (null).
@@ -235,7 +288,9 @@ async function editarFuncionario(req, res) {
         [setor, empresa]
       );
       if (setores.length === 0) {
-        return res.status(400).json({ erro: 'Setor inválido para esta empresa.' });
+        return res.status(400).json({
+          erro: 'Setor inválido para esta empresa.'
+        });
       }
     }
 
@@ -250,12 +305,22 @@ async function editarFuncionario(req, res) {
        WHERE f.id_funcionario = ?`, [id_funcionario]
     );
     const alvo = dadosFunc[0] ? `${dadosFunc[0].nm_funcionario} (CPF: ${dadosFunc[0].cpf_usuario || '—'})` : null;
-    await registrarLog({ empresa, tipo: 'EDICAO_FUNC', descricao: 'Edição de funcionário', equipamento: alvo, responsavel: req.usuario.id });
+    await registrarLog({
+      empresa,
+      tipo: 'EDICAO_FUNC',
+      descricao: 'Edição de funcionário',
+      equipamento: alvo,
+      responsavel: req.usuario.id
+    });
 
-    return res.status(200).json({ mensagem: 'Funcionário atualizado com sucesso.' });
+    return res.status(200).json({
+      mensagem: 'Funcionário atualizado com sucesso.'
+    });
 
   } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+    return res.status(500).json({
+      erro: 'Erro interno.', detalhe: err.message
+    });
   }
 }
 

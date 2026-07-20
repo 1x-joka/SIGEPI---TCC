@@ -12,6 +12,11 @@ async function listarLog(req, res) {
       [empresa]
     );
     return res.status(200).json(logs);
-  } catch (err) { return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message }); }
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message });
+    }
 }
 module.exports = { listarLog };

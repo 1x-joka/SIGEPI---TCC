@@ -8,7 +8,9 @@ function calcularPrevisao(diasUteis) {
   while (adicionados < diasUteis) {
     data.setDate(data.getDate() + 1);
     const dia = data.getDay(); // 0 = domingo, 6 = sábado
-    if (dia !== 0 && dia !== 6) adicionados++;
+    if (dia !== 0 && dia !== 6) {
+      adicionados++;
+    }
   }
   // Formata como AAAA-MM-DD usando a data local (evita erro de fuso)
   const ano = data.getFullYear();
@@ -24,7 +26,9 @@ async function criarSolicitacao(req, res) {
 
   // NF10.1: justificativa é obrigatória
   if (!epi || !motivo) {
-    return res.status(400).json({ erro: 'Informe o EPI e a justificativa.' });
+    return res.status(400).json({
+      erro: 'Informe o EPI e a justificativa.'
+    });
   }
 
   try {
@@ -36,7 +40,9 @@ async function criarSolicitacao(req, res) {
       [req.usuario.id, empresa]
     );
     if (funcs.length === 0) {
-      return res.status(403).json({ erro: 'Apenas funcionários podem solicitar reposição.' });
+      return res.status(403).json({
+        erro: 'Apenas funcionários podem solicitar reposição.'
+      });
     }
     const id_funcionario = funcs[0].id_funcionario;
 
@@ -46,7 +52,9 @@ async function criarSolicitacao(req, res) {
       [epi, empresa]
     );
     if (epis.length === 0) {
-      return res.status(400).json({ erro: 'EPI inválido para esta empresa.' });
+      return res.status(400).json({
+        erro: 'EPI inválido para esta empresa.'
+      });
     }
 
     // O EPI precisa estar vinculado ao SETOR do funcionário
@@ -57,7 +65,9 @@ async function criarSolicitacao(req, res) {
       [epi, id_funcionario]
     );
     if (permitido.length === 0) {
-      return res.status(403).json({ erro: 'Este EPI não pertence ao seu setor.' });
+      return res.status(403).json({
+        erro: 'Este EPI não pertence ao seu setor.'
+      });
     }
 
     // TRAVA: não pode existir solicitação PENDENTE para o MESMO EPI (F10)
@@ -67,7 +77,9 @@ async function criarSolicitacao(req, res) {
       [id_funcionario, epi]
     );
     if (pendentes.length > 0) {
-      return res.status(409).json({ erro: 'Você já tem uma solicitação pendente para este EPI.' });
+      return res.status(409).json({
+        erro: 'Você já tem uma solicitação pendente para este EPI.'
+      });
     }
 
     // NF10.2: previsão de 3 dias úteis
@@ -86,8 +98,12 @@ async function criarSolicitacao(req, res) {
       previsao
     });
 
-  } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 
@@ -102,7 +118,9 @@ async function listarMinhasSolicitacoes(req, res) {
       [req.usuario.id, empresa]
     );
     if (funcs.length === 0) {
-      return res.status(403).json({ erro: 'Apenas funcionários possuem solicitações.' });
+      return res.status(403).json({
+        erro: 'Apenas funcionários possuem solicitações.'
+      });
     }
     const id_funcionario = funcs[0].id_funcionario;
 
@@ -118,8 +136,12 @@ async function listarMinhasSolicitacoes(req, res) {
 
     return res.status(200).json(solicitacoes);
 
-  } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 
@@ -145,7 +167,10 @@ async function listarPendentes(req, res) {
     return res.status(200).json(solicitacoes);
 
   } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 
@@ -157,7 +182,9 @@ async function responderSolicitacao(req, res) {
 
   // Só aceita valores válidos do domínio (mesma filosofia do ENUM: nada fora disso)
   if (decisao !== 'A' && decisao !== 'R') {
-    return res.status(400).json({ erro: "Decisão inválida. Use 'A' (aprovar) ou 'R' (recusar)." });
+    return res.status(400).json({
+      erro: "Decisão inválida. Use 'A' (aprovar) ou 'R' (recusar)."
+    });
   }
 
   try {
@@ -174,10 +201,14 @@ async function responderSolicitacao(req, res) {
     );
 
     if (solics.length === 0) {
-      return res.status(404).json({ erro: 'Solicitação não encontrada para esta empresa.' });
+      return res.status(404).json({
+        erro: 'Solicitação não encontrada para esta empresa.'
+      });
     }
     if (solics[0].st_solicitacao !== 'P') {
-      return res.status(409).json({ erro: 'Esta solicitação já foi respondida.' });
+      return res.status(409).json({
+        erro: 'Esta solicitação já foi respondida.'
+      });
     }
 
     // A checagem st_solicitacao !== 'P' evita "responder duas vezes" (aprovar uma solicitação já recusada, por exemplo).
@@ -200,10 +231,16 @@ async function responderSolicitacao(req, res) {
     });
 
     const msg = decisao === 'A' ? 'Solicitação aprovada.' : 'Solicitação recusada.';
-    return res.status(200).json({ mensagem: msg });
+    return res.status(200).json({
+      mensagem: msg
+    });
 
-  } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 

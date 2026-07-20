@@ -47,6 +47,7 @@ create table tb_categoria (
 create table tb_epi (
     id_epi int primary key auto_increment,
     nm_epi varchar(45) not null,
+    tamanho_epi varchar(20),
     desc_epi longtext,
     st_epi enum('A','I') default 'A', -- A (Ativo - EPI pronta para uso e entrega); I (Inativo - EPI descontinuado, CA vencido ou removido do sistema)
     dt_cadastro_epi date,
@@ -236,3 +237,7 @@ add column motivo_recusa varchar(255) after dt_devolucao;
 
 alter table db_SIGEPI.tb_log 
 modify tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC','SOLICITACAO_APROVADA','SOLICITACAO_RECUSADA','ENTREGA_CONFIRMADA','ENTREGA_RECUSADA') not null;
+
+-- Adicionando a column 'tamanho' para melhor especificação das dimensões do EPI que o funcionário precisa
+alter table db_SIGEPI.tb_epi
+add column tamanho_epi varchar(20) after nm_epi;

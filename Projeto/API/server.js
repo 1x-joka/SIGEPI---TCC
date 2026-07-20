@@ -27,10 +27,11 @@ const limiteGeral = rateLimit({
   max: 300,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { erro: 'Muitas requisições. Tente novamente em alguns minutos.' }
+  message: {
+    erro: 'Muitas requisições. Tente novamente em alguns minutos.'
+  }
 });
 app.use('/api', limiteGeral);
-
 app.use('/api/auth', authRoutes);
 app.use('/api/empresa', empresaRoutes);
 app.use('/api/funcionario', funcionarioRoutes);
@@ -44,7 +45,9 @@ app.use('/api/log', logRoutes);
 
 // Verificando se a API funciona (roda "npm start" no terminal na pasta API e testa no google com a url: http://localhost:3000/ )
 app.get('/', (req, res) => {
-  res.json({ mensagem: 'API SIGEPI funcionando!' });
+  res.json({
+    mensagem: 'API SIGEPI funcionando!'
+  });
 });
 
 // Verificando se a API funciona (roda "npm start" no terminal na pasta API e tem que aparecer "Servidor rodando na porta 3000")

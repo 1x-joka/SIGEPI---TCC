@@ -3,7 +3,17 @@
 const db = require('../config/db');
 
 // Registra uma ação no histórico de auditoria. Campos não aplicáveis vão como null.
-async function registrarLog({ empresa, tipo, descricao = null, equipamento = null, quantidade = null, motivo = null, responsavel = null }) {
+async function registrarLog({
+  empresa,
+  tipo,
+  descricao = null,
+  equipamento = null,
+  quantidade = null,
+  motivo = null,
+  responsavel = null
+})
+
+{
   try {
     await db.execute(
       `INSERT INTO tb_log
@@ -11,7 +21,8 @@ async function registrarLog({ empresa, tipo, descricao = null, equipamento = nul
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [tipo, descricao, equipamento, quantidade, motivo, responsavel, empresa]
     );
-  } catch (err) {
+  }
+  catch (err) {
     console.error('Falha ao registrar log:', err.message); // não derruba a operação principal
   }
 }

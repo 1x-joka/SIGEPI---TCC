@@ -7,7 +7,9 @@ async function cadastrarSetor(req, res) {
     const empresa = req.usuario.empresa; // vem do middleware (banco), nunca do cliente
 
     if (!nome) {
-        return res.status(400).json({ erro: 'Informe o nome do setor.' })
+        return res.status(400).json({
+          erro: 'Informe o nome do setor.'
+        })
     }
 
     try {
@@ -17,7 +19,9 @@ async function cadastrarSetor(req, res) {
             [nome, empresa]
         );
         if (existe.length > 0) {
-            return res.status(409).json({ erro: 'Já existe um setor com esse nome'});
+            return res.status(409).json({
+              erro: 'Já existe um setor com esse nome'
+            });
         }
 
         const [result] = await db.execute(
@@ -32,7 +36,10 @@ async function cadastrarSetor(req, res) {
         });
     }
     catch (err) {
-        return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message});
+        return res.status(500).json({
+          erro: 'Erro interno.',
+          detalhe: err.message
+        });
     }
 }
 
@@ -49,7 +56,10 @@ async function listarSetores(req, res) {
         return res.status(200).json(setores);
     }
     catch (err) {
-        return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message});
+        return res.status(500).json({
+          erro: 'Erro interno.',
+          detalhe: err.message
+        });
     }
 }
 
@@ -65,7 +75,9 @@ async function deletarSetor(req, res) {
       [id_setor, empresa]
     );
     if (setores.length === 0) {
-      return res.status(404).json({ erro: 'Setor não encontrado para esta empresa.' });
+      return res.status(404).json({
+        erro: 'Setor não encontrado para esta empresa.'
+      });
     }
 
     // TRAVA: não excluir se houver funcionário no setor
@@ -80,10 +92,16 @@ async function deletarSetor(req, res) {
     }
 
     await db.execute('DELETE FROM tb_setor WHERE id_setor = ?', [id_setor]);
-    return res.status(200).json({ mensagem: 'Setor excluído com sucesso.' });
+    return res.status(200).json({
+      mensagem: 'Setor excluído com sucesso.'
+    });
 
-  } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 

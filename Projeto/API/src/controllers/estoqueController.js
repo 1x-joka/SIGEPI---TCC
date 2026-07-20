@@ -8,10 +8,14 @@ async function registrarEntrada(req, res) {
 
   // Validação básica
   if (!epi || !quantidade) {
-    return res.status(400).json({ erro: 'Informe o EPI e a quantidade.' });
+    return res.status(400).json({
+      erro: 'Informe o EPI e a quantidade.'
+    });
   }
   if (quantidade <= 0) {
-    return res.status(400).json({ erro: 'A quantidade deve ser maior que zero.' });
+    return res.status(400).json({
+    erro: 'A quantidade deve ser maior que zero.'
+  });
   }
 
   // Pega UMA conexão do pool para a transação (todas as queries usam ela)
@@ -25,7 +29,9 @@ async function registrarEntrada(req, res) {
     );
     if (epis.length === 0) {
       conexao.release();
-      return res.status(400).json({ erro: 'EPI inválido para esta empresa.' });
+      return res.status(400).json({
+        erro: 'EPI inválido para esta empresa.'
+      });
     }
 
     // ===== INÍCIO DA TRANSAÇÃO =====
@@ -48,7 +54,14 @@ async function registrarEntrada(req, res) {
       [quantidade, 'Entrada de estoque', id_estoque]
     );
 
-    await registrarLog({ empresa, tipo: 'ENTRADA_ESTOQUE', descricao: 'Entrada de estoque', equipamento: epis[0].nm_epi, quantidade, responsavel: req.usuario.id });
+    await registrarLog({
+      empresa,
+      tipo: 'ENTRADA_ESTOQUE',
+      descricao: 'Entrada de estoque',
+      equipamento: epis[0].nm_epi,
+      quantidade,
+      responsavel: req.usuario.id
+    });
 
     // Se chegou aqui, as DUAS deram certo → grava de verdade
     await conexao.commit();
@@ -61,7 +74,10 @@ async function registrarEntrada(req, res) {
   } catch (err) {
     // Qualquer erro no meio → desfaz TUDO (nem estoque, nem movimentação ficam)
     await conexao.rollback();
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
 
   } finally {
     // Aconteça o que acontecer, devolve a conexão ao pool
@@ -87,7 +103,10 @@ async function listarEstoque(req, res) {
     return res.status(200).json(estoque);
 
   } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 
@@ -97,7 +116,9 @@ async function registrarSaida(req, res) {
   const empresa = req.usuario.empresa;
 
   if (!epi || !quantidade || quantidade <= 0) {
-    return res.status(400).json({ erro: 'Informe o EPI e uma quantidade válida.' });
+    return res.status(400).json({
+      erro: 'Informe o EPI e uma quantidade válida.'
+    });
   }
 
   const conexao = await db.getConnection();
@@ -110,7 +131,9 @@ async function registrarSaida(req, res) {
     );
     if (tot[0].total < quantidade) {
       conexao.release();
-      return res.status(400).json({ erro: 'Quantidade superior ao estoque disponível.' });
+      return res.status(400).json({
+        erro: 'Quantidade superior ao estoque disponível.'
+      });
     }
 
     await conexao.beginTransaction();
@@ -143,15 +166,30 @@ async function registrarSaida(req, res) {
 
     const [epiNome] = await db.execute('SELECT nm_epi FROM tb_epi WHERE id_epi = ?', [epi]);
 
-    await registrarLog({ empresa, tipo: 'SAIDA_ESTOQUE', descricao: 'Retirada de estoque', equipamento: epiNome[0]?.nm_epi || null, quantidade, motivo: motivo || null, responsavel: req.usuario.id });
+    await registrarLog({
+      empresa,
+      tipo: 'SAIDA_ESTOQUE',
+      descricao: 'Retirada de estoque',
+      equipamento: epiNome[0]?.nm_epi || null,
+      quantidade,
+      motivo: motivo || null,
+      responsavel: req.usuario.id
+    });
 
     await conexao.commit();
-    return res.status(200).json({ mensagem: 'Saída de estoque registrada com sucesso.' });
+    return res.status(200).json({
+      mensagem: 'Saída de estoque registrada com sucesso.'
+    });
 
-  } catch (err) {
+  }
+  catch (err) {
     await conexao.rollback();
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
-  } finally {
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
+  }
+  finally {
     conexao.release();
   }
 }

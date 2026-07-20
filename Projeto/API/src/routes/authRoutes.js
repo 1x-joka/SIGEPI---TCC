@@ -8,7 +8,9 @@ const limiteLogin = rateLimit({
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { erro: 'Muitas tentativas de login. Aguarde 15 minutos.' }
+  message: {
+    erro: 'Muitas tentativas de login. Aguarde 15 minutos.'
+  }
 });
 
 const express = require('express');

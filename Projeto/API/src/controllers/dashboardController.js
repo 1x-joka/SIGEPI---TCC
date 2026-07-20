@@ -11,7 +11,10 @@ async function obterDashboard(req, res) {
     // Filtro de período para as métricas de ENTREGA (sempre ano; mês só se informado)
     const filtroEntrega = [empresa, ano];
     let condMes = '';
-    if (mes) { condMes = ' AND MONTH(e.dt_entrega) = ?'; filtroEntrega.push(mes); }
+    if (mes) {
+      condMes = ' AND MONTH(e.dt_entrega) = ?';
+      filtroEntrega.push(mes);
+    }
 
     // 1) EPI ENTREGUE (total no período) — COUNT conta linhas
     const [totalEntregas] = await db.execute(
@@ -75,20 +78,29 @@ async function obterDashboard(req, res) {
     // Preenche os 12 meses (o gráfico precisa de Jan..Dez, mesmo os zerados)
     const entregasPorMes = Array.from({ length: 12 }, (_, i) => {
       const achado = porMes.find(m => m.mes === i + 1);
-      return { mes: i + 1, total: achado ? achado.total : 0 };
+      return {
+        mes: i + 1,
+        total: achado ? achado.total : 0
+      };
     });
 
     return res.status(200).json({
-      periodo: { ano, mes },
+      periodo: {
+        ano,
+        mes
+      },
       epiEntregue: totalEntregas[0].total,
       necessidadeCompra,
       statusCa: statusCa[0],
       topEpisEntregues: topEpis,
       entregasPorMes
     });
-
-  } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+  catch (err) {
+    return res.status(500).json({ 
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 

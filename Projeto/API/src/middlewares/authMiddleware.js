@@ -8,7 +8,9 @@ async function autenticar(req, res, next) {
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ erro: 'Token não fornecido.' });
+    return res.status(401).json({
+      erro: 'Token não fornecido.'
+    });
   }
 
   try {
@@ -21,21 +23,28 @@ async function autenticar(req, res, next) {
       [dados.id]
     );
     if (rows.length === 0) {
-      return res.status(401).json({ erro: 'Usuário não encontrado.' });
+      return res.status(401).json({
+        erro: 'Usuário não encontrado.'
+      });
     }
     req.usuario.empresa = rows[0].tb_empresa_id_empresa;
     req.usuario.tipo = rows[0].tb_tipousuario_id_tipousuario; // Vendo qual o tipo de usuário
 
     next();
-  } catch (err) {
-    return res.status(403).json({ erro: 'Token inválido ou expirado.' });
+  }
+  catch (err) {
+    return res.status(403).json({
+      erro: 'Token inválido ou expirado.'
+    });
   }
 }
 
 // Bloqueia rotas que exigem empresa quando o usuário ainda não tem uma vinculada
 function exigirEmpresa(req, res, next) {
   if (!req.usuario || !req.usuario.empresa) {
-    return res.status(403).json({ erro: 'Usuário sem empresa vinculada.' });
+    return res.status(403).json({
+      erro: 'Usuário sem empresa vinculada.'
+    });
   }
   next();
 }
@@ -43,7 +52,9 @@ function exigirEmpresa(req, res, next) {
 // Bloqueia rotas que só o Administrador pode acessar (tipo 1 = Administrador)
 function exigirAdmin(req, res, next) {
   if (!req.usuario || req.usuario.tipo !== 1) {
-    return res.status(403).json({ erro: 'Acesso restrito ao administrador.' });
+    return res.status(403).json({
+      erro: 'Acesso restrito ao administrador.'
+    });
   }
   next();
 }

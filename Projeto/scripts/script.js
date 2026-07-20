@@ -43,7 +43,7 @@ function fecharSeOverlay(event, id) {
 }
 
 function limparModalCadastrarEpi() {
-  ['cad-nome','cad-desc','cad-ca','cad-validade','cad-qtd','cad-limite','cad-cat']
+  ['cad-nome','cad-tamanho','cad-desc','cad-ca','cad-validade','cad-qtd','cad-limite','cad-cat']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.chk-setor-epi').forEach(c => c.checked = false);
 }
@@ -108,6 +108,24 @@ function validarCNPJ(cnpj) {
   return d2 === parseInt(cnpj[13]);
 }
 
+// Formata data do banco (YYYY-MM-DD) sem passar por Date — evita erro de fuso horário
+function formatarData(valor) {
+  if (!valor) return '—';
+  const iso = String(valor).substring(0, 10);
+  const [ano, mes, dia] = iso.split('-');
+  if (!dia || !mes || !ano) return '—';
+  return `${dia}/${mes}/${ano}`;
+}
+
+// Monta o rótulo do EPI juntando nome e tamanho, quando houver
+function rotuloEpi(epi) {
+  if (!epi) return '—';
+  if (epi.tamanho_epi) {
+    return `${epi.nm_epi} — ${epi.tamanho_epi}`;
+  }
+  return epi.nm_epi;
+}
+
 
 // ============================================================
 //  loginpage.html
@@ -152,19 +170,24 @@ async function fazerLogin() {
       if (u.tipo === 1) {
         // ADMIN: sem empresa -> cadastrar; com empresa -> dashboard
         window.location.href = u.empresa ? 'dashboard.html' : 'cadastrar-empresa.html';
-      } else {
+      }
+      else {
         // FUNCIONÁRIO: sem empresa -> código; com empresa e sem completar -> completar; senão -> meus EPIs
         if (!u.empresa) window.location.href = 'entrar-empresa.html';
         else if (!u.completou) window.location.href = 'complementar-funcionario.html';
         else window.location.href = 'meus-equipamentos.html';
       }
-    } else {
+    }
+    else {
       // 401 (credenciais inválidas) ou 403 (conta bloqueada/inativada)
       erro.textContent = dados.erro || 'E-mail ou senha incorretos.';
       erro.classList.add('show');
-      if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
+      if (typeof grecaptcha !== 'undefined') {
+        grecaptcha.reset();
+      }
     }
-  } catch (err) { // Pega o caso do servidor desligado
+  }
+  catch (err) { // Pega o caso do servidor desligado
     erro.textContent = 'Não foi possível conectar ao servidor.';
     erro.classList.add('show');
   }
@@ -251,11 +274,13 @@ async function cadastrar() {
     if (resposta.ok) {
       alert('Cadastro realizado com sucesso! Faça login para continuar.');
       window.location.href = 'loginpage.html';
-    } else {
+    }
+    else {
       // Ex.: 409 (e-mail/CPF já cadastrado) ou 400 (campos)
       alert(dados.erro || 'Erro ao cadastrar.');
     }
-  } catch (err) {
+  }
+  catch (err) {
     alert('Não foi possível conectar ao servidor. Verifique se a API está rodando.');
   }
 }
@@ -310,23 +335,39 @@ function recusar() {
 async function entrarEmpresa() {
   const codigo = document.getElementById('codigo')?.value.trim();
   const erro = document.getElementById('codigo-error');
-  if (!codigo) { if (erro){ erro.textContent='Digite o código.'; erro.classList.add('show'); } return; }
+  if (!codigo) {
+    if (erro){
+      erro.textContent='Digite o código.';
+      erro.classList.add('show');
+    }
+    return;
+  }
 
   try {
     const resposta = await fetchAutenticado('/funcionario/entrar', {
       method: 'POST',
-      body: JSON.stringify({ codigo })
+      body: JSON.stringify({
+        codigo
+      })
     });
     if (!resposta) return;
     const dados = await resposta.json();
     if (resposta.ok) {
       erro?.classList.remove('show');
       window.location.href = 'complementar-funcionario.html';
-    } else {
-      if (erro) { erro.textContent = dados.erro || 'Código inválido.'; erro.classList.add('show'); }
     }
-  } catch (err) {
-    if (erro) { erro.textContent = 'Não foi possível conectar ao servidor.'; erro.classList.add('show'); }
+    else {
+      if (erro) {
+        erro.textContent = dados.erro || 'Código inválido.';
+        erro.classList.add('show');
+      }
+    }
+  }
+  catch (err) {
+    if (erro) {
+      erro.textContent = 'Não foi possível conectar ao servidor.';
+      erro.classList.add('show');
+    }
   }
 }
 
@@ -409,11 +450,13 @@ async function cadastrarEmpresa() {
       alert('Empresa cadastrada com sucesso!\nCódigo da empresa: ' + dados.codigo +
             '\nAnote e compartilhe com seus funcionários.');
       window.location.href = 'setores-empresa.html';
-    } else {
+    }
+    else {
       // Ex.: 409 (CNPJ já cadastrado), 401/403 (token inválido)
       alert(dados.erro || 'Erro ao cadastrar empresa.');
     }
-  } catch (err) {
+  }
+  catch (err) {
     alert('Não foi possível conectar ao servidor. Verifique se a API está rodando.');
   }
 }
@@ -438,7 +481,8 @@ async function carregarSetores() {
       setoresEmpresa = await resposta.json();
       renderSetoresEmpresa();
     }
-  } catch (err) {
+  }
+  catch (err) {
     alert('Não foi possível carregar os setores.');
   }
 }
@@ -463,14 +507,16 @@ async function adicionarSetor() {
       erro?.classList.remove('show');
       input.value = '';
       await carregarSetores(); // recarrega a lista atualizada do banco
-    } else {
+    }
+    else {
       // Ex.: 409 (setor já existe nesta empresa)
       if (erro) {
         erro.textContent = dados.erro || 'Erro ao adicionar setor.';
         erro.classList.add('show');
       }
     }
-  } catch (err) {
+  }
+  catch (err) {
     alert('Não foi possível conectar ao servidor.');
   }
 }
@@ -507,11 +553,13 @@ async function removerSetor(idSetor) {
     const dados = await resposta.json();
     if (resposta.ok) {
       await carregarSetores();
-    } else {
+    }
+    else {
       // Ex.: 409 (setor com funcionários) — mostra a mensagem da trava
       alert(dados.erro || 'Não foi possível excluir o setor.');
     }
-  } catch (err) {
+  }
+  catch (err) {
     alert('Não foi possível conectar ao servidor.');
   }
 }
@@ -539,7 +587,8 @@ async function carregarSetoresComplementar() {
         select.appendChild(opt);
       });
     }
-  } catch (err) {}
+  }
+  catch (err) {}
 }
 document.addEventListener('DOMContentLoaded', carregarSetoresComplementar);
 
@@ -556,31 +605,52 @@ async function avancarComplementar() {
   const nascErro = document.getElementById('nasc-error');
 
   let ok = true;
-  if (!setor) { setorErro?.classList.add('show'); ok = false; } else setorErro?.classList.remove('show');
-  if (!nascimento) { nascErro?.classList.add('show'); ok = false; } else nascErro?.classList.remove('show');
+  if (!setor) {
+    setorErro?.classList.add('show');
+    ok = false;
+  }
+  else {
+    setorErro?.classList.remove('show');
+  }
+  if (!nascimento) {
+    nascErro?.classList.add('show'); ok = false;
+  }
+  else {
+    nascErro?.classList.remove('show');
+  }
   if (!ok) return;
 
   if (nascimento) {
     const nasc = new Date(nascimento), hoje = new Date();
     let idade = hoje.getFullYear() - nasc.getFullYear();
     const m = hoje.getMonth() - nasc.getMonth();
-    if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
-    if (idade < 18) { alert('Você deve ter no mínimo 18 anos.'); return; }
+    if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) {
+      idade--;
+    }
+    if (idade < 18) {
+      alert('Você deve ter no mínimo 18 anos.');
+      return;
+    }
   }
 
   try {
     const resposta = await fetchAutenticado('/funcionario/completar', {
       method: 'POST',
-      body: JSON.stringify({ setor: parseInt(setor), dataNascimento: nascimento })
+      body: JSON.stringify({
+        setor: parseInt(setor),
+        dataNascimento: nascimento
+      })
     });
     if (!resposta) return;
     const dados = await resposta.json();
     if (resposta.ok) {
       window.location.href = 'meus-equipamentos.html';
-    } else {
+    }
+    else {
       alert(dados.erro || 'Erro ao completar cadastro.');
     }
-  } catch (err) {
+  }
+  catch (err) {
     alert('Não foi possível conectar ao servidor.');
   }
 }
@@ -616,12 +686,14 @@ async function carregarEpis() {
         const baixo = Number(e.quantidade) < Number(e.limite);
         const vencido = e.dt_validade_ca && new Date(e.dt_validade_ca) < new Date();
         const status = vencido ? 'VENCIDO' : (baixo ? 'BAIXO' : 'OK');
-        if (vencido || baixo) tr.className = 'row-red';
+        if (vencido || baixo) {
+          tr.className = 'row-red';
+        }
         tr.dataset.status = status;
 
-        [e.nm_epi, e.ca_epi || '—', e.quantidade, e.limite, status].forEach(v => {
+        [rotuloEpi(e), e.ca_epi || '—', e.quantidade, e.limite, status].forEach(v => {
           const td = document.createElement('td');
-          td.textContent = v;              // XSS-safe
+          td.textContent = v; // XSS-safe
           tr.appendChild(td);
         });
 
@@ -629,14 +701,15 @@ async function carregarEpis() {
         const btn = document.createElement('button');
         btn.className = 'btn btn-outline';
         btn.textContent = 'Inativar';
-        btn.onclick = () => inativarEpi(e.id_epi, e.nm_epi);
+        btn.onclick = () => inativarEpi(e.id_epi, rotuloEpi(e));
         tdAcao.appendChild(btn);
         tr.appendChild(tdAcao);
 
         tbody.appendChild(tr);
       });
     }
-  } catch (err) {
+  }
+  catch (err) {
     alert('Não foi possível carregar os EPIs.');
   }
 }
@@ -663,13 +736,15 @@ async function carregarCategoriasEpi() {
         select.appendChild(opt);
       });
     }
-  } catch (err) {}
+  }
+  catch (err) {}
 }
 document.addEventListener('DOMContentLoaded', carregarCategoriasEpi);
 
 // Cadastra o EPI + o lote inicial de estoque (duas etapas)
 async function cadastrarEPI() {
   const nome = document.getElementById('cad-nome')?.value.trim();
+  const tamanho = document.getElementById('cad-tamanho')?.value.trim();
   const desc = document.getElementById('cad-desc')?.value.trim();
   const ca = document.getElementById('cad-ca')?.value.trim();
   const validade = document.getElementById('cad-validade')?.value;
@@ -694,17 +769,30 @@ async function cadastrarEPI() {
     const r = await fetchAutenticado('/epi/cadastrar', {
       method: 'POST',
       body: JSON.stringify({
-        nome, descricao: desc, ca, validadeCa: validade,
+        nome,
+        tamanho,
+        descricao: desc,
+        ca,
+        validadeCa: validade,
         categoria: parseInt(categoria),
-        quantidade: parseInt(qtd), quantidadeMinima: parseInt(limite), validade,
+        quantidade: parseInt(qtd),
+        quantidadeMinima: parseInt(limite),
+        validade,
         setores
       })
     });
     if (!r) return;
     const d = await r.json();
-    if (r.ok) { fecharModal('modal-cadastrar'); await carregarEpis(); }
-    else alert(d.erro || 'Erro ao cadastrar EPI.');
-  } catch (err) { alert('Não foi possível conectar ao servidor.'); }
+    if (r.ok) {
+      fecharModal('modal-cadastrar'); await carregarEpis();
+    }
+    else {
+      alert(d.erro || 'Erro ao cadastrar EPI.');
+    }
+  }
+  catch (err) {
+    alert('Não foi possível conectar ao servidor.');
+  }
 }
 
 async function retirarEstoque() {
@@ -721,7 +809,11 @@ async function retirarEstoque() {
   try {
     const resp = await fetchAutenticado('/estoque/saida', {
       method: 'POST',
-      body: JSON.stringify({ epi: parseInt(epi), quantidade: qtd, motivo: mot })
+      body: JSON.stringify({
+        epi: parseInt(epi),
+        quantidade: qtd,
+        motivo: mot
+      })
     });
     if (!resp) return;
     const dados = await resp.json();
@@ -730,13 +822,17 @@ async function retirarEstoque() {
       fecharModal('modal-retirar');
       ['ret-qtd','ret-obs'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
       await carregarEpis();   // regra "alterou → recarrega"
-    } else {
+    }
+    else {
       // ex.: "Quantidade superior ao estoque disponível"
       setErro('ret-estoque-err', true);
       const span = document.getElementById('ret-estoque-err');
-      if (span) span.textContent = dados.erro || 'Não foi possível retirar.';
+      if (span) {
+        span.textContent = dados.erro || 'Não foi possível retirar.';
+      }
     }
-  } catch (err) {
+  }
+  catch (err) {
     alert('Não foi possível conectar ao servidor.');
   }
 }
@@ -752,11 +848,13 @@ async function carregarEpisSelect(selectId) {
       select.innerHTML = '<option value="">Selecione o EPI</option>';
       epis.forEach(e => {
         const opt = document.createElement('option');
-        opt.value = e.id_epi; opt.textContent = e.nm_epi; // XSS-safe
+        opt.value = e.id_epi;
+        opt.textContent = rotuloEpi(e); // XSS-safe
         select.appendChild(opt);
       });
     }
-  } catch (err) {}
+  }
+  catch (err) {}
 }
 document.addEventListener('DOMContentLoaded', () => carregarEpisSelect('add-epi'));
 
@@ -766,11 +864,18 @@ async function adicionarEstoque() {
   const qtd = document.getElementById('add-qtd')?.value;
   const validade = document.getElementById('add-validade')?.value;
   const obs = document.getElementById('add-obs')?.value;
-  if (!epi || !qtd) { alert('Selecione o EPI e a quantidade.'); return; }
+  if (!epi || !qtd) {
+    alert('Selecione o EPI e a quantidade.');
+    return;
+  }
   try {
     const resp = await fetchAutenticado('/estoque/entrada', {
       method: 'POST',
-      body: JSON.stringify({ epi: parseInt(epi), quantidade: parseInt(qtd), validade: validade || null })
+      body: JSON.stringify({
+        epi: parseInt(epi),
+        quantidade: parseInt(qtd),
+        validade: validade || null
+      })
     });
     if (!resp) return;
     const dados = await resp.json();
@@ -778,8 +883,14 @@ async function adicionarEstoque() {
       fecharModal('modal-adicionar');
       await carregarEpis();
       ['add-epi','add-qtd','add-validade','add-obs'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-    } else alert(dados.erro || 'Erro ao adicionar ao estoque.');
-  } catch (err) { alert('Não foi possível conectar ao servidor.'); }
+    }
+    else{
+      alert(dados.erro || 'Erro ao adicionar ao estoque.');
+    }
+  }
+  catch (err) {
+    alert('Não foi possível conectar ao servidor.');
+  }
 }
 
 
@@ -833,7 +944,9 @@ function abrirExcluir(idFuncionario) {
 
   const nomeCompleto = f.nm_funcionario;
   const titulo = document.getElementById('titulo-excluir');
-  if (titulo) titulo.textContent = 'Inativação de ' + nomeCompleto;
+  if (titulo) {
+    titulo.textContent = 'Inativação de ' + nomeCompleto;
+  }
 
   const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
   setEl('excluir-nome', nomeCompleto);
@@ -846,15 +959,29 @@ function abrirExcluir(idFuncionario) {
 
   // Reseta o formulário
   const motivo = document.getElementById('motivo-exclusao');
-  if (motivo) motivo.value = '';
+  if (motivo) {
+    motivo.value = '';
+  }
+
   const outro = document.getElementById('outro-motivo');
-  if (outro) outro.value = '';
+  if (outro) {
+    outro.value = '';
+  }
+
   const wrap = document.getElementById('outro-motivo-wrap');
-  if (wrap) wrap.style.display = 'none';
+  if (wrap) {
+    wrap.style.display = 'none';
+  }
+
   const chk = document.getElementById('chk-confirmar-exclusao');
-  if (chk) chk.checked = false;
+  if (chk) {
+    chk.checked = false;
+  }
+
   const btn = document.getElementById('btn-inativar');
-  if (btn) btn.disabled = true;
+  if (btn) {
+    btn.disabled = true;
+  }
 
   abrirModal('modal-excluir');
 }
@@ -862,7 +989,7 @@ function abrirExcluir(idFuncionario) {
 function toggleOutroMotivo() {
   const val = document.getElementById('motivo-exclusao')?.value;
   const wrap = document.getElementById('outro-motivo-wrap');
-  if (wrap){
+  if (wrap) {
     wrap.classList.toggle('oculto', val !== 'Outro');
   }
 }
@@ -882,7 +1009,10 @@ async function inativarFuncionario() {
   const outro = document.getElementById('outro-motivo')?.value.trim();
   const motivo = (sel === 'Outro') ? outro : sel;
 
-  if (!motivo) { alert('Informe o motivo da inativação.'); return; }
+  if (!motivo) {
+    alert('Informe o motivo da inativação.');
+    return;
+  }
 
   try {
     const resp = await fetchAutenticado(`/funcionario/${funcExcluindo.id_funcionario}/inativar`, {
@@ -895,10 +1025,12 @@ async function inativarFuncionario() {
       fecharModal('modal-excluir');
       funcExcluindo = null;
       await carregarFuncionarios();   // alterou → recarrega
-    } else {
+    }
+    else {
       alert(dados.erro || 'Erro ao inativar funcionário.');
     }
-  } catch (err) {
+  }
+  catch (err) {
     alert('Não foi possível conectar ao servidor.');
   }
 }
@@ -909,12 +1041,17 @@ async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
   const titulo = document.getElementById('titulo-verificar');
   if (!tbody) return;
 
-  if (titulo) titulo.textContent = 'Solicitações de ' + nomeFuncionario;
-  tbody.innerHTML = '';
+  if (titulo) {
+    titulo.textContent = 'Solicitações de ' + nomeFuncionario;
+    tbody.innerHTML = '';
+  }
 
   try {
     const resp = await fetchAutenticado('/solicitacao/pendentes');
-    if (!resp || !resp.ok) { alert('Erro ao carregar solicitações.'); return; }
+    if (!resp || !resp.ok) {
+      alert('Erro ao carregar solicitações.');
+      return;
+    }
     const todas = await resp.json();
 
     // Só as deste funcionário
@@ -928,19 +1065,22 @@ async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
       td.className = 'celula-vazia';
       tr.appendChild(td);
       tbody.appendChild(tr);
-    } else {
+    }
+    else {
       minhas.forEach(s => {
         const tr = document.createElement('tr');
         const semEstoque = Number(s.estoque) < 1;
-        if (semEstoque) tr.className = 'row-red';
+        if (semEstoque) {
+          tr.className = 'row-red';
+        }
 
-        const data = s.dt_solicitacao ? new Date(s.dt_solicitacao).toLocaleDateString('pt-BR') : '—';
-        const prev = s.dt_previsao ? new Date(s.dt_previsao).toLocaleDateString('pt-BR') : '—';
+        const data = formatarData(s.dt_solicitacao);
+        const prev = formatarData(s.dt_previsao);
         const estoqueTxt = semEstoque ? 'SEM ESTOQUE' : s.estoque;
 
         [data, s.nm_epi, s.desc_motivo_solicitacao || '—', estoqueTxt, prev].forEach(v => {
           const td = document.createElement('td');
-          td.textContent = v;                 // XSS-safe
+          td.textContent = v; // XSS-safe
           tr.appendChild(td);
         });
 
@@ -963,7 +1103,8 @@ async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
     }
 
     abrirModal('modal-verificar');
-  } catch (err) {
+  }
+  catch (err) {
     alert('Não foi possível conectar ao servidor.');
   }
 }
@@ -984,10 +1125,12 @@ async function responderSolicitacao(idSolicitacao, decisao, idFuncionario, nomeF
     if (resp.ok) {
       // Recarrega o modal (a solicitação respondida some da lista de pendentes)
       await abrirSolicitacoes(idFuncionario, nomeFuncionario);
-    } else {
+    }
+    else {
       alert(dados.erro || 'Erro ao responder solicitação.');
     }
-  } catch (err) {
+  }
+  catch (err) {
     alert('Não foi possível conectar ao servidor.');
   }
 }
@@ -1084,7 +1227,10 @@ async function carregarHistorico() {
         tbody.appendChild(tr);
       });
     }
-  } catch (err) { alert('Não foi possível carregar o histórico.'); }
+  }
+  catch (err) {
+    alert('Não foi possível carregar o histórico.');
+  }
 }
 document.addEventListener('DOMContentLoaded', carregarHistorico);
 
@@ -1105,16 +1251,24 @@ async function carregarMeusEquipamentos() {
       itens.forEach(i => {
         const tr = document.createElement('tr');
         const status = i.st_entrega === 'D' ? 'Devolvido' : 'Com você';
-        const validade = i.dt_devolucao ? new Date(i.dt_devolucao).toLocaleDateString('pt-BR') : '—';
+        const validade = formatarData(i.dt_devolucao);
         [i.nm_epi, '—', '1', validade, status].forEach(v => {
-          const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); // XSS-safe
+          const td = document.createElement('td');
+          td.textContent = v;
+          tr.appendChild(td); // XSS-safe
         });
         tbody.appendChild(tr);
       });
     }
-  } catch (err) { alert('Não foi possível carregar seus equipamentos.'); }
+  }
+  catch (err) {
+    alert('Não foi possível carregar seus equipamentos.');
+  }
 }
-document.addEventListener('DOMContentLoaded', carregarMeusEquipamentos, carregarPendentesConfirmacao);
+document.addEventListener('DOMContentLoaded', () => {
+  carregarMeusEquipamentos();
+  carregarPendentesConfirmacao();
+});
 
 const episSolicitacao = ['Máscara Respiratória', 'Óculos de Proteção', 'Luvas Nitrílicas (par)'];
 const justificativasSolicitacao = [];
@@ -1133,14 +1287,21 @@ async function abrirSolicitar() {
       epis.forEach(e => {
         const opt = document.createElement('option');
         opt.value = e.id_epi;
-        opt.textContent = e.nm_epi;      // XSS-safe
+        opt.textContent = rotuloEpi(e); // XSS-safe
         select.appendChild(opt);
       });
     }
-  } catch (err) { alert('Não foi possível carregar os EPIs.'); return; }
+  }
+  catch (err) {
+    alert('Não foi possível carregar os EPIs.');
+    return;
+  }
 
   const just = document.getElementById('sol-justificativa');
-  if (just) just.value = '';
+  if (just) {
+    just.value = '';
+  }
+
   document.getElementById('sol-error')?.classList.remove('show');
   abrirModal('modal-solicitar');
 }
@@ -1159,7 +1320,9 @@ async function enviarSolicitacao() {
   try {
     const resp = await fetchAutenticado('/solicitacao/criar', {
       method: 'POST',
-      body: JSON.stringify({ epi: parseInt(epi), motivo })
+      body: JSON.stringify({
+        epi: parseInt(epi), motivo
+      })
     });
     if (!resp) return;
     const dados = await resp.json();
@@ -1167,11 +1330,15 @@ async function enviarSolicitacao() {
       fecharModal('modal-solicitar');
       alert('Solicitação enviada! Previsão de atendimento: ' + (dados.previsao || '3 dias úteis') + '.');
       await carregarMinhasSolicitacoes();
-    } else {
+    }
+    else {
       // ex.: 409 (já tem pendente para esse EPI)
       alert(dados.erro || 'Erro ao enviar solicitação.');
     }
-  } catch (err) { alert('Não foi possível conectar ao servidor.'); }
+  }
+  catch (err) {
+    alert('Não foi possível conectar ao servidor.');
+  }
 }
 
 // Mostra o aviso quando há solicitações pendentes
@@ -1191,7 +1358,8 @@ async function carregarMinhasSolicitacoes() {
       if (pendentes > 0) {
         aviso.textContent = `Você possui ${pendentes} solicitação(ões) pendente(s)`;
         aviso.style.display = '';
-      } else {
+      }
+      else {
         aviso.style.display = 'none';
       }
     }
@@ -1215,23 +1383,28 @@ async function carregarMinhasSolicitacoes() {
 
     sols.forEach(s => {
       const tr = document.createElement('tr');
-      if (s.st_solicitacao === 'R') tr.className = 'row-red';        // recusada = vermelho
-      else if (s.st_solicitacao === 'P') tr.className = 'row-yellow'; // pendente = amarelo
+      if (s.st_solicitacao === 'R') {
+        tr.className = 'row-red'; // recusada = vermelho
+      }
+      else if (s.st_solicitacao === 'P') {
+        tr.className = 'row-yellow'; // pendente = amarelo
+      }
 
-      const data = s.dt_solicitacao ? new Date(s.dt_solicitacao).toLocaleDateString('pt-BR') : '—';
-      const prev = s.dt_previsao ? new Date(s.dt_previsao).toLocaleDateString('pt-BR') : '—';
+      const data = formatarData(s.dt_solicitacao);
+      const prev = formatarData(s.dt_previsao);
       const status = nomesStatus[s.st_solicitacao] || s.st_solicitacao;
 
       [data, s.nm_epi, s.desc_motivo_solicitacao || '—', prev, status].forEach(v => {
         const td = document.createElement('td');
-        td.textContent = v;      // XSS-safe
+        td.textContent = v; // XSS-safe
         tr.appendChild(td);
       });
 
       tbody.appendChild(tr);
     });
 
-  } catch (err) {
+  }
+  catch (err) {
     // silencioso: não trava a tela se a API falhar aqui
   }
 }
@@ -1245,10 +1418,10 @@ function irEtapa2() {
 function atualizarEtapa2() {
   const titulo = document.getElementById('titulo-epi-atual');
   const just = document.getElementById('justificativa');
-  if (titulo){
+  if (titulo) {
     titulo.textContent = episSolicitacao[epiAtualIdx];
   }
-  if (just){
+  if (just) {
     just.value = justificativasSolicitacao[epiAtualIdx] || '';
   }
   setErro('just-error', false);
@@ -1256,7 +1429,7 @@ function atualizarEtapa2() {
 
 function proximoEpi() {
   const just = document.getElementById('justificativa')?.value.trim();
-  if (!just){
+  if (!just) {
     setErro('just-error', true);
     return;
   }
@@ -1264,7 +1437,8 @@ function proximoEpi() {
   epiAtualIdx++;
   if (epiAtualIdx < episSolicitacao.length) {
     atualizarEtapa2();
-  } else {
+  }
+  else {
     // Em produção: POST /api/solicitacoes
     mostrarEtapaSolic(3);
   }
@@ -1294,11 +1468,11 @@ function finalizarSolicitacao() {
   }
 
   const btn = document.getElementById('btn-solicitar');
-  if (btn){
+  if (btn) {
     btn.disabled = true;
   }
   const aviso = document.getElementById('aviso-pendente');
-  if (aviso){
+  if (aviso) {
     aviso.style.display = 'block';
   }
 }
@@ -1306,7 +1480,7 @@ function finalizarSolicitacao() {
 function mostrarEtapaSolic(n) {
   [1, 2, 3].forEach(i => {
     const el = document.getElementById('etapa-' + i);
-    if (el){
+    if (el) {
       el.style.display = i === n ? '' : 'none';
     }
   });
@@ -1333,10 +1507,10 @@ async function carregarPendentesConfirmacao() {
       info.className = 'pendente-info';
 
       const nome = document.createElement('strong');
-      nome.textContent = i.nm_epi;                                  // XSS-safe
+      nome.textContent = rotuloEpi(i); // XSS-safe
 
       const detalhe = document.createElement('span');
-      const data = i.dt_entrega ? new Date(i.dt_entrega).toLocaleDateString('pt-BR') : '—';
+      const data = formatarData(i.dt_entrega);
       detalhe.textContent = `Entregue por ${i.entregue_por} em ${data}`;
 
       info.append(nome, detalhe);
@@ -1358,7 +1532,8 @@ async function carregarPendentesConfirmacao() {
       card.append(info, acoes);
       lista.appendChild(card);
     });
-  } catch (err) {
+  }
+  catch (err) {
     alert('Não foi possível carregar as entregas pendentes.');
   }
 }
@@ -1374,10 +1549,12 @@ async function confirmarRecebimento(idEntrega) {
       alert(dados.mensagem);
       carregarPendentesConfirmacao();
       carregarMeusEquipamentos();
-    } else {
+    }
+    else {
       alert(dados.erro || 'Não foi possível confirmar.');
     }
-  } catch (err) {
+  }
+  catch (err) {
     alert('Erro ao confirmar o recebimento.');
   }
 }
@@ -1401,10 +1578,12 @@ async function recusarRecebimento(idEntrega) {
     if (resp.ok) {
       alert(dados.mensagem);
       carregarPendentesConfirmacao();
-    } else {
+    }
+    else {
       alert(dados.erro || 'Não foi possível recusar.');
     }
-  } catch (err) {
+  }
+  catch (err) {
     alert('Erro ao recusar o recebimento.');
   }
 }
@@ -1421,11 +1600,11 @@ function previewLogoSecao(event) {
   reader.onload = e => {
     const preview = document.getElementById('logo-secao-preview');
     const txt = document.getElementById('logo-secao-txt');
-    if (preview){
+    if (preview) {
       preview.src = e.target.result;
       preview.style.display = 'block';
     }
-    if (txt){
+    if (txt) {
       txt.style.display = 'none';
     }
   };
@@ -1445,7 +1624,8 @@ async function carregarSecaoEmpresa() {
       document.getElementById('email').value = e.email_empresa || '';
       document.getElementById('telefone').value = e.tel_empresa || '';
     }
-  } catch (err) {}
+  }
+  catch (err) {}
 }
 document.addEventListener('DOMContentLoaded', carregarSecaoEmpresa);
 
@@ -1455,12 +1635,18 @@ async function salvarAlteracoes() {
   const telefone = document.getElementById('telefone')?.value.trim();
   try {
     const resp = await fetchAutenticado('/empresa', {
-      method: 'PUT', body: JSON.stringify({ responsavel, email, telefone })
+      method: 'PUT',
+      body: JSON.stringify({
+        responsavel, email, telefone
+      })
     });
     if (!resp) return;
     const dados = await resp.json();
     alert(resp.ok ? 'Alterações salvas com sucesso!' : (dados.erro || 'Erro ao salvar.'));
-  } catch (err) { alert('Não foi possível conectar ao servidor.'); }
+  }
+  catch (err) {
+    alert('Não foi possível conectar ao servidor.');
+  }
 }
 
 // PARA COPIAR O CÓDIGO DA EMPRESA PARA MAIS FACILIDADE
@@ -1489,8 +1675,14 @@ async function carregarSecaoSetores() {
   if (!tbody) return;
   try {
     const resp = await fetchAutenticado('/setor/listar');
-    if (resp && resp.ok) { secaoSetores = await resp.json(); renderSetoresSecao(); }
-  } catch (err) { alert('Não foi possível carregar os setores.'); }
+    if (resp && resp.ok) {
+      secaoSetores = await resp.json();
+      renderSetoresSecao();
+    }
+  }
+  catch (err) {
+    alert('Não foi possível carregar os setores.');
+  }
 }
 document.addEventListener('DOMContentLoaded', carregarSecaoSetores);
 
@@ -1523,9 +1715,21 @@ async function adicionarSetorSecao() {
     const resp = await fetchAutenticado('/setor/cadastrar', { method: 'POST', body: JSON.stringify({ nome }) });
     if (!resp) return;
     const dados = await resp.json();
-    if (resp.ok) { erro?.classList.remove('show'); input.value = ''; await carregarSecaoSetores(); }
-    else { if (erro) { erro.textContent = dados.erro || 'Erro ao adicionar.'; erro.classList.add('show'); } }
-  } catch (err) { alert('Não foi possível conectar ao servidor.'); }
+    if (resp.ok) {
+      erro?.classList.remove('show');
+      input.value = '';
+      await carregarSecaoSetores();
+    }
+    else {
+      if (erro) {
+        erro.textContent = dados.erro || 'Erro ao adicionar.';
+        erro.classList.add('show');
+      }
+    }
+  }
+  catch (err) {
+    alert('Não foi possível conectar ao servidor.');
+  }
 }
 
 async function excluirSetorSecao(idSetor) {
@@ -1536,7 +1740,10 @@ async function excluirSetorSecao(idSetor) {
     const dados = await resp.json();
     if (resp.ok) await carregarSecaoSetores();
     else alert(dados.erro || 'Não foi possível excluir o setor.'); // ex.: 409 setor com funcionários
-  } catch (err) { alert('Não foi possível conectar ao servidor.'); }
+  }
+  catch (err) {
+    alert('Não foi possível conectar ao servidor.');
+  }
 }
 
 // ============================================================
@@ -1546,7 +1753,7 @@ async function excluirSetorSecao(idSetor) {
 function iniciarDropdown() {
   const headerRight = document.querySelector('.header-right');
   const dropdown = document.querySelector('.dropdown-menu');
-  if (!headerRight || !dropdown){
+  if (!headerRight || !dropdown) {
     return;
   }
 
@@ -1557,7 +1764,7 @@ function iniciarDropdown() {
   });
 
   document.addEventListener('click', function () {
-    if (dropdown){
+    if (dropdown) {
       dropdown.classList.remove('aberto');
     }
   });
@@ -1609,7 +1816,8 @@ async function carregarFuncionarios() {
       funcionariosCache = await resposta.json();
       renderFuncionarios();
     }
-  } catch (err) {
+  }
+  catch (err) {
     alert('Não foi possível carregar os funcionários.');
   }
 }
@@ -1664,7 +1872,8 @@ function renderFuncionarios() {
         mk('Solicitações', 'btn-outline', () => abrirSolicitacoes(f.id_funcionario, nomeCompleto)),
         mk('Inativar', 'btn-outline', () => abrirExcluir(f.id_funcionario))
       );
-    } else {
+    }
+    else {
       tdAcao.classList.add('acoes-nowrap');
     }
     tbody.appendChild(tr);
@@ -1693,7 +1902,8 @@ async function abrirEditar(id) {
         select.appendChild(opt);
       });
     }
-  } catch (err) {}
+  }
+  catch (err) {}
 
   abrirModal('modal-editar');
 }
@@ -1712,17 +1922,22 @@ async function salvarEdicao() {
   try {
     const resposta = await fetchAutenticado(`/funcionario/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ nome, setor })
+      body: JSON.stringify({
+        nome,
+        setor
+      })
     });
     if (!resposta) return;
     const dados = await resposta.json();
     if (resposta.ok) {
       fecharModal('modal-editar');
       await carregarFuncionarios();
-    } else {
+    }
+    else {
       alert(dados.erro || 'Erro ao editar funcionário.');
     }
-  } catch (err) {
+  }
+  catch (err) {
     alert('Não foi possível conectar ao servidor.');
   }
 }
@@ -1737,16 +1952,26 @@ async function carregarDashboard() {
     const resp = await fetchAutenticado('/dashboard?ano=' + new Date().getFullYear());
     if (!resp || !resp.ok) return;
     const d = await resp.json();
+
     const label = document.querySelector('.kpi-card .label');
-    if (label) label.textContent = 'EPIs Entregues (em ' + new Date().getFullYear() + ')';
+    if (label) { 
+      label.textContent = 'EPIs Entregues (em ' + new Date().getFullYear() + ')';
+    }
+    
     const card = document.querySelector('.kpi-card');
-    if (card) card.classList.add('kpi-centralizado');
+    if (card) {
+      card.classList.add('kpi-centralizado');
+    }
     const val = document.querySelector('.kpi-card .value');
-    if (val) val.classList.add('kpi-valor-grande');
+    if (val) {
+      val.classList.add('kpi-valor-grande');
+    }
 
     // Card "EPIs Entregues"
     const kpi = document.querySelector('.kpi-card .value');
-    if (kpi) kpi.textContent = d.epiEntregue;
+    if (kpi) {
+      kpi.textContent = d.epiEntregue;
+    }
 
     // Status de CA (3 valores)
     const cas = document.querySelectorAll('.status-ca .s-val');
@@ -1762,7 +1987,7 @@ async function carregarDashboard() {
       tbodyCompra.innerHTML = '';
       d.necessidadeCompra.forEach(item => {
         const tr = document.createElement('tr');
-        [item.nm_epi, item.ca_epi || '—', item.qtd_sugerida].forEach(v => {
+        [rotuloEpi(item), item.ca_epi || '—', item.qtd_sugerida].forEach(v => {
           const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
         });
         tbodyCompra.appendChild(tr);
@@ -1774,7 +1999,11 @@ async function carregarDashboard() {
       type: 'bar',
       data: {
         labels: d.topEpisEntregues.map(e => e.nm_epi),
-        datasets: [{ data: d.topEpisEntregues.map(e => e.total), backgroundColor: '#4ea8c9', borderRadius: 4 }]
+        datasets: [{
+          data: d.topEpisEntregues.map(e => e.total),
+          backgroundColor: '#4ea8c9',
+          borderRadius: 4
+        }]
       },
       options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
     });
@@ -1784,11 +2013,30 @@ async function carregarDashboard() {
       type: 'line',
       data: {
         labels: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
-        datasets: [{ data: d.entregasPorMes.map(m => m.total), borderColor: '#333', backgroundColor: 'transparent', pointBackgroundColor: '#333', tension: 0.1 }]
+        datasets: [{
+          data: d.entregasPorMes.map(m => m.total),
+          borderColor: '#333',
+          backgroundColor: 'transparent',
+          pointBackgroundColor: '#333',
+          tension: 0.1
+        }]
       },
-      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+      options: {
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {stepSize: 1 }
+            }
+          }
+      }
     });
-  } catch (err) {}
+  }
+  catch (err) {}
 }
 document.addEventListener('DOMContentLoaded', carregarDashboard); // Rodando no front-end
 
@@ -1796,9 +2044,16 @@ document.addEventListener('DOMContentLoaded', carregarDashboard); // Rodando no 
 async function entregarEpi(idFuncionario, nomeFuncionario) {
   // Busca os EPIs da empresa para o admin escolher
   const respEpis = await fetchAutenticado('/epi/listar');
-  if (!respEpis || !respEpis.ok) { alert('Erro ao carregar EPIs.'); return; }
+  if (!respEpis || !respEpis.ok) {
+    alert('Erro ao carregar EPIs.');
+    return;
+  }
+
   const epis = await respEpis.json();
-  if (epis.length === 0) { alert('Nenhum EPI cadastrado.'); return; }
+  if (epis.length === 0) {
+    alert('Nenhum EPI cadastrado.');
+    return;
+  }
 
   const lista = epis.map(e => `${e.id_epi} - ${e.nm_epi} (estoque: ${e.quantidade})`).join('\n');
   const escolha = prompt(`Entregar EPI para ${nomeFuncionario}.\nDigite o ID do EPI:\n\n${lista}`);
@@ -1806,13 +2061,17 @@ async function entregarEpi(idFuncionario, nomeFuncionario) {
 
   const resp = await fetchAutenticado('/entrega/registrar', {
     method: 'POST',
-    body: JSON.stringify({ funcionario: idFuncionario, epi: parseInt(escolha) })
+    body: JSON.stringify({
+      funcionario: idFuncionario,
+      epi: parseInt(escolha)
+    })
   });
   const dados = await resp.json();
   if (resp.ok) {
     alert('Entrega registrada com sucesso!');
     await carregarFuncionarios();
-  } else {
+  }
+  else {
     alert(dados.erro || 'Erro ao registrar entrega.'); // ex.: "Sem estoque disponível"
   }
 }
@@ -1850,9 +2109,17 @@ function exportarPDF() {
     startY: 32,
     head: [['Data/Hora', 'Tipo', 'Equipamento', 'Qtd', 'Motivo', 'Responsável']],
     body: linhas,
-    styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor: [78, 168, 201], textColor: 255 },
-    alternateRowStyles: { fillColor: [245, 245, 245] }
+    styles: {
+      fontSize: 8,
+      cellPadding: 2
+    },
+    headStyles: {
+      fillColor: [78, 168, 201],
+      textColor: 255
+    },
+    alternateRowStyles: {
+      fillColor: [245, 245, 245]
+    }
   });
 
   const hoje = new Date().toISOString().substring(0, 10);
@@ -1878,13 +2145,14 @@ async function carregarSetoresCheckbox() {
         chk.value = s.id_setor;
 
         const txt = document.createElement('span');
-        txt.textContent = s.nm_setor;   // XSS-safe
+        txt.textContent = s.nm_setor; // XSS-safe
 
         label.append(chk, txt);
         box.appendChild(label);
       });
     }
-  } catch (err) {}
+  }
+  catch (err) {}
 }
 document.addEventListener('DOMContentLoaded', carregarSetoresCheckbox);
 

@@ -11,7 +11,9 @@ async function registrarEntrega(req, res) {
   const admin = req.usuario.id; // quem entregou fica registrado (auditoria). Vem do token, confiável.
 
   if (!funcionario || !epi) {
-    return res.status(400).json({ erro: 'Informe o funcionário e o EPI.' });
+    return res.status(400).json({
+      erro: 'Informe o funcionário e o EPI.'
+    });
   }
 
   try {
@@ -21,7 +23,9 @@ async function registrarEntrega(req, res) {
       [funcionario, empresa]
     );
     if (funcs.length === 0) {
-      return res.status(400).json({ erro: 'Funcionário inválido ou inativo para esta empresa.' });
+      return res.status(400).json({
+        erro: 'Funcionário inválido ou inativo para esta empresa.'
+      });
     }
 
     // 2) O EPI precisa ser DESTA empresa
@@ -30,7 +34,9 @@ async function registrarEntrega(req, res) {
       [epi, empresa]
     );
     if (epis.length === 0) {
-      return res.status(400).json({ erro: 'EPI inválido para esta empresa.' });
+      return res.status(400).json({
+        erro: 'EPI inválido para esta empresa.'
+      });
     }
 
     // 3) VERIFICAÇÃO DE ESTOQUE: existe algum lote com quantidade disponível?
@@ -43,7 +49,9 @@ async function registrarEntrega(req, res) {
     );
     const totalDisponivel = estoque[0].total || 0;
     if (totalDisponivel < 1) {
-      return res.status(400).json({ erro: 'Sem estoque disponível para este EPI.' });
+      return res.status(400).json({
+        erro: 'Sem estoque disponível para este EPI.'
+      });
     }
 
     // 4) Registra a entrega. O TRIGGER desconta 1 do estoque (FIFO) automaticamente.
@@ -54,7 +62,13 @@ async function registrarEntrega(req, res) {
       [funcionario, epi, admin]
     );
 
-    await registrarLog({ empresa, tipo: 'ENTREGA', descricao: 'Entrega de EPI', equipamento: epis[0]?.nm_epi,quantidade: 1, responsavel: req.usuario.id });
+    await registrarLog({
+      empresa,
+      tipo: 'ENTREGA',
+      descricao: 'Entrega de EPI',
+      equipamento: epis[0]?.nm_epi,
+      quantidade: 1,
+      responsavel: req.usuario.id });
 
     return res.status(201).json({
       mensagem: 'Entrega registrada com sucesso.',
@@ -62,7 +76,10 @@ async function registrarEntrega(req, res) {
     });
 
   } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 
@@ -84,14 +101,18 @@ async function listarEntregas(req, res) {
 
     return res.status(200).json(entregas);
 
-  } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 
 // Registra a DEVOLUÇÃO de um EPI (atualiza a entrega existente)
 async function registrarDevolucao(req, res) {
-  const id_entrega = req.params.id;      // vem da URL, não do body
+  const id_entrega = req.params.id; // vem da URL, não do body
   const empresa = req.usuario.empresa;
 
   try {
@@ -105,10 +126,14 @@ async function registrarDevolucao(req, res) {
     );
 
     if (entregas.length === 0) {
-      return res.status(404).json({ erro: 'Entrega não encontrada para esta empresa.' });
+      return res.status(404).json({
+        erro: 'Entrega não encontrada para esta empresa.'
+      });
     }
     if (entregas[0].st_entrega === 'D') {
-      return res.status(409).json({ erro: 'Este EPI já foi devolvido.' });
+      return res.status(409).json({
+        erro: 'Este EPI já foi devolvido.'
+      });
     }
 
     // Atualiza: marca como devolvido e grava a data. (Opção A: NÃO repõe estoque.)
@@ -119,12 +144,23 @@ async function registrarDevolucao(req, res) {
       [id_entrega]
     );
 
-    await registrarLog({ empresa, tipo: 'DEVOLUCAO', descricao: 'Devolução de EPI', responsavel: req.usuario.id });
+    await registrarLog({
+      empresa,
+      tipo: 'DEVOLUCAO',
+      descricao: 'Devolução de EPI',
+      responsavel: req.usuario.id
+    });
 
-    return res.status(200).json({ mensagem: 'Devolução registrada com sucesso.' });
+    return res.status(200).json({
+      mensagem: 'Devolução registrada com sucesso.'
+    });
 
-  } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 
@@ -142,7 +178,9 @@ async function historicoFuncionario(req, res) {
       [id_funcionario, empresa]
     );
     if (funcs.length === 0) {
-      return res.status(404).json({ erro: 'Funcionário não encontrado para esta empresa.' });
+      return res.status(404).json({
+        erro: 'Funcionário não encontrado para esta empresa.'
+      });
     }
 
     const [historico] = await db.execute(
@@ -159,8 +197,12 @@ async function historicoFuncionario(req, res) {
       historico
     });
 
-  } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 
@@ -176,7 +218,9 @@ async function meusEquipamentos(req, res) {
       [req.usuario.id, empresa]
     );
     if (funcs.length === 0) {
-      return res.status(403).json({ erro: 'Apenas funcionários possuem equipamentos.' });
+      return res.status(403).json({
+        erro: 'Apenas funcionários possuem equipamentos.'
+      });
     }
     const id_funcionario = funcs[0].id_funcionario;
 
@@ -191,8 +235,11 @@ async function meusEquipamentos(req, res) {
 
     return res.status(200).json(equipamentos);
 
-  } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.', detalhe: err.message
+    });
   }
 }
 
@@ -207,11 +254,13 @@ async function pendentesConfirmacao(req, res) {
       [req.usuario.id, empresa]
     );
     if (funcs.length === 0) {
-      return res.status(403).json({ erro: 'Apenas funcionários possuem entregas.' });
+      return res.status(403).json({
+        erro: 'Apenas funcionários possuem entregas.'
+      });
     }
 
     const [pendentes] = await db.execute(
-      `SELECT e.id_entrega, e.dt_entrega, epi.nm_epi, u.nm_usuario AS entregue_por
+      `SELECT e.id_entrega, e.dt_entrega, epi.nm_epi, epi.tamanho_epi, u.nm_usuario AS entregue_por
        FROM tb_entrega e
        JOIN tb_epi epi ON epi.id_epi = e.tb_epi_id_epi
        JOIN tb_usuario u ON u.id_usuario = e.tb_usuario_id_usuario
@@ -223,7 +272,10 @@ async function pendentesConfirmacao(req, res) {
     return res.status(200).json(pendentes);
 
   } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 
@@ -244,7 +296,9 @@ async function confirmarRecebimento(req, res) {
       [id, req.usuario.id, empresa]
     );
     if (linhas.length === 0) {
-      return res.status(404).json({ erro: 'Entrega não encontrada ou já respondida.' });
+      return res.status(404).json({
+        erro: 'Entrega não encontrada ou já respondida.'
+      });
     }
 
     await db.execute(
@@ -261,10 +315,15 @@ async function confirmarRecebimento(req, res) {
       responsavel: req.usuario.id
     });
 
-    return res.status(200).json({ mensagem: 'Recebimento confirmado com sucesso.' });
+    return res.status(200).json({
+      mensagem: 'Recebimento confirmado com sucesso.'
+    });
 
   } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 
@@ -275,7 +334,9 @@ async function recusarRecebimento(req, res) {
   const empresa = req.usuario.empresa;
 
   if (!motivo || motivo.trim().length < 5) {
-    return res.status(400).json({ erro: 'Informe o motivo da recusa (mínimo 5 caracteres).' });
+    return res.status(400).json({
+      erro: 'Informe o motivo da recusa (mínimo 5 caracteres).'
+    });
   }
 
   try {
@@ -289,7 +350,9 @@ async function recusarRecebimento(req, res) {
       [id, req.usuario.id, empresa]
     );
     if (linhas.length === 0) {
-      return res.status(404).json({ erro: 'Entrega não encontrada ou já respondida.' });
+      return res.status(404).json({
+        erro: 'Entrega não encontrada ou já respondida.'
+      });
     }
 
     await db.execute(
@@ -308,10 +371,15 @@ async function recusarRecebimento(req, res) {
       responsavel: req.usuario.id
     });
 
-    return res.status(200).json({ mensagem: 'Recebimento recusado. O administrador será notificado.' });
+    return res.status(200).json({
+      mensagem: 'Recebimento recusado. O administrador será notificado.'
+    });
 
   } catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
   }
 }
 
