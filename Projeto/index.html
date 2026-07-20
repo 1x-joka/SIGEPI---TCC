@@ -14,7 +14,16 @@
   <!-- Os Termos são a PRIMEIRA tela: redireciona para o aceite antes de qualquer coisa -->
   <meta http-equiv="refresh" content="0; url=paginas/termos.html">
   <script>
-    window.location.replace('paginas/termos.html');
+    // Se o usuário já aceitou esta versão dos termos, vai direto para o login
+    const VERSAO_TERMOS = '1.0';
+    let jaAceitou = false;
+    try {
+      const registro = JSON.parse(localStorage.getItem('termosAceitos'));
+      jaAceitou = registro && registro.versao === VERSAO_TERMOS;
+    } catch (e) {
+      jaAceitou = false;
+    }
+    window.location.replace(jaAceitou ? 'paginas/loginpage.html' : 'paginas/termos.html');
   </script>
 </head>
 <body>
