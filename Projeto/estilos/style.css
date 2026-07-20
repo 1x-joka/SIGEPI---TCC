@@ -1842,20 +1842,37 @@ input[type="number"]::-webkit-outer-spin-button {
     margin-bottom: 4px;
   }
 
-  /* Termos */
+  /* Termos: no celular a página inteira rola e a caixa tem altura própria */
+  body.layout-flex:has(.termos-page-wrap) {
+    height: auto;
+    overflow: visible;
+  }
+
+  .page-center--top {
+    align-items: flex-start;
+    overflow: visible;
+  }
+
+  .termos-page-wrap {
+    display: block;
+  }
+
   .termos-titulo {
     font-size: 24px;
   }
 
-  .termos-subtitulo { font-size: 14px;
+  .termos-subtitulo {
+    font-size: 14px;
   }
 
   .termos-card {
+    display: block;
     padding: 20px 16px;
   }
 
   .termos-conteudo {
-    max-height: 44vh;
+    height: 55vh;
+    min-height: 240px;
     padding: 16px;
   }
 
