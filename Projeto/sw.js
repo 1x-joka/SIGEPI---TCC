@@ -1,7 +1,7 @@
 // sw.js = Um script que fica em segundo plano e guarda os arquivos pra abrir offline
 // manifest.json = A "identidade" do app: nome, cor, ícone, por onde abre
 
-const CACHE_NOME = 'sigepi-v5'; // Sempre que mexer no sw.js troque para 'sigepi-v1,v2,v3,v4,v5,...'
+const CACHE_NOME = 'sigepi-v6'; // Sempre que mexer no sw.js troque para 'sigepi-v1,v2,v3,v4,v5,...'
 
 // Arquivos que ficam guardados para o app abrir mesmo sem internet
 const ARQUIVOS = [

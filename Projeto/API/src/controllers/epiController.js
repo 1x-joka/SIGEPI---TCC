@@ -114,13 +114,13 @@ async function listarEpis(req, res) {
 
     // ADMIN vê todos os EPIs ativos da empresa
     const [epis] = await db.execute(
-      `SELECT epi.id_epi, epi.nm_epi, epi.ca_epi, epi.st_epi, epi.dt_validade_ca,
+      `SELECT epi.id_epi, epi.nm_epi, epi.tamanho_epi, epi.ca_epi, epi.st_epi, epi.dt_validade_ca,
               COALESCE(SUM(es.qtd_disponivel_estoque), 0) AS quantidade,
               COALESCE(MAX(es.qtd_minima_estoque), 0) AS limite
        FROM tb_epi epi
        LEFT JOIN tb_estoque es ON es.tb_epi_id_epi = epi.id_epi
        WHERE epi.tb_empresa_id_empresa = ? AND epi.st_epi = 'A'
-       GROUP BY epi.id_epi, epi.nm_epi, epi.ca_epi, epi.st_epi, epi.dt_validade_ca
+       GROUP BY epi.id_epi, epi.nm_epi, epi.tamanho_epi, epi.ca_epi, epi.st_epi, epi.dt_validade_ca
        ORDER BY epi.nm_epi`,
       [empresa]
     );

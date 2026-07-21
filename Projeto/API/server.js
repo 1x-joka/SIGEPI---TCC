@@ -18,7 +18,6 @@ const logRoutes = require('./src/routes/logRoutes');
 const app = express();
 
 app.use(cors({ origin: 'https://sigepi-tcc.vercel.app' }));
-app.use(cors());
 app.use(express.json());
 
 // Limite geral: 300 requisições por IP a cada 15 min (uso normal nunca chega perto)
