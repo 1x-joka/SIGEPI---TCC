@@ -44,13 +44,6 @@ app.use('/api/solicitacao', solicitacaoRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/log', logRoutes);
 
-// Verificando se a API funciona (roda "npm start" no terminal na pasta API e testa no google com a url: http://localhost:3000/ )
-app.get('/', (req, res) => {
-  res.json({
-    mensagem: 'API SIGEPI funcionando!'
-  });
-});
-
 // catch-all que entrega o front
 app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'index.html'));
