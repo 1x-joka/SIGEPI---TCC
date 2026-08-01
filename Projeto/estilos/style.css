@@ -52,19 +52,17 @@ body.layout-flex {
    trava a altura no viewport para o scroll ficar DENTRO do .page-center,
    e não na página inteira. Não afeta as telas de admin (sem .page-center). */
 body.layout-flex:has(.page-center) {
-  height: 100vh;
-  height: 100dvh; /* mobile: desconta a barra do navegador (iOS/Android) */
-  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .page-center {
   flex: 1;
   min-height: 0;
   display: flex;
-  align-items: center;
+  align-items: safe center;
   justify-content: center;
   padding: 24px;
-  overflow-y: auto; /* Se faltar espaço na tela, o scroll fica no modal, não na tela completa (muito bom para telas pequenas/mobile) */
 }
 
 .page-center--top {
@@ -871,8 +869,7 @@ tr.row-yellow td {
 /* ===== PÁGINA DE TERMOS ===== */
 
 body.layout-flex:has(.termos-page-wrap) {
-    height: 100dvh;
-    overflow: hidden;
+    min-height: 100dvh;
 }
 
 .termos-page-wrap {
