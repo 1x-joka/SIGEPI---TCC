@@ -1,0 +1,8 @@
+{
+  "name": "sigepi",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "cd API && npm start",
+    "postinstall": "cd API && npm install"
+  }
+}
