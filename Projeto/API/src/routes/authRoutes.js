@@ -19,6 +19,6 @@ const authController = require('../controllers/authController');
 
 router.post('/cadastrar', authController.cadastrar); // Rota de cadastro de usuário
 router.post('/login', limiteLogin, authController.login);
-router.post('/logout', logout);
+router.post('/logout', authController.logout);
 
 module.exports = router;
