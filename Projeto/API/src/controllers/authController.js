@@ -143,15 +143,21 @@ async function login(req, res) {
       }
     );
 
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 8 * 60 * 60 * 1000
+    });
+
     return res.status(200).json({
       mensagem: 'Login realizado com sucesso.',
-      token,
       usuario: {
         id: usuario.id_usuario,
         nome: usuario.nm_usuario,
-        tipo: usuario.tb_tipousuario_id_tipousuario, // 1 = admin, 2 = funcionário
-        empresa: usuario.tb_empresa_id_empresa, // null se ainda não tem
-        completou: func.length > 0 // funcionário já completou?
+        tipo: usuario.tb_tipousuario_id_tipousuario,
+        empresa: usuario.tb_empresa_id_empresa,
+        completou: func.length > 0
       }
     });
   }
@@ -163,4 +169,15 @@ async function login(req, res) {
   }
 }
 
-module.exports = { cadastrar, login };
+async function logout(req, res) {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax'
+  });
+  return res.status(200).json({
+    mensagem: 'Logout realizado com sucesso.'
+  });
+}
+
+module.exports = { cadastrar, login, logout };

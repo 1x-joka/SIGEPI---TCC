@@ -4,8 +4,7 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
 async function autenticar(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = req.cookies.token;
 
   if (!token) {
     return res.status(401).json({

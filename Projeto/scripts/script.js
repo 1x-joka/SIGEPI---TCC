@@ -6,24 +6,26 @@ const API_URL = 'https://sigepi-tcc-production.up.railway.app/api';
 
 // SEGURANÇA: páginas com "data-protegida" no <body> exigem login. Sem token, volta ao login.
 document.addEventListener('DOMContentLoaded', () => {
-  if (document.body.hasAttribute('data-protegida') && !localStorage.getItem('token')) {
-    window.location.href = 'loginpage.html';
-  }
+  // A sessão é validada pela API a cada requisição (fetchAutenticado trata 401/403).
+  // O cookie é HttpOnly: o JavaScript não consegue lê-lo
 });
 
 // Helper: faz fetch já com o token do login no cabeçalho. Reaproveitável em toda tela protegida.
 async function fetchAutenticado(endpoint, opcoes = {}) {
-  const token = localStorage.getItem('token');
-  if (!token) {
+  const cabecalhos = {
+    'Content-Type': 'application/json',
+    ...(opcoes.headers || {})
+  };
+  const resposta = await fetch(`${API_URL}${endpoint}`, {
+    ...opcoes,
+    headers: cabecalhos,
+    credentials: 'include'
+  });
+  if (resposta.status === 401 || resposta.status === 403) {
     window.location.href = 'loginpage.html';
     return null;
   }
-  const cabecalhos = {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer ' + token,
-    ...(opcoes.headers || {})
-  };
-  return fetch(`${API_URL}${endpoint}`, { ...opcoes, headers: cabecalhos });
+  return resposta;
 }
 
 // ============================================================
@@ -156,14 +158,13 @@ async function fazerLogin() {
       // Aqui os mesmos que se configura no Postman (method, headers (Content-Type: application/json é o que se marca em "raw → JSON") e body (JSON.stringify({...}) é o JSON que se digita na aba Body))
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, senha, captchaToken })
+      body: JSON.stringify({ email, senha, captchaToken }),
+      credentials: 'include'
     });
 
     const dados = await resposta.json(); // await resposta.json() = lê o JSON que a API devolveu (a mensagem, o token, etc.).
 
     if (resposta.ok) { // Se o status foi 2xx (200/201). É o front reagindo aos status codes que os controllers definiram: sucesso → segue; erro → mostra a mensagem.
-      localStorage.setItem('token', dados.token); // Guarda o token do usuário no próprio navegador, ou seja, quando você transita entre telas o seu token continua guardado lá para ser usado nas outras páginas (empresa, EPI, etc.). O front vai ler esse token e mandar pra aba "Authorization" no Postman, é o ctrl c + ctrl v automático
-      localStorage.setItem('usuario', JSON.stringify(dados.usuario));
       erro.classList.remove('show');
 
       const u = dados.usuario;
@@ -423,24 +424,14 @@ async function cadastrarEmpresa() {
     return;
   }
 
-  // Lê o "crachá" guardado no login
-  const token = localStorage.getItem('token');
-  if (!token) {
-    alert('Sessão expirada. Faça login novamente.');
-    window.location.href = 'loginpage.html';
-    return;
-  }
-
   try {
     if (!validarCNPJ(cnpj)) { alert('CNPJ inválido.'); return; }
-    const resposta = await fetch(`${API_URL}/empresa/cadastrar`, {
+    const resposta = await fetchAutenticado('/empresa/cadastrar', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token   // mandar o token pro back, só que forma automática
-      },
       body: JSON.stringify({ nome, cnpj, responsavel, email, telefone, setor })
     });
+
+    if (!resposta) return;
 
     const dados = await resposta.json();
 

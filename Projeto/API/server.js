@@ -1,7 +1,8 @@
 const express = require('express');
-const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
+const path = require('path');
 require('dotenv').config();
 
 const authRoutes = require('./src/routes/authRoutes');
@@ -17,8 +18,9 @@ const logRoutes = require('./src/routes/logRoutes');
 
 const app = express();
 
-app.use(cors({ origin: 'https://sigepi-tcc.vercel.app' }));
 app.use(express.json());
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, '..')));
 
 // Limite geral: 300 requisições por IP a cada 15 min (uso normal nunca chega perto)
 const limiteGeral = rateLimit({
@@ -47,6 +49,11 @@ app.get('/', (req, res) => {
   res.json({
     mensagem: 'API SIGEPI funcionando!'
   });
+});
+
+// catch-all que entrega o front
+app.get(/^(?!\/api).*/, (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
 // Verificando se a API funciona (roda "npm start" no terminal na pasta API e tem que aparecer "Servidor rodando na porta 3000")
