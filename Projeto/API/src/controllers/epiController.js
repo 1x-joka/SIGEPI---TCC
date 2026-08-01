@@ -5,17 +5,18 @@ const registrarLog = require('../utils/registrarLog');
 async function cadastrarEpi(req, res) {
   const { nome, tamanho, descricao, ca, categoria, validadeCa, quantidade, quantidadeMinima, validade, setores } = req.body;
   const empresa = req.usuario.empresa;
-  if (!nome) return res.status(400).json({ erro: 'Informe o nome do EPI.' });
+  if (!nome) return res.status(400).json({
+    erro: 'Informe o nome do EPI.'
+  });
 
   const conexao = await db.getConnection();
   try {
    const [existe] = await conexao.execute("SELECT id_epi FROM tb_epi WHERE nm_epi = ? AND (tamanho_epi <=> ?) AND tb_empresa_id_empresa = ? AND st_epi = 'A'", [nome, tamanho || null, empresa]);
     if (existe.length > 0) {
-      conexao.release(); return res.status(409).json({ erro: 'Já existe um EPI com esse nome e tamanho nesta empresa.' });
-  }
-
-    if (existe.length > 0) {
-      conexao.release(); return res.status(409).json({ erro: 'Já existe um EPI com esse nome nesta empresa.' });
+      conexao.release();
+      return res.status(409).json({
+        erro: 'Já existe um EPI com esse nome e tamanho nesta empresa.'
+      });
     }
     if (ca) {
       const [caEx] = await conexao.execute("SELECT id_epi FROM tb_epi WHERE ca_epi = ? AND (tamanho_epi <=> ?) AND tb_empresa_id_empresa = ? AND st_epi = 'A'", [ca, tamanho || null, empresa]);

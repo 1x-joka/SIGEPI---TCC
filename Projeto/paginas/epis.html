@@ -109,7 +109,7 @@
         <div class="modal-col">
           <div class="form-group">
             <label for="cad-qtd">Quantidade Inicial <span class="req">*</span></label>
-            <input type="number" id="cad-qtd" placeholder="Digite a quantidade inicial" min="1">
+            <input type="number" id="cad-qtd" placeholder="Ex.: 80 — a quantidade total já em estoque" min="1">
             <span class="error-msg" id="cad-qtd-err">Quantidade obrigatória.</span>
           </div>
           <div class="form-group">
@@ -144,6 +144,7 @@
   <div class="modal-overlay" id="modal-adicionar" onclick="fecharSeOverlay(event,'modal-adicionar')">
     <div class="modal modal--sm">
       <h2>Adicionando ao Estoque</h2>
+      <p class="modal-dica">Recebeu vários itens iguais com a mesma validade? Cadastre tudo em uma única entrada informando a quantidade total — cada entrada gera um lote.</p>
       <div class="modal-form-col">
         <div class="form-group">
           <label for="add-epi">EPI <span class="req">*</span></label>
@@ -156,7 +157,7 @@
         </div>
         <div class="form-group">
           <label for="add-qtd">Quantidade a adicionar <span class="req">*</span></label>
-          <input type="number" id="add-qtd" placeholder="Digite a quantidade a adicionar" min="1">
+          <input type="number" id="add-qtd" placeholder="Ex.: 80 (a caixa inteira de uma vez)" min="1">
           <span class="error-msg" id="add-qtd-err">Quantidade obrigatória.</span>
         </div>
         <div class="form-group">
