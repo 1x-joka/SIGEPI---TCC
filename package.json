@@ -1,8 +1,19 @@
 {
   "name": "sigepi",
   "version": "1.0.0",
+  "main": "Projeto/API/server.js",
   "scripts": {
-    "start": "cd API && npm start",
-    "postinstall": "cd API && npm install"
+    "start": "node Projeto/API/server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.2",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.22.3"
   }
 }
