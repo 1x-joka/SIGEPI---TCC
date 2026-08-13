@@ -103,6 +103,10 @@ create table tb_usuario (
     cpf_usuario varchar(14) unique,
     tb_empresa_id_empresa int not null,
     tb_tipousuario_id_tipousuario int,
+    token_reset varchar(255) default null,
+    token_reset_expira datetime default null,
+    tentativas_reset int default 0,
+    reset_bloqueado_ate datetime default null,
     foreign key (tb_empresa_id_empresa) references tb_empresa(id_empresa),
     foreign key (tb_tipousuario_id_tipousuario) references tb_tipousuario(id_tipousuario)
 );
@@ -240,3 +244,9 @@ modify tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA'
 -- Adicionando a column 'tamanho' para melhor especificação das dimensões do EPI que o funcionário precisa
 alter table db_SIGEPI.tb_epi
 add column tamanho_epi varchar(20) after nm_epi;
+
+ALTER TABLE db_SIGEPI.tb_usuario
+  ADD COLUMN token_reset VARCHAR(255) DEFAULT NULL,
+  ADD COLUMN token_reset_expira DATETIME DEFAULT NULL,
+  ADD COLUMN tentativas_reset INT DEFAULT 0,
+  ADD COLUMN reset_bloqueado_ate DATETIME DEFAULT NULL;
