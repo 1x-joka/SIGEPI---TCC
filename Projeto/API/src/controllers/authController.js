@@ -296,7 +296,11 @@ async function redefinirSenha(req, res) {
     });
   }
   catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+    console.log('Erro SOLICITAR-RESET: ', err);
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message || err.sqlMessage || JSON.stringify(err)
+    });
   }
 }
 
