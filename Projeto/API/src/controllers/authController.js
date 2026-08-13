@@ -197,6 +197,7 @@ async function solicitarReset(req, res) {
       'SELECT id_usuario, nm_usuario, reset_bloqueado_ate, tentativas_reset FROM tb_usuario WHERE email_usuario = ?',
       [email]
     );
+    console.log('[reset] usuarios encontrados para', email, '=>', rows.length);
 
     // Resposta genérica de propósito: não revela se o e-mail existe (evita descobrir contas)
     const respostaGenerica = {
