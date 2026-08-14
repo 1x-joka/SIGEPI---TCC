@@ -206,7 +206,7 @@ values
 create table tb_log (
     id_log int primary key auto_increment,
     dt_log datetime default current_timestamp,
-    tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC','SOLICITACAO_APROVADA','SOLICITACAO_RECUSADA','ENTREGA_CONFIRMADA','ENTREGA_RECUSADA','LOGIN') not null,
+    tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC','SOLICITACAO_APROVADA','SOLICITACAO_RECUSADA','ENTREGA_CONFIRMADA','ENTREGA_RECUSADA','LOGIN','ATIVACAO_FUNC') not null,
     descricao varchar(255),
     equipamento varchar(45),
     quantidade int,
@@ -239,7 +239,11 @@ add column dt_confirmacao date after dt_entrega,
 add column motivo_recusa varchar(255) after dt_devolucao;
 
 alter table db_SIGEPI.tb_log 
+<<<<<<< Updated upstream
 modify tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC','SOLICITACAO_APROVADA','SOLICITACAO_RECUSADA','ENTREGA_CONFIRMADA','ENTREGA_RECUSADA','LOGIN') not null;
+=======
+modify tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC','SOLICITACAO_APROVADA','SOLICITACAO_RECUSADA','ENTREGA_CONFIRMADA','ENTREGA_RECUSADA','LOGIN','ATIVACAO_FUNC') not null;
+>>>>>>> Stashed changes
 
 -- Adicionando a column 'tamanho' para melhor especificação das dimensões do EPI que o funcionário precisa
 alter table db_SIGEPI.tb_epi
