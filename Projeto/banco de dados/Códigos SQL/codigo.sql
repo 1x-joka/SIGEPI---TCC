@@ -239,7 +239,7 @@ add column dt_confirmacao date after dt_entrega,
 add column motivo_recusa varchar(255) after dt_devolucao;
 
 alter table db_SIGEPI.tb_log 
-modify tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC','SOLICITACAO_APROVADA','SOLICITACAO_RECUSADA','ENTREGA_CONFIRMADA','ENTREGA_RECUSADA') not null;
+modify tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC','SOLICITACAO_APROVADA','SOLICITACAO_RECUSADA','ENTREGA_CONFIRMADA','ENTREGA_RECUSADA','LOGIN') not null;
 
 -- Adicionando a column 'tamanho' para melhor especificação das dimensões do EPI que o funcionário precisa
 alter table db_SIGEPI.tb_epi
