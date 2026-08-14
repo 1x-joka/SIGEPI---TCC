@@ -1966,7 +1966,18 @@ function renderFuncionarios() {
     }
     else {
       tdAcao.classList.add('acoes-nowrap');
+      const btnAtivar = document.createElement('button');
+      btnAtivar.className = 'btn btn-primary btn-acao-espaco';
+      btnAtivar.textContent = 'Ativar';
+      btnAtivar.onclick = () => ativarFuncionario(f.id_funcionario);
+      tdAcao.appendChild(btnAtivar);
     }
+
+    tr.appendChild(tdNome);
+    tr.appendChild(tdSetor);
+    tr.appendChild(tdEpis);
+    tr.appendChild(tdStatus);
+    tr.appendChild(tdAcao);
     tbody.appendChild(tr);
   });
 }
