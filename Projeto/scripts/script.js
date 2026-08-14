@@ -238,6 +238,67 @@ async function solicitarReset() {
   }
 }
 
+async function redefinirSenha() {
+  const token = new URLSearchParams(window.location.search).get('token');
+  const senha = document.getElementById('senha')?.value;
+  const senha2 = document.getElementById('senha2')?.value;
+  const erro = document.getElementById('senha-error');
+  const sucesso = document.getElementById('msg-sucesso');
+  if (!erro || !sucesso) return;
+
+  erro.classList.remove('show');
+  sucesso.classList.remove('show');
+
+  if (!token) {
+    erro.textContent = 'Link inválido. Solicite a recuperação novamente.';
+    erro.classList.add('show');
+    return;
+  }
+
+  if (!senha || !senha2) {
+    erro.textContent = 'Preencha os dois campos de senha.';
+    erro.classList.add('show');
+    return;
+  }
+
+  if (senha.length < 8) {
+    erro.textContent = 'A senha deve ter pelo menos 8 caracteres.';
+    erro.classList.add('show');
+    return;
+  }
+
+  if (senha !== senha2) {
+    erro.textContent = 'As senhas não coincidem.';
+    erro.classList.add('show');
+    return;
+  }
+
+  try {
+    const resposta = await fetch(`${API_URL}/auth/redefinir-senha`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, senha })
+    });
+    const dados = await resposta.json();
+
+    if (resposta.ok) {
+      sucesso.textContent = dados.mensagem;
+      sucesso.classList.add('show');
+      setTimeout(() => {
+        window.location.href = 'loginpage.html';
+      }, 2500);
+    }
+    else {
+      erro.textContent = dados.erro || 'Não foi possível redefinir a senha.';
+      erro.classList.add('show');
+    }
+  }
+  catch (err) {
+    erro.textContent = 'Não foi possível conectar ao servidor.';
+    erro.classList.add('show');
+  }
+}
+
 
 // ============================================================
 //  signuppage.html
