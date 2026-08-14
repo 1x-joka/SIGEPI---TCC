@@ -223,10 +223,6 @@ add dt_validade_ca date;
 select * from tb_epi;
 select * from tb_estoque;
 
--- Retirando a distinção entre nome e sobrenome do funcionário no cadastro (agora é somente nome completo/nome)
-alter table db_SIGEPI.tb_funcionario
-drop column sobrenome_funcionario;
-
 alter table db_SIGEPI.tb_funcionario
 modify nm_funcionario varchar(120) not null;
 
@@ -238,22 +234,9 @@ ALTER TABLE db_SIGEPI.tb_entrega
 add column dt_confirmacao date after dt_entrega,
 add column motivo_recusa varchar(255) after dt_devolucao;
 
-alter table db_SIGEPI.tb_log 
-<<<<<<< Updated upstream
-modify tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC','SOLICITACAO_APROVADA','SOLICITACAO_RECUSADA','ENTREGA_CONFIRMADA','ENTREGA_RECUSADA','LOGIN') not null;
-=======
+alter table db_SIGEPI.tb_log
 modify tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC','SOLICITACAO_APROVADA','SOLICITACAO_RECUSADA','ENTREGA_CONFIRMADA','ENTREGA_RECUSADA','LOGIN','ATIVACAO_FUNC') not null;
->>>>>>> Stashed changes
 
 -- Adicionando a column 'tamanho' para melhor especificação das dimensões do EPI que o funcionário precisa
 alter table db_SIGEPI.tb_epi
 add column tamanho_epi varchar(20) after nm_epi;
-
-ALTER TABLE db_SIGEPI.tb_usuario
-  ADD COLUMN token_reset VARCHAR(255) DEFAULT NULL,
-  ADD COLUMN token_reset_expira DATETIME DEFAULT NULL,
-  ADD COLUMN tentativas_reset INT DEFAULT 0,
-  ADD COLUMN reset_bloqueado_ate DATETIME DEFAULT NULL;
-  
-ALTER TABLE db_SIGEPI.tb_log
-MODIFY tipo_acao ENUM('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC','SOLICITACAO_APROVADA','SOLICITACAO_RECUSADA','ENTREGA_CONFIRMADA','ENTREGA_RECUSADA','LOGIN') NOT NULL;
