@@ -547,6 +547,36 @@ select.select-readonly {
   font-size: 15px;
 }
 
+.link-esqueci {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--nav-link);
+  text-decoration: none;
+}
+
+.link-esqueci:hover {
+  text-decoration: underline;
+}
+
+.texto-ajuda {
+  font-size: 14px;
+  color: var(--text-dark);
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.msg-sucesso {
+  color: #2e7d32;
+  font-size: 13px;
+  margin: 12px 0;
+  display: none;
+}
+
+.msg-sucesso.show {
+  display: block;
+}
+
 /* ===== TABLES ===== */
 
 table {
