@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redefinir senha - SIGEPI</title>
+  <link rel="stylesheet" href="../estilos/style.css">
+  <link rel="shortcut icon" href="../icons/favicon-capacete.png" type="image/png">
+
+  <!-- PWA -->
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#3c98bd">
+  <link rel="apple-touch-icon" href="../imagens/icone-192.png">
+  <!-- PWA -->
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="../scripts/script.js" defer></script>
+</head>
+<body class="layout-flex">
+  <header class="header">
+    <div class="logo-wrap">
+      <span class="logo-title">SIGEPI</span>
+      <span class="logo-sub">Gerenciador de EPI Online</span>
+    </div>
+    <a href="loginpage.html" class="header-link">Login</a>
+  </header>
+
+  <div class="page-center">
+    <div class="login-card">
+      <h1>Redefinir senha</h1>
+      <p class="texto-ajuda">Crie uma nova senha para sua conta. Ela deve ter pelo menos 8 caracteres.</p>
+      <div class="form-group form-group--login">
+        <label for="senha">Nova senha <span class="req">*</span></label>
+        <div class="senha-wrap">
+          <input type="password" placeholder="Digite a nova senha" id="senha">
+          <button type="button" class="btn-olho" onclick="toggleSenha('senha', this)" aria-label="Mostrar senha">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+      </div>
+      <div class="form-group form-group--login">
+        <label for="senha2">Confirmar nova senha <span class="req">*</span></label>
+        <div class="senha-wrap">
+          <input type="password" placeholder="Repita a nova senha" id="senha2">
+          <button type="button" class="btn-olho" onclick="toggleSenha('senha2', this)" aria-label="Mostrar senha">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+        <span class="error-msg" id="senha-error">As senhas não coincidem.</span>
+      </div>
+      <p class="msg-sucesso" id="msg-sucesso"></p>
+      <button class="btn btn-primary btn-entrar" onclick="redefinirSenha()">Salvar nova senha</button>
+    </div>
+  </div>
+</body>
+</html>
