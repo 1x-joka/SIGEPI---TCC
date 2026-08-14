@@ -324,4 +324,85 @@ async function editarFuncionario(req, res) {
   }
 }
 
-module.exports = { entrarEmpresa, completarCadastro, listarFuncionarios, inativarFuncionario, editarFuncionario };
+// ADMIN reativa um funcionário (reverte a exclusão lógica) + desbloqueia o acesso dele
+async function ativarFuncionario(req, res) {
+  const id_funcionario = req.params.id;
+  const empresa = req.usuario.empresa;
+
+  const conexao = await db.getConnection();
+
+  try {
+    // Segurança: precisa ser DESTA empresa e estar INATIVO
+    const [funcs] = await conexao.execute(
+      `SELECT id_funcionario, st_funcionario, tb_usuario_id_usuario
+       FROM tb_funcionario
+       WHERE id_funcionario = ? AND tb_empresa_id_empresa = ?`,
+      [id_funcionario, empresa]
+    );
+
+    if (funcs.length === 0) {
+      return res.status(404).json({
+        erro: 'Funcionário não encontrado para esta empresa.'
+      });
+    }
+    if (funcs[0].st_funcionario === 'A') {
+      return res.status(409).json({
+        erro: 'Este funcionário já está ativo.'
+      });
+    }
+
+    const id_usuario = funcs[0].tb_usuario_id_usuario;
+
+    await conexao.beginTransaction();
+
+    // 1) Reativa o funcionário e limpa os dados da inativação anterior
+    await conexao.execute(
+      `UPDATE tb_funcionario
+       SET st_funcionario = 'A', motivo_inativacao_funcionario = NULL, data_inativacao = NULL
+       WHERE id_funcionario = ?`,
+      [id_funcionario]
+    );
+
+    // 2) Desbloqueia o acesso: usuário vinculado volta a ativo
+    if (id_usuario) {
+      await conexao.execute(
+        `UPDATE tb_usuario SET st_usuario = 'A' WHERE id_usuario = ?`,
+        [id_usuario]
+      );
+    }
+
+    await conexao.commit();
+
+    const [dadosFunc] = await db.execute(
+      `SELECT f.nm_funcionario, u.cpf_usuario FROM tb_funcionario f
+       LEFT JOIN tb_usuario u ON u.id_usuario = f.tb_usuario_id_usuario
+       WHERE f.id_funcionario = ?`, [id_funcionario]
+    );
+    const alvo = dadosFunc[0] ? `${dadosFunc[0].nm_funcionario} (CPF: ${dadosFunc[0].cpf_usuario || '—'})` : null;
+    await registrarLog({
+      empresa,
+      tipo: 'ATIVACAO_FUNC',
+      descricao: 'Reativação de funcionário',
+      equipamento: alvo,
+      responsavel: req.usuario.id
+    });
+
+    return res.status(200).json({
+      mensagem: 'Funcionário reativado com sucesso.'
+    });
+
+  }
+  catch (err) {
+    await conexao.rollback();
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
+
+  }
+  finally {
+    conexao.release();
+  }
+}
+
+module.exports = { entrarEmpresa, completarCadastro, listarFuncionarios, inativarFuncionario, editarFuncionario, ativarFuncionario };
