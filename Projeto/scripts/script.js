@@ -1125,6 +1125,28 @@ async function inativarFuncionario() {
   }
 }
 
+// ADMIN reativa um funcionário inativo (desbloqueia o acesso dele)
+async function ativarFuncionario(id) {
+  if (!confirm('Deseja reativar este funcionário? O acesso dele será desbloqueado.')) return;
+
+  try {
+    const resp = await fetchAutenticado(`/funcionario/${id}/ativar`, {
+      method: 'PUT'
+    });
+    if (!resp) return;
+    const dados = await resp.json();
+    if (resp.ok) {
+      await carregarFuncionarios();
+    }
+    else {
+      alert(dados.erro || 'Erro ao reativar funcionário.');
+    }
+  }
+  catch (err) {
+    alert('Não foi possível conectar ao servidor.');
+  }
+}
+
 // Abre as solicitações pendentes de um funcionário (admin)
 async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
   const tbody = document.getElementById('tbody-solicitacoes');
@@ -1257,6 +1279,7 @@ async function carregarHistorico() {
         ENTREGA_RECUSADA:'Recebimento Recusado',
         DEVOLUCAO:'Devolução',
         INATIVACAO_FUNC:'Inativação de Funcionário',
+        ATIVACAO_FUNC:'Reativação de Funcionário',
         INATIVACAO_EPI:'Inativação de EPI',
         EDICAO_FUNC:'Edição de Funcionário',
         SOLICITACAO_APROVADA:'Solicitação Aprovada',
@@ -1265,7 +1288,7 @@ async function carregarHistorico() {
       };
       
       // Ações que envolvem funcionário: o "alvo" (nome + CPF) fica sob o Tipo
-      const acoesDeFuncionario = ['INATIVACAO_FUNC', 'EDICAO_FUNC'];
+      const acoesDeFuncionario = ['INATIVACAO_FUNC', 'EDICAO_FUNC', 'ATIVACAO_FUNC'];
 
       logs.forEach(l => {
         const tr = document.createElement('tr');
