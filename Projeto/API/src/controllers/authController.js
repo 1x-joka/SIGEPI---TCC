@@ -152,6 +152,14 @@ async function login(req, res) {
       maxAge: 8 * 60 * 60 * 1000
     });
 
+    // Registra o acesso ao sistema (auditoria de login)
+    await registrarLog({
+      empresa: usuario.tb_empresa_id_empresa,
+      tipo: 'LOGIN',
+      descricao: 'Acesso ao sistema',
+      responsavel: usuario.id_usuario
+    });
+
     return res.status(200).json({
       mensagem: 'Login realizado com sucesso.',
       usuario: {
