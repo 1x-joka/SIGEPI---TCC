@@ -1260,7 +1260,8 @@ async function carregarHistorico() {
         INATIVACAO_EPI:'Inativação de EPI',
         EDICAO_FUNC:'Edição de Funcionário',
         SOLICITACAO_APROVADA:'Solicitação Aprovada',
-        SOLICITACAO_RECUSADA:'Solicitação Recusada'
+        SOLICITACAO_RECUSADA:'Solicitação Recusada',
+        LOGIN:'Acesso ao Sistema'
       };
       
       // Ações que envolvem funcionário: o "alvo" (nome + CPF) fica sob o Tipo
