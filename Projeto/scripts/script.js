@@ -200,6 +200,44 @@ document.addEventListener('keydown', function (e) {
   }
 });
 
+async function solicitarReset() {
+  const email = document.getElementById('email')?.value;
+  const erro = document.getElementById('email-error');
+  const sucesso = document.getElementById('msg-sucesso');
+  if (!erro || !sucesso) return;
+
+  erro.classList.remove('show');
+  sucesso.classList.remove('show');
+
+  if (!email) {
+    erro.textContent = 'Informe o e-mail.';
+    erro.classList.add('show');
+    return;
+  }
+
+  try {
+    const resposta = await fetch(`${API_URL}/auth/solicitar-reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const dados = await resposta.json();
+
+    if (resposta.ok) {
+      sucesso.textContent = dados.mensagem;
+      sucesso.classList.add('show');
+    }
+    else {
+      erro.textContent = dados.erro || 'Não foi possível enviar o link.';
+      erro.classList.add('show');
+    }
+  }
+  catch (err) {
+    erro.textContent = 'Não foi possível conectar ao servidor.';
+    erro.classList.add('show');
+  }
+}
+
 
 // ============================================================
 //  signuppage.html
