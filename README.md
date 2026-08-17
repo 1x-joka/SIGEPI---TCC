@@ -108,7 +108,7 @@ O sistema abre em `http://127.0.0.1:5500/Projeto/index.html`.
 | Desenvolvimento Back-end | ✅ Concluído |
 | Responsividade | ✅ Concluído |
 | Adaptação PWA | ✅ Concluído |
-| Testes e Ajustes Finais | ⏳ Previsto |
+| Testes e Ajustes Finais | 🔄 Em Andamento |
 
 ---
 
