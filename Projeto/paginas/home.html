@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../estilos/style.css">
+<!-- Ativa as animações de scroll só quando há JS. Sem JS, o conteúdo aparece normalmente. -->
+<script>document.documentElement.classList.add('js-anim');</script>
 </head>
 <body>
 
@@ -32,8 +34,10 @@
     </div>
     <div class="hero-visual reveal">
       <div class="banner-placeholder">
-        <img src="../imagens/banner.jpg" viewBox="0 0 24 24" fill="none">
-            </div>
+        <img src="../imagens/logo.png" alt="SIGEPI" style="width:auto;max-height:58%;opacity:0.92;">
+        <span class="bp-label">Painel de gestão de EPI</span>
+        <span class="bp-sub">Substitua por um print do sistema</span>
+      </div>
     </div>
   </div>
 </section>
@@ -138,40 +142,40 @@
       <h2>A equipe por trás do sistema</h2>
       <p>Quatro criadores, um único gerenciador de EPI.</p>
     </div>
-    <div class="badge-grid">
-      <div class="badge reveal">
+    <div class="cracha-grid">
+      <div class="cracha reveal">
         <div class="stripe" style="background:var(--teal);"></div>
         <div class="content">
-          <div class="avatar" style="background:var(--teal);"><div class="bola"><img src="./img/IG.png"></div></div>
+          <div class="avatar" style="background:var(--teal);">I</div>
           <h3>Igor</h3>
-          <div class="role">Desevolvedor</div>
+          <div class="role">Desenvolvedor</div>
           <div class="id-num">CRACHÁ Nº 01</div>
         </div>
       </div>
-      <div class="badge reveal">
+      <div class="cracha reveal">
         <div class="stripe" style="background:var(--green);"></div>
         <div class="content">
-          <div class="avatar" style="background:var(--navy);"><div class="bola"><img src="./img/davi.png"></div></div>
+          <div class="avatar" style="background:var(--navy);">D</div>
           <h3>Davi</h3>
           <div class="role">Documentação</div>
           <div class="id-num">CRACHÁ Nº 02</div>
         </div>
       </div>
-      <div class="badge reveal">
+      <div class="cracha reveal">
         <div class="stripe" style="background:var(--red);"></div>
         <div class="content">
-          <div class="avatar" style="background:var(--teal-deep);"><div class="bola"><img src="./img/JP.png"></div></div>
+          <div class="avatar" style="background:var(--teal-deep);">J</div>
           <h3>João</h3>
-          <div class="role">Desenvolvedor/Idealizador</div>
+          <div class="role">Desenvolvedor / Idealizador</div>
           <div class="id-num">CRACHÁ Nº 03</div>
         </div>
       </div>
-      <div class="badge reveal">
+      <div class="cracha reveal">
         <div class="stripe" style="background:var(--orange);"></div>
         <div class="content">
-          <div class="avatar" style="background:var(--steel);"><div class="bola"><img src="https://www.cartacapital.com.br/wp-content/uploads/2019/01/tintin-1.jpg"></div></div>
+          <div class="avatar" style="background:var(--steel);">J</div>
           <h3>Joaquim</h3>
-          <div class="role">Desenvolvedor/ prototipagem</div>
+          <div class="role">Desenvolvedor / Prototipagem</div>
           <div class="id-num">CRACHÁ Nº 04</div>
         </div>
       </div>
@@ -189,15 +193,20 @@
 
 <script>
   const els = document.querySelectorAll('.reveal');
-  const io = new IntersectionObserver((entries)=>{
-    entries.forEach(e=>{
-      if(e.isIntersecting){
-        e.target.classList.add('in');
-        io.unobserve(e.target);
-      }
-    });
-  },{threshold:0.15});
-  els.forEach(el=>io.observe(el));
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    els.forEach(el => io.observe(el));
+  }
+  else {
+    els.forEach(el => el.classList.add('in'));
+  }
 </script>
 
 </body>
