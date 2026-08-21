@@ -2105,22 +2105,6 @@ input[type="number"]::-webkit-outer-spin-button {
 
 
 
-*{box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{
-  margin:0;
-  background:#fff;
-  color:var(--ink);
-  font-family:'Inter',sans-serif;
-  -webkit-font-smoothing:antialiased;
-}
-h1,h2,h3,.display{
-  font-size: 28px;
-  color: #0f2630;;
-  font-weight: 700;
-  color: var(--text-dark);
-  letter-spacing: -0.5px;
-}
 .mono{
   font-family:'IBM Plex Mono',monospace;
 }
@@ -2136,47 +2120,7 @@ section{position:relative;}
 }
 
 /* ---------- HEADER ---------- */
-header{
-  background:var(--teal);
-  color:#fff;
-}
-.nav{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:22px 0;
-}
-.logo-mark{
-  display:flex;
-  align-items:baseline;
-  gap:10px;
-}
-.logo-mark .display{font-size:28px;color:#0f2630;}
-.logo-mark .tag{
-  font-size: 13px;
-  color: #0f2630;
-  font-weight: 300;
-  position: absolute;
-  top: 60px;
-  left: 50px;
-}
-.nav-links{
-  display:flex;
-  gap:32px;
-  font-size:15px;
-  font-weight:500;
-}
-.nav-links a{opacity:0.88;transition:opacity .15s;}
-.nav-links a:hover{opacity:1;}
-.nav-cta{
-  background:#fff;
-  color:var(--teal-deep);
-  font-weight:700;
-  font-size:14px;
-  padding:10px 20px;
-  border-radius:999px;
-  white-space:nowrap;
-}
+
 
 /* ---------- HERO ---------- */
 .hero{
@@ -2231,21 +2175,7 @@ header{
   margin-top:32px;
   flex-wrap:wrap;
 }
-.btn{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:14px 24px;
-  border-radius:999px;
-  font-weight:700;
-  font-size:15px;
-  cursor:pointer;
-  border:2px solid transparent;
-  transition:transform .15s ease;
-}
-.btn:hover{transform:translateY(-2px);}
-.btn-primary{background:#fff;color:var(--teal-deep);}
-.btn-ghost{border-color:rgba(255,255,255,0.5);color:#fff;}
+
 
 /* hero visual: banner placeholder */
 .hero-visual{
