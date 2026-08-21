@@ -12,7 +12,7 @@
   <!-- PWA -->
    
   <!-- Os Termos são a PRIMEIRA tela: redireciona para o aceite antes de qualquer coisa -->
-  <meta http-equiv="refresh" content="0; url=paginas/termos.html">
+  <meta http-equiv="refresh" content="0; url=paginas/home.html">
   <script>
     // Se o usuário já aceitou esta versão dos termos, vai direto para o login
     const VERSAO_TERMOS = '1.0';
@@ -23,10 +23,10 @@
     } catch (e) {
       jaAceitou = false;
     }
-    window.location.replace(jaAceitou ? 'paginas/loginpage.html' : 'paginas/termos.html');
+    window.location.replace(jaAceitou ? 'paginas/loginpage.html' : 'paginas/home.html');
   </script>
 </head>
 <body>
-  <p>Redirecionando para os Termos de Uso… <a href="paginas/termos.html">clique aqui</a> se não for automático.</p>
+  <p>Redirecionando para os Termos de Uso… <a href="paginas/home.html">clique aqui</a> se não for automático.</p>
 </body>
 </html>
