@@ -85,12 +85,22 @@ function validarCPF(cpf) {
   cpf = cpf.replace(/\D/g, '');
   if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false; // rejeita 111.111.111-11 etc.
   let soma = 0;
-  for (let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
-  let d1 = (soma * 10) % 11; if (d1 === 10) d1 = 0;
+  for (let i = 0; i < 9; i++) {
+    soma += parseInt(cpf[i]) * (10 - i);
+  }
+  let d1 = (soma * 10) % 11; 
+  if (d1 === 10) {
+    d1 = 0;
+  }
   if (d1 !== parseInt(cpf[9])) return false;
   soma = 0;
-  for (let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
-  let d2 = (soma * 10) % 11; if (d2 === 10) d2 = 0;
+  for (let i = 0; i < 10; i++) {
+    soma += parseInt(cpf[i]) * (11 - i);
+  }
+  let d2 = (soma * 10) % 11;
+  if (d2 === 10) {
+    d2 = 0;
+  }
   return d2 === parseInt(cpf[10]);
 }
 
@@ -100,7 +110,9 @@ function validarCNPJ(cnpj) {
   if (cnpj.length !== 14 || /^(\d)\1{13}$/.test(cnpj)) return false;
   const calc = (base, pesos) => {
     let soma = 0;
-    for (let i = 0; i < pesos.length; i++) soma += parseInt(base[i]) * pesos[i];
+    for (let i = 0; i < pesos.length; i++) {
+      soma += parseInt(base[i]) * pesos[i];
+    }
     const r = soma % 11;
     return r < 2 ? 0 : 11 - r;
   };
@@ -149,7 +161,10 @@ async function fazerLogin() {
   const captchaToken = typeof grecaptcha !== 'undefined' ? grecaptcha.getResponse() : '';
   if (!captchaToken) {
     const capErro = document.getElementById('captcha-error');
-    if (capErro) { capErro.textContent = 'Confirme que você não é um robô.'; capErro.classList.add('show'); }
+    if (capErro) {
+      capErro.textContent = 'Confirme que você não é um robô.';
+      capErro.classList.add('show');
+    }
     return;
   }
 
@@ -158,7 +173,11 @@ async function fazerLogin() {
       // Aqui os mesmos que se configura no Postman (method, headers (Content-Type: application/json é o que se marca em "raw → JSON") e body (JSON.stringify({...}) é o JSON que se digita na aba Body))
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, senha, captchaToken }),
+      body: JSON.stringify({
+        email,
+        senha,
+        captchaToken
+      }),
       credentials: 'include'
     });
 
@@ -357,7 +376,8 @@ async function cadastrar() {
   setErro('senha-error', senha.length < 8);
   if (senha.length < 8) valid = false;
   setErro('cpf-error', cpf.replace(/\D/g,'').length < 11);
-  setErro('cpf-error', !validarCPF(cpf)); if (!validarCPF(cpf)) valid = false;
+  setErro('cpf-error', !validarCPF(cpf));
+  if (!validarCPF(cpf)) valid = false;
   if (!tipo) valid = false;
 
   if (!valid) return;
@@ -366,7 +386,13 @@ async function cadastrar() {
     const resposta = await fetch(`${API_URL}/auth/cadastrar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, email, senha, cpf, tipo: parseInt(tipo) })
+      body: JSON.stringify({
+        nome,
+        email,
+        senha,
+        cpf,
+        tipo: parseInt(tipo)
+      })
     });
 
     const dados = await resposta.json();
@@ -527,7 +553,14 @@ async function cadastrarEmpresa() {
     if (!validarCNPJ(cnpj)) { alert('CNPJ inválido.'); return; }
     const resposta = await fetchAutenticado('/empresa/cadastrar', {
       method: 'POST',
-      body: JSON.stringify({ nome, cnpj, responsavel, email, telefone, setor })
+      body: JSON.stringify({
+        nome,
+        cnpj,
+        responsavel,
+        email,
+        telefone,
+        setor
+      })
     });
 
     if (!resposta) return;
