@@ -1,11 +1,11 @@
 /* LOCAL QUE AS ROTAS SÃO CRIADAS PARA MELHOR VISIBILIDADE E MANUTENÇÃO */
 
-const db = require('../config/db');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const db = require('../config/db'); // para comunicação com o banco de dados (insert, group by...)
+const bcrypt = require('bcrypt'); // para criptografia de dados, nesse contexto, senha
+const jwt = require('jsonwebtoken'); // para gerar um token que será transportado e guardado através da forma JSON
 const registrarLog = require('../utils/registrarLog'); // puxando o log de auditoria para ver e registrar o que está acontecendo em cada Controller
 const { validarCPF } = require('../utils/validadores');
-const crypto = require('crypto');
+const crypto = require('crypto'); // gera tokens seguros, pertmite a criptografia e gera IDs
 const { enviarEmailRecuperacao } = require('../utils/enviarEmail');
 
 async function cadastrar(req, res) {
@@ -17,6 +17,7 @@ async function cadastrar(req, res) {
     });
   }
 
+  // Definindo a hierarquia do sistema e permitindo ao usuário escolher no cadastro
   const tipoNum = parseInt(tipo);
   if (tipoNum !== 1 && tipoNum !== 2) {
     return res.status(400).json({
@@ -30,6 +31,7 @@ async function cadastrar(req, res) {
     });
   }
 
+  // Evitando registros duplicados
   try {
     const [existe] = await db.execute(
       'SELECT email_usuario, cpf_usuario FROM tb_usuario WHERE email_usuario = ? OR cpf_usuario = ?', [email, cpf]
@@ -41,8 +43,9 @@ async function cadastrar(req, res) {
       });
     }
 
-    const hash = await bcrypt.hash(senha, 10);
+    const hash = await bcrypt.hash(senha, 10); // Criptografando a senha...
 
+    // Inserindo a senha no banco de dados
     await db.execute(
       `INSERT INTO tb_usuario
         (nm_usuario, email_usuario, senha_usuario, cpf_usuario, st_usuario, dt_cadastro_usuario, tb_tipousuario_id_tipousuario)
@@ -85,7 +88,7 @@ async function login(req, res) {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: `secret=${process.env.RECAPTCHA_SECRET}&response=${captchaToken}`
+      body: `secret=${process.env.RECAPTCHA_SECRET}&response=${captchaToken}` // Verificando se a chave do reCAPTCHA esta no .ENV e é a correta
     });
     const resultado = await respCaptcha.json();
     if (!resultado.success) {
@@ -127,7 +130,7 @@ async function login(req, res) {
     }
 
     // A ordem importa: colocamos depois de validar a senha de propósito. Assim, quem erra a senha recebe "credenciais inválidas" (sem revelar que a conta existe), e só quem acerta a senha de uma conta inativa é que descobre que está bloqueado. É um detalhe de segurança (não vazar informação a quem nem sabe a senha).
-
+    
     // Descobre se o funcionário já completou o cadastro (tem linha em tb_funcionario)
     const [func] = await db.execute(
       'SELECT id_funcionario FROM tb_funcionario WHERE tb_usuario_id_usuario = ?',
@@ -145,6 +148,7 @@ async function login(req, res) {
       }
     );
 
+    // Criando o token
     res.cookie('token', token, {
       httpOnly: true,
       secure: true,
@@ -160,6 +164,7 @@ async function login(req, res) {
       responsavel: usuario.id_usuario
     });
 
+    // A resposta é aparecer esses dados no Histórico
     return res.status(200).json({
       mensagem: 'Login realizado com sucesso.',
       usuario: {
@@ -179,6 +184,7 @@ async function login(req, res) {
   }
 }
 
+// Registrando logout
 async function logout(req, res) {
   res.clearCookie('token', {
     httpOnly: true,
