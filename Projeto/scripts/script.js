@@ -11,10 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Helper: faz fetch já com o token do login no cabeçalho. Reaproveitável em toda tela protegida.
+// endpoint = rota específica que a API recebe a requisição (pedido do que fazer)
 async function fetchAutenticado(endpoint, opcoes = {}) {
+  // configurando o cabeçalho da URL
   const cabecalhos = {
-    'Content-Type': 'application/json',
-    ...(opcoes.headers || {})
+    'Content-Type': 'application/json', // informando que os dados serão enviados em formato JSON
+    ...(opcoes.headers || {}) // Spread (...) para copiar todas as propriedades de um objeto para dentro desse novo
   };
   const resposta = await fetch(`${API_URL}${endpoint}`, {
     ...opcoes,
@@ -33,7 +35,7 @@ async function fetchAutenticado(endpoint, opcoes = {}) {
 // ============================================================
 
 function abrirModal(id) {
-  document.getElementById(id).classList.add('active');
+  document.getElementById(id).classList.add('active'); // o modal já está feito no html, mas está ocultado/desativado, esse comando faz aparecer ao ser pedido
 }
 
 function fecharModal(id) {
@@ -46,7 +48,7 @@ function fecharSeOverlay(event, id) {
 
 function limparModalCadastrarEpi() {
   ['cad-nome','cad-tamanho','cad-desc','cad-ca','cad-validade','cad-qtd','cad-limite','cad-cat']
-    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; }); // a cada (forEach) campo da lista, o valor (value) fica vazio (limpo) caso essa função seja chamada
   document.querySelectorAll('.chk-setor-epi').forEach(c => c.checked = false);
 }
 
@@ -55,7 +57,7 @@ function toggleVisivel(id, mostrar) {
   if (!el){
     return;
   }
-  el.style.display = mostrar ? '' : 'none';
+  el.style.display = mostrar ? '' : 'none'; // modifica a propriedade "display" do el utilizando a condição if, porém de uma forma simplificada, com o ?. E, se não, represenado pelo :, muda a propriedade para none (oculta)
 }
 
 function setErro(id, mostrar) {
@@ -74,7 +76,7 @@ function toggleSenha(idInput, btn) {
   input.type = vaiMostrar ? 'text' : 'password';
 
   const icone = btn.querySelector('i');
-  if (icone) icone.className = vaiMostrar ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+  if (icone) icone.className = vaiMostrar ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'; // caso o icone (olho) seja True, o que estiver dentro do input será mostrado
   btn.setAttribute('aria-label', vaiMostrar ? 'Ocultar senha' : 'Mostrar senha');
 }
 
@@ -125,8 +127,8 @@ function validarCNPJ(cnpj) {
 // Formata data do banco (YYYY-MM-DD) sem passar por Date — evita erro de fuso horário
 function formatarData(valor) {
   if (!valor) return '—';
-  const iso = String(valor).substring(0, 10);
-  const [ano, mes, dia] = iso.split('-');
+  const iso = String(valor).substring(0, 10); // String(valor) transforma o que for que seja em texto, em seguida o substring corta os 10 primeiros caracteres  (ex.: de 2026-08-28T14:30:00.00.000Z vai para 2026-08-28)
+  const [ano, mes, dia] = iso.split('-'); // quebrando o texto em "-" e salvando numa mesma lista
   if (!dia || !mes || !ano) return '—';
   return `${dia}/${mes}/${ano}`;
 }
@@ -152,7 +154,7 @@ async function fazerLogin() {
   if (!erro) return;
 
   if (!email || !senha) {
-    erro.textContent = 'Preencha todos os campos.';
+    erro.textContent = 'Preencha todos os campos.'; // mostra um label com essa mensagem caso algum dos dois campos não forem preenchidos
     erro.classList.add('show');
     return;
   }
@@ -213,6 +215,7 @@ async function fazerLogin() {
   }
 }
 
+// Permitindo que o usuário clique Enter e redirecione para o respectivo funcionamento (fazer o Login)
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Enter' && document.getElementById('email') && document.getElementById('senha')) {
     fazerLogin();
@@ -328,10 +331,12 @@ function iniciarMascaraCPF() {
   if (!cpfInput) {
     return;
   }
-  cpfInput.addEventListener('input', function () {
-    let v = this.value.replace(/\D/g, '');
 
-    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+  // Formatando o CPF conforme o usuário digita
+  cpfInput.addEventListener('input', function () {
+    let v = this.value.replace(/\D/g, ''); // remove automaticamente o que não for número
+
+    v = v.replace(/(\d{3})(\d)/, '$1.$2'); // quando chega no 4 numero, coloca um ponto depois do 3 e continua (ao invés de 1112 para 111.2)
     v = v.replace(/(\d{3})(\d)/, '$1.$2');
     v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
     this.value = v;
@@ -340,12 +345,14 @@ function iniciarMascaraCPF() {
 
 function iniciarMascaraTelefone() {
   const inputs = document.querySelectorAll('input[type="tel"]');
+
+  // Formatando automaticamente o telefone conforme o usuário digita
   inputs.forEach(input => {
     input.addEventListener('input', function () {
-      let v = this.value.replace(/\D/g, '').substring(0, 11);
+      let v = this.value.replace(/\D/g, '').substring(0, 11); // limpando o input, permitindo apenas números e limitando a 11 caracteres, eliminando o restante
 
       if (v.length > 10) {
-        v = v.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+        v = v.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3'); // nos 2 primeiros coloca parênteses, para indicar o DDD
       }
       else if (v.length > 6) {
         v = v.replace(/^(\d{2})(\d{4})(\d+)/, '($1) $2-$3');
@@ -372,9 +379,9 @@ async function cadastrar() {
   setErro('nome-error',  !nome);
   if (!nome) valid = false;
   setErro('email-error', !email || !email.includes('@'));
-  if (!email || !email.includes('@')) valid = false;
+  if (!email || !email.includes('@')) valid = false; // se o campo email não está preenchido OU não tiver arroba, retorna False
   setErro('senha-error', senha.length < 8);
-  if (senha.length < 8) valid = false;
+  if (senha.length < 8) valid = false; // se a senha não atingir, no mínimo, 8 caracteres, retorna False
   setErro('cpf-error', cpf.replace(/\D/g,'').length < 11);
   setErro('cpf-error', !validarCPF(cpf));
   if (!validarCPF(cpf)) valid = false;
@@ -383,7 +390,7 @@ async function cadastrar() {
   if (!valid) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/auth/cadastrar`, {
+    const resposta = await fetch(`${API_URL}/auth/cadastrar`, { // envia para a API cadastrar no banco de dados de fato
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -508,7 +515,7 @@ function iniciarMascaraCNPJ() {
     return;
   }
   cnpjInput.addEventListener('input', function () {
-    let v = this.value.replace(/\D/g, '');
+    let v = this.value.replace(/\D/g, ''); // remove todos os caracteres que não sejam números
     v = v.replace(/^(\d{2})(\d)/, '$1.$2');
     v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
     v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
@@ -518,7 +525,7 @@ function iniciarMascaraCNPJ() {
 }
 
 function previewLogo(event) {
-  const file = event.target.files[0];
+  const file = event.target.files[0]; // pega o primeiro ficheiro/imagem selecionada pelo usuário no seu computador
   if (!file){
     return;
   }
@@ -527,7 +534,8 @@ function previewLogo(event) {
     const preview = document.getElementById('logo-preview');
     const placeholder = document.getElementById('logo-placeholder');
     if (preview) {
-      preview.src = e.target.result; preview.style.display = 'block';
+      preview.src = e.target.result; // define a imagem no ecrã
+      preview.style.display = 'block';
     }
     if (placeholder) {
       placeholder.style.display = 'none';
@@ -550,7 +558,10 @@ async function cadastrarEmpresa() {
   }
 
   try {
-    if (!validarCNPJ(cnpj)) { alert('CNPJ inválido.'); return; }
+    if (!validarCNPJ(cnpj)) {
+      alert('CNPJ inválido.');
+      return;
+    }
     const resposta = await fetchAutenticado('/empresa/cadastrar', {
       method: 'POST',
       body: JSON.stringify({
@@ -715,8 +726,6 @@ async function carregarSetoresComplementar() {
 }
 document.addEventListener('DOMContentLoaded', carregarSetoresComplementar);
 
-
-
 // ============================================================
 //  complementar-funcionario.html
 // ============================================================
@@ -745,6 +754,8 @@ async function avancarComplementar() {
 
   if (nascimento) {
     const nasc = new Date(nascimento), hoje = new Date();
+    
+    // Verificando se o usuário tem, no mínimo, 18 anos
     let idade = hoje.getFullYear() - nasc.getFullYear();
     const m = hoje.getMonth() - nasc.getMonth();
     if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) {
@@ -814,6 +825,7 @@ async function carregarEpis() {
         }
         tr.dataset.status = status;
 
+        // Preenche automaticamente as colunas de uma linha da tabela
         [rotuloEpi(e), e.ca_epi || '—', e.quantidade, e.limite, status].forEach(v => {
           const td = document.createElement('td');
           td.textContent = v; // XSS-safe
@@ -1005,7 +1017,10 @@ async function adicionarEstoque() {
     if (resp.ok) {
       fecharModal('modal-adicionar');
       await carregarEpis();
-      ['add-epi','add-qtd','add-validade','add-obs'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+      ['add-epi','add-qtd','add-validade','add-obs'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.value='';
+      });
     }
     else{
       alert(dados.erro || 'Erro ao adicionar ao estoque.');
@@ -1028,7 +1043,7 @@ function filtrarFuncionarios() {
   const status = document.getElementById('filtro-status')?.value || '';
   document.querySelectorAll('#tbody-func tr').forEach(tr => {
     const nome = (tr.dataset.nome || '').toLowerCase();
-    const okB = !busca || nome.startsWith(busca);   // COMEÇA COM
+    const okB = !busca || nome.startsWith(busca); // COMEÇA COM
     const okS = !status || tr.dataset.status === status;
     tr.style.display = (okB && okS) ? '' : 'none';
   });
@@ -1061,7 +1076,7 @@ function abrirVerificar() {
 
 let funcExcluindo = null;
 function abrirExcluir(idFuncionario) {
-  const f = funcionariosCache.find(x => x.id_funcionario === idFuncionario);
+  const f = funcionariosCache.find(x => x.id_funcionario === idFuncionario); // procura um funcionário específico dentro da memória
   if (!f) return;
   funcExcluindo = f;
 
@@ -1071,10 +1086,13 @@ function abrirExcluir(idFuncionario) {
     titulo.textContent = 'Inativação de ' + nomeCompleto;
   }
 
-  const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  const setEl = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  };
   setEl('excluir-nome', nomeCompleto);
   setEl('excluir-cpf', f.cpf_usuario || '—');
-  setEl('excluir-epis', (f.total_epis ?? 0) + ' EPI(s)');
+  setEl('excluir-epis', (f.total_epis ?? 0) + ' EPI(s)'); // atualizando o texto no ecrã, exibindo o total de EPIs do funcionário
 
   // Setor real do funcionário (o select está disabled, é só exibição)
   const selSetor = document.getElementById('excluir-setor');
@@ -1147,7 +1165,7 @@ async function inativarFuncionario() {
     if (resp.ok) {
       fecharModal('modal-excluir');
       funcExcluindo = null;
-      await carregarFuncionarios();   // alterou → recarrega
+      await carregarFuncionarios(); // alterou → recarrega
     }
     else {
       alert(dados.erro || 'Erro ao inativar funcionário.');
@@ -1214,7 +1232,7 @@ async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
     else {
       minhas.forEach(s => {
         const tr = document.createElement('tr');
-        const semEstoque = Number(s.estoque) < 1;
+        const semEstoque = Number(s.estoque) < 1; // reserva a qantidade de EPIs sem estoque nessa variável somente se for menor que 1
         if (semEstoque) {
           tr.className = 'row-red';
         }
@@ -1223,6 +1241,7 @@ async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
         const prev = formatarData(s.dt_previsao);
         const estoqueTxt = semEstoque ? 'SEM ESTOQUE' : s.estoque;
 
+        // novamente cria e preenche automaticamente as colunas de uma linha da tabela
         [data, s.nm_epi, s.desc_motivo_solicitacao || '—', estoqueTxt, prev].forEach(v => {
           const td = document.createElement('td');
           td.textContent = v; // XSS-safe
@@ -1231,11 +1250,13 @@ async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
 
         const tdAcao = document.createElement('td');
 
+        // Uma variável caso a entrega de EPI seja aprovada
         const btnAp = document.createElement('button');
         btnAp.className = 'btn btn-primary';
         btnAp.textContent = 'Aprovar';
         btnAp.onclick = () => responderSolicitacao(s.id_solicitacao, 'A', idFuncionario, nomeFuncionario);
 
+        // Uma variável caso a entrega de EPI seja recusada
         const btnRec = document.createElement('button');
         btnRec.className = 'btn btn-outline';
         btnRec.textContent = 'Recusar';
@@ -1303,6 +1324,8 @@ async function carregarHistorico() {
     if (resp && resp.ok) {
       const logs = await resp.json();
       tbody.innerHTML = '';
+      
+      // Todos os tipos de filtros na aba Histórico
       const nomesTipo = {
         CADASTRO_EPI:'Cadastro de EPI',
         ENTRADA_ESTOQUE:'Entrada de Estoque',
@@ -1781,7 +1804,7 @@ async function salvarAlteracoes() {
   const email = document.getElementById('email')?.value.trim();
   const telefone = document.getElementById('telefone')?.value.trim();
   try {
-    const resp = await fetchAutenticado('/empresa', {
+    const resp = await fetchAutenticado('/empresa', { // Requisita para a API salvar no banco de dados
       method: 'PUT',
       body: JSON.stringify({
         responsavel, email, telefone
@@ -1809,12 +1832,6 @@ function copiarCodigo() {
 //  secao-setores.html
 // ============================================================
 
-let setoresSecao = [
-  {nome: 'Elétrica', funcionarios: 2},
-  {nome: 'Construção Civil', funcionarios: 0},
-  {nome: 'Mecânica Automotiva', funcionarios: 1}
-];
-
 let secaoSetores = [];
 
 async function carregarSecaoSetores() {
@@ -1840,7 +1857,7 @@ function renderSetoresSecao() {
   secaoSetores.forEach(s => {
     const tr = document.createElement('tr');
     const tdNome = document.createElement('td');
-    tdNome.textContent = s.nm_setor;                 // XSS-safe
+    tdNome.textContent = s.nm_setor; // XSS-safe
     const tdAcao = document.createElement('td');
     const btn = document.createElement('button');
     btn.className = 'btn btn-outline';
@@ -1859,7 +1876,10 @@ async function adicionarSetorSecao() {
   const nome = input.value.trim();
   if (!nome) return;
   try {
-    const resp = await fetchAutenticado('/setor/cadastrar', { method: 'POST', body: JSON.stringify({ nome }) });
+    const resp = await fetchAutenticado('/setor/cadastrar', {
+      method: 'POST',
+      body: JSON.stringify({ nome })
+    });
     if (!resp) return;
     const dados = await resp.json();
     if (resp.ok) {
@@ -1882,7 +1902,9 @@ async function adicionarSetorSecao() {
 async function excluirSetorSecao(idSetor) {
   if (!confirm('Deseja realmente excluir este setor?')) return;
   try {
-    const resp = await fetchAutenticado(`/setor/${idSetor}`, { method: 'DELETE' });
+    const resp = await fetchAutenticado(`/setor/${idSetor}`, {
+      method: 'DELETE'
+    });
     if (!resp) return;
     const dados = await resp.json();
     if (resp.ok) await carregarSecaoSetores();
@@ -1917,7 +1939,6 @@ function iniciarDropdown() {
   });
 }
 
-
 // ============================================================
 //  INICIALIZAÇÃO — executa ao carregar cada página
 // ============================================================
@@ -1938,7 +1959,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // Setores cadastro: Enter adiciona
   const inputSetor = document.getElementById('input-setor');
   if (inputSetor) {
-    inputSetor.addEventListener('keydown', e => { if (e.key === 'Enter') adicionarSetor(); });
+    inputSetor.addEventListener('keydown', e => { if (e.key === 'Enter') adicionarSetor(); }); // Caso o usuário clique Enter poderá adicionar o setor também
   }
 
   // Setores seção: Enter adiciona + render inicial
@@ -1977,7 +1998,7 @@ function renderFuncionarios() {
 
   funcionariosCache.forEach(f => {
     const nomeCompleto = f.nm_funcionario;
-    const semEpi = Number(f.total_epis) === 0;
+    const semEpi = Number(f.total_epis) === 0; // Guarda a quantidade de EPIs faltando na variável caso o total seja idêntico a zero, por isso transformamos para Number
     const ativo = f.st_funcionario === 'A';
 
     const tr = document.createElement('tr');
