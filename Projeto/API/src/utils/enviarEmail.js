@@ -2,11 +2,11 @@ const { Resend } = require('resend');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const REMETENTE = process.env.EMAIL_REMETENTE || 'onboarding@resend.dev';
+const REMETENTE = process.env.EMAIL_REMETENTE || 'onboarding@resend.dev'; // process.env.EMAIL_REMETENTE = lê o email real que o usuário enviou (o qual está no ENV) e, se não achar, manda para o email onboarding utilizando fallback (o operador ||)
 
-async function enviarEmailRecuperacao(destino, nome, linkReset) {
+async function enviarEmailRecuperacao(destino, nome, linkReset) { // o sistema procura na base de dados quem está solicitando o email obtendo seu email e seu nome para melhor clareza e design do email
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await resend.emails.send({ // resend.email.send = uma função que envia de fato o conteúdo abaixo
       from: `SIGEPI <${REMETENTE}>`,
       to: destino,
       subject: 'Recuperação de senha - SIGEPI',
