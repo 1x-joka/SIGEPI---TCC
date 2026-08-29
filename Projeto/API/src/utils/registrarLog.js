@@ -14,6 +14,7 @@ async function registrarLog({
 })
 
 {
+  // Inserindo, de fato, na tabela tb_log no banco de dados através do db.execute e await para o sistema esperar isso acontecer
   try {
     await db.execute(
       `INSERT INTO tb_log
