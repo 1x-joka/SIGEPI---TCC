@@ -429,7 +429,7 @@ async function cadastrar() {
     const dados = await resposta.json();
 
     if (resposta.ok) {
-      mostrarAviso('Cadastro realizado com sucesso! Faça login para continuar.');
+      mostrarAviso('Cadastro realizado com sucesso! Faça login para continuar.', 'sucesso');
       window.location.href = 'loginpage.html';
     }
     else {
@@ -606,7 +606,7 @@ async function cadastrarEmpresa() {
       const campoCodigo = document.getElementById('codigo');
       if (campoCodigo) campoCodigo.value = dados.codigo;
       mostrarAviso('Empresa cadastrada com sucesso!\nCódigo da empresa: ' + dados.codigo +
-            '\nAnote e compartilhe com seus funcionários.');
+            '\nAnote e compartilhe com seus funcionários.', 'sucesso');
       window.location.href = 'setores-empresa.html';
     }
     else {
@@ -1525,7 +1525,7 @@ async function enviarSolicitacao() {
     const dados = await resp.json();
     if (resp.ok) {
       fecharModal('modal-solicitar');
-      mostrarAviso('Solicitação enviada! Previsão de atendimento: ' + (dados.previsao || '3 dias úteis') + '.');
+      mostrarAviso('Solicitação enviada! Previsão de atendimento: ' + (dados.previsao || '3 dias úteis') + '.', 'sucesso');
       await carregarMinhasSolicitacoes();
     }
     else {
@@ -1743,7 +1743,7 @@ async function confirmarRecebimento(idEntrega) {
     const dados = await resp.json();
 
     if (resp.ok) {
-      mostrarAviso(dados.mensagem);
+      mostrarAviso(dados.mensagem, 'sucesso');
       carregarPendentesConfirmacao();
       carregarMeusEquipamentos();
     }
@@ -1773,7 +1773,7 @@ async function recusarRecebimento(idEntrega) {
     const dados = await resp.json();
 
     if (resp.ok) {
-      mostrarAviso(dados.mensagem);
+      mostrarAviso(dados.mensagem, 'sucesso');
       carregarPendentesConfirmacao();
     }
     else {
@@ -1839,7 +1839,7 @@ async function salvarAlteracoes() {
     });
     if (!resp) return;
     const dados = await resp.json();
-    mostrarAviso(resp.ok ? 'Alterações salvas com sucesso!' : (dados.erro || 'Erro ao salvar.'));
+    mostrarAviso(resp.ok ? 'Alterações salvas com sucesso!' : (dados.erro || 'Erro ao salvar.'), resp.ok ? 'sucesso' : 'erro');
   }
   catch (err) {
     mostrarAviso('Não foi possível conectar ao servidor.');
@@ -1851,7 +1851,7 @@ function copiarCodigo() {
   const campo = document.getElementById('secao-codigo');
   if (!campo || !campo.value) return;
   navigator.clipboard.writeText(campo.value)
-    .then(() => mostrarAviso('Código copiado! Envie ao funcionário para ele entrar na empresa.'))
+    .then(() => mostrarAviso('Código copiado! Envie ao funcionário para ele entrar na empresa.', 'sucesso'))
     .catch(() => mostrarAviso('Não foi possível copiar. Selecione e copie manualmente.'));
 }
 
@@ -2276,7 +2276,7 @@ async function entregarEpi(idFuncionario, nomeFuncionario) {
   });
   const dados = await resp.json();
   if (resp.ok) {
-    mostrarAviso('Entrega registrada com sucesso!');
+    mostrarAviso('Entrega registrada com sucesso!', 'sucesso');
     await carregarFuncionarios();
   }
   else {
