@@ -4,6 +4,30 @@
 
 const API_URL = '/api';
 
+// ===== AVISO / TOAST (substitui o alert nativo) =====
+function mostrarAviso(mensagem, tipo = 'info') {
+  let area = document.getElementById('area-avisos');
+  if (!area) {
+    area = document.createElement('div');
+    area.id = 'area-avisos';
+    area.className = 'area-avisos';
+    document.body.appendChild(area);
+  }
+  const aviso = document.createElement('div');
+  aviso.className = 'aviso aviso--' + tipo;
+  aviso.setAttribute('role', 'alert');
+  aviso.textContent = mensagem;
+  area.appendChild(aviso);
+  requestAnimationFrame(() => aviso.classList.add('aviso--visivel'));
+
+  const fechar = () => {
+    aviso.classList.remove('aviso--visivel');
+    aviso.addEventListener('transitionend', () => aviso.remove(), { once: true });
+  };
+  aviso.addEventListener('click', fechar);
+  setTimeout(fechar, 4500);
+}
+
 // SEGURANÇA: páginas com "data-protegida" no <body> exigem login. Sem token, volta ao login.
 document.addEventListener('DOMContentLoaded', () => {
   // A sessão é validada pela API a cada requisição (fetchAutenticado trata 401/403).
@@ -273,16 +297,16 @@ async function cadastrar() {
     const dados = await resposta.json();
 
     if (resposta.ok) {
-      alert('Cadastro realizado com sucesso! Faça login para continuar.');
+      mostrarAviso('Cadastro realizado com sucesso! Faça login para continuar.');
       window.location.href = 'loginpage.html';
     }
     else {
       // Ex.: 409 (e-mail/CPF já cadastrado) ou 400 (campos)
-      alert(dados.erro || 'Erro ao cadastrar.');
+      mostrarAviso(dados.erro || 'Erro ao cadastrar.');
     }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor. Verifique se a API está rodando.');
+    mostrarAviso('Não foi possível conectar ao servidor. Verifique se a API está rodando.');
   }
 }
 
@@ -310,7 +334,7 @@ function aceitar() {
 }
 
 function recusar() {
-  alert('Por não aceitar os Termos e Condições de Uso, você não poderá utilizar o SIGEPI.');
+  mostrarAviso('Por não aceitar os Termos e Condições de Uso, você não poderá utilizar o SIGEPI.');
   window.close(); // só fecha se a aba foi aberta via script; o navegador bloqueia abas normais
 
   // Fallback: se a aba não fechar, bloqueia a tela para impedir o uso do sistema
@@ -420,12 +444,15 @@ async function cadastrarEmpresa() {
   const telefone = document.getElementById('telefone')?.value.trim();
 
   if (!nome || !email || !cnpj || !responsavel || !telefone || !setor) {
-    alert('Preencha todos os campos obrigatórios.');
+    mostrarAviso('Preencha todos os campos obrigatórios.');
     return;
   }
 
   try {
-    if (!validarCNPJ(cnpj)) { alert('CNPJ inválido.'); return; }
+    if (!validarCNPJ(cnpj)) {
+      mostrarAviso('CNPJ inválido.');
+      return;
+    }
     const resposta = await fetchAutenticado('/empresa/cadastrar', {
       method: 'POST',
       body: JSON.stringify({ nome, cnpj, responsavel, email, telefone, setor })
@@ -438,17 +465,17 @@ async function cadastrarEmpresa() {
     if (resposta.ok) {
       const campoCodigo = document.getElementById('codigo');
       if (campoCodigo) campoCodigo.value = dados.codigo;
-      alert('Empresa cadastrada com sucesso!\nCódigo da empresa: ' + dados.codigo +
+      mostrarAviso('Empresa cadastrada com sucesso!\nCódigo da empresa: ' + dados.codigo +
             '\nAnote e compartilhe com seus funcionários.');
       window.location.href = 'setores-empresa.html';
     }
     else {
       // Ex.: 409 (CNPJ já cadastrado), 401/403 (token inválido)
-      alert(dados.erro || 'Erro ao cadastrar empresa.');
+      mostrarAviso(dados.erro || 'Erro ao cadastrar empresa.');
     }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor. Verifique se a API está rodando.');
+    mostrarAviso('Não foi possível conectar ao servidor. Verifique se a API está rodando.');
   }
 }
 
@@ -474,7 +501,7 @@ async function carregarSetores() {
     }
   }
   catch (err) {
-    alert('Não foi possível carregar os setores.');
+    mostrarAviso('Não foi possível carregar os setores.');
   }
 }
 document.addEventListener('DOMContentLoaded', carregarSetores);
@@ -508,7 +535,7 @@ async function adicionarSetor() {
     }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.');
   }
 }
 
@@ -547,17 +574,17 @@ async function removerSetor(idSetor) {
     }
     else {
       // Ex.: 409 (setor com funcionários) — mostra a mensagem da trava
-      alert(dados.erro || 'Não foi possível excluir o setor.');
+      mostrarAviso(dados.erro || 'Não foi possível excluir o setor.');
     }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.');
   }
 }
 
 async function avancar() {
   if (setoresEmpresa.length === 0) {
-    alert('Adicione pelo menos um setor antes de continuar.');
+    mostrarAviso('Adicione pelo menos um setor antes de continuar.');
     return;
   }
   window.location.href = 'dashboard.html';
@@ -619,7 +646,7 @@ async function avancarComplementar() {
       idade--;
     }
     if (idade < 18) {
-      alert('Você deve ter no mínimo 18 anos.');
+      mostrarAviso('Você deve ter no mínimo 18 anos.');
       return;
     }
   }
@@ -638,11 +665,11 @@ async function avancarComplementar() {
       window.location.href = 'meus-equipamentos.html';
     }
     else {
-      alert(dados.erro || 'Erro ao completar cadastro.');
+      mostrarAviso(dados.erro || 'Erro ao completar cadastro.');
     }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.');
   }
 }
 
@@ -701,7 +728,7 @@ async function carregarEpis() {
     }
   }
   catch (err) {
-    alert('Não foi possível carregar os EPIs.');
+    mostrarAviso('Não foi possível carregar os EPIs.');
   }
 }
 
@@ -709,7 +736,10 @@ async function inativarEpi(id, nome) {
   if (!confirm(`Inativar o EPI "${nome}"? Ele sairá da lista, mas o histórico é mantido.`)) return;
   const resp = await fetchAutenticado(`/epi/${id}/inativar`, { method: 'PUT' });
   const d = await resp.json();
-  if (resp.ok) await carregarEpis(); else alert(d.erro || 'Erro ao inativar.');
+  if (resp.ok) await carregarEpis();
+  else {
+    mostrarAviso(d.erro || 'Erro ao inativar.');
+  }
 }
 
 // Carrega as categorias no select do modal de cadastro
@@ -748,11 +778,11 @@ async function cadastrarEPI() {
     .map(c => parseInt(c.value));
 
   if (!nome || !ca || !validade || !qtd || !limite || !categoria) {
-    alert('Preencha todos os campos.');
+    mostrarAviso('Preencha todos os campos.');
     return;
   }
   if (setores.length === 0) {
-    alert('Selecione ao menos um setor que usa este EPI.');
+    mostrarAviso('Selecione ao menos um setor que usa este EPI.');
     return;
   }
 
@@ -778,11 +808,11 @@ async function cadastrarEPI() {
       fecharModal('modal-cadastrar'); await carregarEpis();
     }
     else {
-      alert(d.erro || 'Erro ao cadastrar EPI.');
+      mostrarAviso(d.erro || 'Erro ao cadastrar EPI.');
     }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.');
   }
 }
 
@@ -824,7 +854,7 @@ async function retirarEstoque() {
     }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.');
   }
 }
 
@@ -856,7 +886,7 @@ async function adicionarEstoque() {
   const validade = document.getElementById('add-validade')?.value;
   const obs = document.getElementById('add-obs')?.value;
   if (!epi || !qtd) {
-    alert('Selecione o EPI e a quantidade.');
+    mostrarAviso('Selecione o EPI e a quantidade.');
     return;
   }
   try {
@@ -876,11 +906,11 @@ async function adicionarEstoque() {
       ['add-epi','add-qtd','add-validade','add-obs'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
     }
     else{
-      alert(dados.erro || 'Erro ao adicionar ao estoque.');
+      mostrarAviso(dados.erro || 'Erro ao adicionar ao estoque.');
     }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.');
   }
 }
 
@@ -1001,7 +1031,7 @@ async function inativarFuncionario() {
   const motivo = (sel === 'Outro') ? outro : sel;
 
   if (!motivo) {
-    alert('Informe o motivo da inativação.');
+    mostrarAviso('Informe o motivo da inativação.');
     return;
   }
 
@@ -1018,11 +1048,11 @@ async function inativarFuncionario() {
       await carregarFuncionarios();   // alterou → recarrega
     }
     else {
-      alert(dados.erro || 'Erro ao inativar funcionário.');
+      mostrarAviso(dados.erro || 'Erro ao inativar funcionário.');
     }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.');
   }
 }
 
@@ -1040,7 +1070,7 @@ async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
   try {
     const resp = await fetchAutenticado('/solicitacao/pendentes');
     if (!resp || !resp.ok) {
-      alert('Erro ao carregar solicitações.');
+      mostrarAviso('Erro ao carregar solicitações.');
       return;
     }
     const todas = await resp.json();
@@ -1096,7 +1126,7 @@ async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
     abrirModal('modal-verificar');
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.');
   }
 }
 
@@ -1118,11 +1148,11 @@ async function responderSolicitacao(idSolicitacao, decisao, idFuncionario, nomeF
       await abrirSolicitacoes(idFuncionario, nomeFuncionario);
     }
     else {
-      alert(dados.erro || 'Erro ao responder solicitação.');
+      mostrarAviso(dados.erro || 'Erro ao responder solicitação.');
     }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.');
   }
 }
 
@@ -1220,7 +1250,7 @@ async function carregarHistorico() {
     }
   }
   catch (err) {
-    alert('Não foi possível carregar o histórico.');
+    mostrarAviso('Não foi possível carregar o histórico.');
   }
 }
 document.addEventListener('DOMContentLoaded', carregarHistorico);
@@ -1253,7 +1283,7 @@ async function carregarMeusEquipamentos() {
     }
   }
   catch (err) {
-    alert('Não foi possível carregar seus equipamentos.');
+    mostrarAviso('Não foi possível carregar seus equipamentos.');
   }
 }
 document.addEventListener('DOMContentLoaded', () => {
@@ -1284,7 +1314,7 @@ async function abrirSolicitar() {
     }
   }
   catch (err) {
-    alert('Não foi possível carregar os EPIs.');
+    mostrarAviso('Não foi possível carregar os EPIs.');
     return;
   }
 
@@ -1319,16 +1349,16 @@ async function enviarSolicitacao() {
     const dados = await resp.json();
     if (resp.ok) {
       fecharModal('modal-solicitar');
-      alert('Solicitação enviada! Previsão de atendimento: ' + (dados.previsao || '3 dias úteis') + '.');
+      mostrarAviso('Solicitação enviada! Previsão de atendimento: ' + (dados.previsao || '3 dias úteis') + '.');
       await carregarMinhasSolicitacoes();
     }
     else {
       // ex.: 409 (já tem pendente para esse EPI)
-      alert(dados.erro || 'Erro ao enviar solicitação.');
+      mostrarAviso(dados.erro || 'Erro ao enviar solicitação.');
     }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.');
   }
 }
 
@@ -1525,7 +1555,7 @@ async function carregarPendentesConfirmacao() {
     });
   }
   catch (err) {
-    alert('Não foi possível carregar as entregas pendentes.');
+    mostrarAviso('Não foi possível carregar as entregas pendentes.');
   }
 }
 
@@ -1537,16 +1567,16 @@ async function confirmarRecebimento(idEntrega) {
     const dados = await resp.json();
 
     if (resp.ok) {
-      alert(dados.mensagem);
+      mostrarAviso(dados.mensagem);
       carregarPendentesConfirmacao();
       carregarMeusEquipamentos();
     }
     else {
-      alert(dados.erro || 'Não foi possível confirmar.');
+      mostrarAviso(dados.erro || 'Não foi possível confirmar.');
     }
   }
   catch (err) {
-    alert('Erro ao confirmar o recebimento.');
+    mostrarAviso('Erro ao confirmar o recebimento.');
   }
 }
 
@@ -1555,7 +1585,7 @@ async function recusarRecebimento(idEntrega) {
   if (motivo === null) return;
 
   if (motivo.trim().length < 5) {
-    alert('Descreva o motivo com pelo menos 5 caracteres.');
+    mostrarAviso('Descreva o motivo com pelo menos 5 caracteres.');
     return;
   }
 
@@ -1567,15 +1597,15 @@ async function recusarRecebimento(idEntrega) {
     const dados = await resp.json();
 
     if (resp.ok) {
-      alert(dados.mensagem);
+      mostrarAviso(dados.mensagem);
       carregarPendentesConfirmacao();
     }
     else {
-      alert(dados.erro || 'Não foi possível recusar.');
+      mostrarAviso(dados.erro || 'Não foi possível recusar.');
     }
   }
   catch (err) {
-    alert('Erro ao recusar o recebimento.');
+    mostrarAviso('Erro ao recusar o recebimento.');
   }
 }
 
@@ -1633,10 +1663,10 @@ async function salvarAlteracoes() {
     });
     if (!resp) return;
     const dados = await resp.json();
-    alert(resp.ok ? 'Alterações salvas com sucesso!' : (dados.erro || 'Erro ao salvar.'));
+    mostrarAviso(resp.ok ? 'Alterações salvas com sucesso!' : (dados.erro || 'Erro ao salvar.'));
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.');
   }
 }
 
@@ -1645,8 +1675,8 @@ function copiarCodigo() {
   const campo = document.getElementById('secao-codigo');
   if (!campo || !campo.value) return;
   navigator.clipboard.writeText(campo.value)
-    .then(() => alert('Código copiado! Envie ao funcionário para ele entrar na empresa.'))
-    .catch(() => alert('Não foi possível copiar. Selecione e copie manualmente.'));
+    .then(() => mostrarAviso('Código copiado! Envie ao funcionário para ele entrar na empresa.'))
+    .catch(() => mostrarAviso('Não foi possível copiar. Selecione e copie manualmente.'));
 }
 
 // ============================================================
@@ -1672,7 +1702,7 @@ async function carregarSecaoSetores() {
     }
   }
   catch (err) {
-    alert('Não foi possível carregar os setores.');
+    mostrarAviso('Não foi possível carregar os setores.');
   }
 }
 document.addEventListener('DOMContentLoaded', carregarSecaoSetores);
@@ -1719,7 +1749,7 @@ async function adicionarSetorSecao() {
     }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.');
   }
 }
 
@@ -1730,10 +1760,12 @@ async function excluirSetorSecao(idSetor) {
     if (!resp) return;
     const dados = await resp.json();
     if (resp.ok) await carregarSecaoSetores();
-    else alert(dados.erro || 'Não foi possível excluir o setor.'); // ex.: 409 setor com funcionários
+    else {
+      mostrarAviso(dados.erro || 'Não foi possível excluir o setor.'); // ex.: 409 setor com funcionários
+    }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.');
   }
 }
 
@@ -1809,7 +1841,7 @@ async function carregarFuncionarios() {
     }
   }
   catch (err) {
-    alert('Não foi possível carregar os funcionários.');
+    mostrarAviso('Não foi possível carregar os funcionários.');
   }
 }
 document.addEventListener('DOMContentLoaded', carregarFuncionarios);
@@ -1906,7 +1938,7 @@ async function salvarEdicao() {
   const setor = setorVal ? parseInt(setorVal) : null; // vazio = desvincular
 
   if (!nome) {
-    alert('Informe o nome');
+    mostrarAviso('Informe o nome');
     return;
   }
 
@@ -1925,11 +1957,11 @@ async function salvarEdicao() {
       await carregarFuncionarios();
     }
     else {
-      alert(dados.erro || 'Erro ao editar funcionário.');
+      mostrarAviso(dados.erro || 'Erro ao editar funcionário.');
     }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.');
   }
 }
 
@@ -2036,13 +2068,13 @@ async function entregarEpi(idFuncionario, nomeFuncionario) {
   // Busca os EPIs da empresa para o admin escolher
   const respEpis = await fetchAutenticado('/epi/listar');
   if (!respEpis || !respEpis.ok) {
-    alert('Erro ao carregar EPIs.');
+    mostrarAviso('Erro ao carregar EPIs.');
     return;
   }
 
   const epis = await respEpis.json();
   if (epis.length === 0) {
-    alert('Nenhum EPI cadastrado.');
+    mostrarAviso('Nenhum EPI cadastrado.');
     return;
   }
 
@@ -2059,11 +2091,11 @@ async function entregarEpi(idFuncionario, nomeFuncionario) {
   });
   const dados = await resp.json();
   if (resp.ok) {
-    alert('Entrega registrada com sucesso!');
+    mostrarAviso('Entrega registrada com sucesso!');
     await carregarFuncionarios();
   }
   else {
-    alert(dados.erro || 'Erro ao registrar entrega.'); // ex.: "Sem estoque disponível"
+    mostrarAviso(dados.erro || 'Erro ao registrar entrega.'); // ex.: "Sem estoque disponível"
   }
 }
 
@@ -2081,7 +2113,7 @@ function exportarPDF() {
     .map(tr => Array.from(tr.cells).map(td => td.innerText.replace(/\n/g, ' ').trim()));
 
   if (linhas.length === 0) {
-    alert('Não há registros para exportar.');
+    mostrarAviso('Não há registros para exportar.');
     return;
   }
 

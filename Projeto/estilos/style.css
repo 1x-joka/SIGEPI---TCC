@@ -2534,3 +2534,39 @@ footer{
   .section-head h2{font-size:30px;}
 }
 
+/* ===== AVISOS / TOASTS (substituem o alert nativo) ===== */
+.area-avisos{
+  position:fixed;
+  z-index:9999;
+  right:20px;
+  bottom:20px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  max-width:360px;
+  pointer-events:none;
+}
+.aviso{
+  pointer-events:auto;
+  background:#17313f;
+  color:#fff;
+  padding:14px 18px;
+  border-radius:12px;
+  border-left:5px solid var(--teal);
+  box-shadow:0 12px 32px rgba(0,0,0,0.28);
+  font-family:var(--font);
+  font-size:14px;
+  line-height:1.45;
+  white-space:pre-line;
+  cursor:pointer;
+  opacity:0;
+  transform:translateY(16px);
+  transition:opacity .25s ease, transform .25s ease;
+}
+.aviso--visivel{opacity:1;transform:translateY(0);}
+.aviso--sucesso{border-left-color:var(--green);}
+.aviso--erro{border-left-color:var(--red);}
+.aviso--info{border-left-color:var(--teal);}
+@media (max-width:600px){
+  .area-avisos{left:12px;right:12px;bottom:12px;max-width:none;}
+}
