@@ -1217,11 +1217,11 @@ async function ativarFuncionario(id) {
       await carregarFuncionarios();
     }
     else {
-      alert(dados.erro || 'Erro ao reativar funcionário.');
+      mostrarAviso(dados.erro || 'Erro ao reativar funcionário.', 'erro');
     }
   }
   catch (err) {
-    alert('Não foi possível conectar ao servidor.');
+    mostrarAviso('Não foi possível conectar ao servidor.', 'erro');
   }
 }
 
