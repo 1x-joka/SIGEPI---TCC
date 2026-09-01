@@ -17,3 +17,6 @@ router.put('/:id', autenticar, exigirEmpresa, exigirAdmin, epiController.editarE
 router.get('/categorias', autenticar, exigirEmpresa, epiController.listarCategorias);
 
 module.exports = router;
+
+// Busca UM EPI completo (para editar) — precisa ficar DEPOIS das rotas GET específicas
+router.get('/:id', autenticar, exigirEmpresa, exigirAdmin, epiController.obterEpi);

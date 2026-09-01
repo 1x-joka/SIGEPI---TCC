@@ -278,4 +278,36 @@ async function editarEpi(req, res) {
   finally { conexao.release(); }
 }
 
-module.exports = { cadastrarEpi, listarEpis, limparModalCadastrarEpi, inativarEpi, listarCategorias, editarEpi };
+// Retorna UM EPI completo (com setores vinculados) para preencher o formulário de edição
+async function obterEpi(req, res) {
+  const id_epi = req.params.id;
+  const empresa = req.usuario.empresa;
+  try {
+    const [epis] = await db.execute(
+      `SELECT id_epi, nm_epi, tamanho_epi, desc_epi, ca_epi,
+              DATE_FORMAT(dt_validade_ca, '%Y-%m-%d') AS dt_validade_ca,
+              tb_categoria_id_categoria
+       FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ? AND st_epi = 'A'`,
+      [id_epi, empresa]
+    );
+    if (epis.length === 0) {
+      return res.status(404).json({
+        erro: 'EPI não encontrado para esta empresa.'
+      });
+    }
+    const [setores] = await db.execute(
+      'SELECT tb_setor_id_setor FROM tb_epi_setor WHERE tb_epi_id_epi = ?',
+      [id_epi]
+    );
+    const epi = epis[0];
+    epi.setores = setores.map(s => s.tb_setor_id_setor);
+    return res.status(200).json(epi);
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.', detalhe: err.message
+    });
+  }
+}
+
+module.exports = { cadastrarEpi, listarEpis, limparModalCadastrarEpi, inativarEpi, listarCategorias, editarEpi, obterEpi };
