@@ -105,4 +105,56 @@ async function deletarSetor(req, res) {
   }
 }
 
-module.exports = { cadastrarSetor, listarSetores, deletarSetor };
+// ADMIN edita o nome de um setor
+async function editarSetor(req, res) {
+  const id_setor = req.params.id;
+  const { nome } = req.body;
+  const empresa = req.usuario.empresa;
+
+  if (!nome) {
+    return res.status(400).json({
+      erro: 'Informe o nome do setor.'
+    });
+  }
+
+  try {
+    // O setor precisa ser desta empresa
+    const [setores] = await db.execute(
+      'SELECT id_setor FROM tb_setor WHERE id_setor = ? AND tb_empresa_id_empresa = ?',
+      [id_setor, empresa]
+    );
+    if (setores.length === 0) {
+      return res.status(404).json({
+        erro: 'Setor não encontrado para esta empresa.'
+      });
+    }
+
+    // Impede nome duplicado na mesma empresa, excluindo o PRÓPRIO setor
+    const [existe] = await db.execute(
+      'SELECT id_setor FROM tb_setor WHERE nm_setor = ? AND tb_empresa_id_empresa = ? AND id_setor != ?',
+      [nome, empresa, id_setor]
+    );
+    if (existe.length > 0) {
+      return res.status(409).json({
+        erro: 'Já existe um setor com esse nome'
+      });
+    }
+
+    await db.execute(
+      'UPDATE tb_setor SET nm_setor = ? WHERE id_setor = ?',
+      [nome, id_setor]
+    );
+
+    return res.status(200).json({
+      mensagem: 'Setor atualizado com sucesso.'
+    });
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
+  }
+}
+
+module.exports = { cadastrarSetor, listarSetores, deletarSetor, editarSetor };

@@ -1986,23 +1986,88 @@ async function carregarSecaoSetores() {
 }
 document.addEventListener('DOMContentLoaded', carregarSecaoSetores);
 
-function renderSetoresSecao() {
-  const tbody = document.getElementById('tbody-setores');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-  secaoSetores.forEach(s => {
-    const tr = document.createElement('tr');
-    const tdNome = document.createElement('td');
-    tdNome.textContent = s.nm_setor; // XSS-safe
-    const tdAcao = document.createElement('td');
+let setorEditandoId = null; // id do setor em modo de edição inline (null = nenhum)
+
+function renderSetoresEmpresa() {
+  const lista = document.getElementById('setores-lista');
+  if (!lista) return;
+  lista.innerHTML = '';
+
+  setoresEmpresa.forEach(setor => {
+    const item = document.createElement('div');
+    item.className = 'setor-item';
+
+    // MODO EDIÇÃO: nome vira input com ✓ (salvar) e ✕ (cancelar)
+    if (setor.id_setor === setorEditandoId) {
+      const input = document.createElement('input');
+      input.value = setor.nm_setor;
+      input.maxLength = 45;
+      input.style.cssText = 'flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font:inherit;';
+      input.onkeydown = (ev) => { if (ev.key === 'Enter') salvarEdicaoSetor(setor.id_setor, input.value.trim()); };
+
+      const btnOk = document.createElement('button');
+      btnOk.className = 'btn-rm';
+      btnOk.textContent = '✓';
+      btnOk.title = 'Salvar';
+      btnOk.onclick = () => salvarEdicaoSetor(setor.id_setor, input.value.trim());
+
+      const btnCancel = document.createElement('button');
+      btnCancel.className = 'btn-rm';
+      btnCancel.textContent = '✕';
+      btnCancel.title = 'Cancelar';
+      btnCancel.onclick = () => { setorEditandoId = null; renderSetoresEmpresa(); };
+
+      item.append(input, btnOk, btnCancel);
+      lista.appendChild(item);
+      input.focus();
+      return;
+    }
+
+    // MODO NORMAL
+    const nome = document.createElement('span');
+    nome.className = 'nome';
+    nome.textContent = setor.nm_setor; // XSS-safe: textContent trata como texto puro
+
+    const btnEditar = document.createElement('button');
+    btnEditar.className = 'btn-rm';
+    btnEditar.textContent = '✎';
+    btnEditar.title = 'Editar';
+    btnEditar.onclick = () => { setorEditandoId = setor.id_setor; renderSetoresEmpresa(); };
+
     const btn = document.createElement('button');
-    btn.className = 'btn btn-outline';
-    btn.textContent = 'Excluir';
-    btn.onclick = () => excluirSetorSecao(s.id_setor);
-    tdAcao.appendChild(btn);
-    tr.append(tdNome, tdAcao);
-    tbody.appendChild(tr);
+    btn.className = 'btn-rm';
+    btn.textContent = '✕';
+    btn.title = 'Excluir';
+    btn.onclick = () => removerSetor(setor.id_setor);
+
+    item.append(nome, btnEditar, btn);
+    lista.appendChild(item);
   });
+}
+
+async function salvarEdicaoSetor(id, novoNome) {
+  if (!novoNome) {
+    mostrarAviso('Informe o nome do setor.', 'erro');
+    return;
+  }
+  try {
+    const resposta = await fetchAutenticado(`/setor/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ nome: novoNome })
+    });
+    if (!resposta) return;
+    const dados = await resposta.json();
+    if (resposta.ok) {
+      setorEditandoId = null;
+      await carregarSetores();
+    }
+    else {
+      mostrarAviso(dados.erro || 'Não foi possível editar o setor.', 'erro');
+    }
+  }
+  catch (err) {
+    mostrarAviso('Não foi possível conectar ao servidor.', 'erro');
+  }
 }
 
 async function adicionarSetorSecao() {

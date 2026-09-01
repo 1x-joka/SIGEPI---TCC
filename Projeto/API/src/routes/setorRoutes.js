@@ -9,4 +9,7 @@ router.get('/listar', autenticar, exigirEmpresa, setorController.listarSetores);
 // ADMIN exclui um setor (com trava de funcionários)
 router.delete('/:id', autenticar, exigirEmpresa, exigirAdmin, setorController.deletarSetor);
 
+// ADMIN edita o nome de um setor
+router.put('/:id', autenticar, exigirEmpresa, exigirAdmin, setorController.editarSetor);
+
 module.exports = router;
