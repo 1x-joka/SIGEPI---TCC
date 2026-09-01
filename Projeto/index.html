@@ -11,23 +11,12 @@
   <link rel="apple-touch-icon" href="imagens/icone-192.png">
   <!-- PWA -->
 
-  <!--
-    Porta de entrada do sistema. Um ÚNICO redirecionamento (via JS):
-    - Quem já aceitou esta versão dos termos vai direto para o login.
-    - Quem ainda não aceitou vai para a home (landing), que leva aos termos/cadastro.
-    Removido o <meta http-equiv="refresh"> antigo, que conflitava com esta lógica.
-  -->
+  <!-- Porta de entrada: sempre abre na home (landing). O login é acessado pelo botão "Acessar". -->
+   <!-- Após clicar no link, ou digitar e entrar, automaticamente irá para a home -->
   <script>
-    const VERSAO_TERMOS = '1.0';
-    let jaAceitou = false;
-    try {
-      const registro = JSON.parse(localStorage.getItem('termosAceitos'));
-      jaAceitou = registro && registro.versao === VERSAO_TERMOS;
-    } catch (e) {
-      jaAceitou = false;
-    }
-    window.location.replace(jaAceitou ? 'paginas/loginpage.html' : 'paginas/home.html');
+    window.location.replace('paginas/home.html');
   </script>
+</head>
 </head>
 <body>
   <p>Redirecionando… <a href="paginas/home.html">clique aqui</a> se não for automático.</p>
