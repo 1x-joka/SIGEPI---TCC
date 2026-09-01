@@ -175,4 +175,139 @@ async function inativarEpi(req, res) {
   }
 }
 
-module.exports = { cadastrarEpi, listarEpis, limparModalCadastrarEpi, inativarEpi, listarCategorias };
+// ADMIN edita os dados de um EPI (não altera o estoque, que tem fluxo próprio de entrada/saída)
+async function editarEpi(req, res) {
+  const id_epi = req.params.id;
+  const { nome, tamanho, descricao, ca, categoria, validadeCa, setores } = req.body;
+  const empresa = req.usuario.empresa;
+
+  if (!nome) return res.status(400).json({
+    erro: 'Informe o nome do EPI.'
+  });
+
+  const conexao = await db.getConnection();
+  try {
+    // Segurança: o EPI precisa ser DESTA empresa e estar ativo
+    const [epis] = await conexao.execute(
+      "SELECT id_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ? AND st_epi = 'A'",
+      [id_epi, empresa]
+    );
+    if (epis.length === 0) {
+      return res.status(404).json({
+        erro: 'EPI não encontrado para esta empresa.'
+      });
+    }
+
+    // Unicidade nome+tamanho, excluindo o PRÓPRIO EPI
+    const [existe] = await conexao.execute(
+      "SELECT id_epi FROM tb_epi WHERE nm_epi = ? AND (tamanho_epi <=> ?) AND tb_empresa_id_empresa = ? AND st_epi = 'A' AND id_epi != ?",
+      [nome, tamanho || null, empresa, id_epi]
+    );
+    if (existe.length > 0) {
+      return res.status(409).json({
+        erro: 'Já existe um EPI com esse nome e tamanho nesta empresa.'
+      });
+    }
+
+    // Unicidade CA+tamanho, também excluindo o próprio
+    if (ca) {
+      const [caEx] = await conexao.execute(
+        "SELECT id_epi FROM tb_epi WHERE ca_epi = ? AND (tamanho_epi <=> ?) AND tb_empresa_id_empresa = ? AND st_epi = 'A' AND id_epi != ?",
+        [ca, tamanho || null, empresa, id_epi]
+      );
+      if (caEx.length > 0) {
+        return res.status(409).json({
+          erro: 'Já existe um EPI com esse CA e tamanho nesta empresa.'
+        });
+      }
+    }
+
+    if (categoria) {
+      const [cats] = await conexao.execute('SELECT id_categoria FROM tb_categoria WHERE id_categoria = ?', [categoria]);
+      if (cats.length === 0) {
+        return res.status(400).json({
+          erro: 'Categoria inválida.'
+        });
+      }
+    }
+
+    await conexao.beginTransaction();
+    await conexao.execute(
+      `UPDATE tb_epi
+       SET nm_epi = ?, tamanho_epi = ?, desc_epi = ?, ca_epi = ?, dt_validade_ca = ?, tb_categoria_id_categoria = ?
+       WHERE id_epi = ?`,
+      [nome, tamanho || null, descricao || null, ca || null, validadeCa || null, categoria || null, id_epi]
+    );
+
+    // Atualiza os setores vinculados (N:N): remove os antigos e insere os novos
+    await conexao.execute('DELETE FROM tb_epi_setor WHERE tb_epi_id_epi = ?', [id_epi]);
+    if (Array.isArray(setores) && setores.length > 0) {
+      for (const idSetor of setores) {
+        const [s] = await conexao.execute(
+          'SELECT id_setor FROM tb_setor WHERE id_setor = ? AND tb_empresa_id_empresa = ?',
+          [idSetor, empresa]
+        );
+        if (s.length > 0) {
+          await conexao.execute(
+            'INSERT INTO tb_epi_setor (tb_epi_id_epi, tb_setor_id_setor) VALUES (?, ?)',
+            [id_epi, idSetor]
+          );
+        }
+      }
+    }
+
+    await conexao.commit();
+
+    await registrarLog({
+      empresa, tipo: 'EDICAO_EPI',
+      descricao: 'Edição de EPI',
+      equipamento: nome,
+      responsavel: req.usuario.id
+    });
+    return res.status(200).json({
+      mensagem: 'EPI atualizado com sucesso.'
+    });
+  }
+  catch (err) {
+    await conexao.rollback();
+    return res.status(500).json({
+      erro: 'Erro interno.',
+      detalhe: err.message
+    });
+  }
+  finally { conexao.release(); }
+}
+
+// Retorna UM EPI completo (com setores vinculados) para preencher o formulário de edição
+async function obterEpi(req, res) {
+  const id_epi = req.params.id;
+  const empresa = req.usuario.empresa;
+  try {
+    const [epis] = await db.execute(
+      `SELECT id_epi, nm_epi, tamanho_epi, desc_epi, ca_epi,
+              DATE_FORMAT(dt_validade_ca, '%Y-%m-%d') AS dt_validade_ca,
+              tb_categoria_id_categoria
+       FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ? AND st_epi = 'A'`,
+      [id_epi, empresa]
+    );
+    if (epis.length === 0) {
+      return res.status(404).json({
+        erro: 'EPI não encontrado para esta empresa.'
+      });
+    }
+    const [setores] = await db.execute(
+      'SELECT tb_setor_id_setor FROM tb_epi_setor WHERE tb_epi_id_epi = ?',
+      [id_epi]
+    );
+    const epi = epis[0];
+    epi.setores = setores.map(s => s.tb_setor_id_setor);
+    return res.status(200).json(epi);
+  }
+  catch (err) {
+    return res.status(500).json({
+      erro: 'Erro interno.', detalhe: err.message
+    });
+  }
+}
+
+module.exports = { cadastrarEpi, listarEpis, limparModalCadastrarEpi, inativarEpi, listarCategorias, editarEpi, obterEpi };

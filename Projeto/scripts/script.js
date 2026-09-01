@@ -857,11 +857,15 @@ async function carregarEpis() {
         });
 
         const tdAcao = document.createElement('td');
+        const btnEditar = document.createElement('button');
+        btnEditar.className = 'btn btn-outline btn-acao-espaco';
+        btnEditar.textContent = 'Editar';
+        btnEditar.onclick = () => abrirEditarEpi(e.id_epi);
         const btn = document.createElement('button');
         btn.className = 'btn btn-outline';
         btn.textContent = 'Inativar';
         btn.onclick = () => inativarEpi(e.id_epi, rotuloEpi(e));
-        tdAcao.appendChild(btn);
+        tdAcao.append(btnEditar, btn);
         tr.appendChild(tdAcao);
 
         tbody.appendChild(tr);
@@ -880,6 +884,111 @@ async function inativarEpi(id, nome) {
   if (resp.ok) await carregarEpis();
   else {
     mostrarAviso(d.erro || 'Erro ao inativar.');
+  }
+}
+
+// ===== EDITAR EPI =====
+async function abrirEditarEpi(id) {
+  try {
+    const resp = await fetchAutenticado(`/epi/${id}`);
+    if (!resp || !resp.ok) {
+      mostrarAviso('Não foi possível carregar o EPI.', 'erro');
+      return;
+    }
+    const epi = await resp.json();
+
+    const selCat = document.getElementById('ed-cat');
+    const rc = await fetchAutenticado('/epi/categorias');
+    selCat.innerHTML = '<option value="">Selecione a categoria</option>';
+    if (rc && rc.ok) {
+      (await rc.json()).forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id_categoria;
+        opt.textContent = c.nm_categoria;
+        selCat.appendChild(opt);
+      });
+    }
+
+    const box = document.getElementById('ed-setores');
+    box.innerHTML = '';
+    const rs = await fetchAutenticado('/setor/listar');
+    if (rs && rs.ok) {
+      (await rs.json()).forEach(sec => {
+        const label = document.createElement('label');
+        label.className = 'chk-setor-label';
+        const chk = document.createElement('input');
+        chk.type = 'checkbox';
+        chk.className = 'chk-setor-epi-ed';
+        chk.value = sec.id_setor;
+        if (epi.setores.includes(sec.id_setor)) chk.checked = true;
+        const txt = document.createElement('span');
+        txt.textContent = sec.nm_setor;
+        label.append(chk, txt);
+        box.appendChild(label);
+      });
+    }
+
+    document.getElementById('ed-id').value = epi.id_epi;
+    document.getElementById('ed-nome').value = epi.nm_epi || '';
+    document.getElementById('ed-tamanho').value = epi.tamanho_epi || '';
+    document.getElementById('ed-desc').value = epi.desc_epi || '';
+    document.getElementById('ed-ca').value = epi.ca_epi || '';
+    document.getElementById('ed-validade').value = epi.dt_validade_ca || '';
+    document.getElementById('ed-cat').value = epi.tb_categoria_id_categoria || '';
+
+    abrirModal('modal-editar-epi');
+  }
+  catch (err) {
+    mostrarAviso('Não foi possível conectar ao servidor.', 'erro');
+  }
+}
+
+async function salvarEdicaoEpi() {
+  const id = document.getElementById('ed-id')?.value;
+  const nome = document.getElementById('ed-nome')?.value.trim();
+  const tamanho = document.getElementById('ed-tamanho')?.value.trim();
+  const desc = document.getElementById('ed-desc')?.value.trim();
+  const ca = document.getElementById('ed-ca')?.value.trim();
+  const validade = document.getElementById('ed-validade')?.value;
+  const categoria = document.getElementById('ed-cat')?.value;
+  const setores = Array.from(document.querySelectorAll('.chk-setor-epi-ed:checked'))
+    .map(c => parseInt(c.value));
+
+  if (!nome || !ca || !validade || !categoria) {
+    mostrarAviso('Preencha todos os campos obrigatórios.', 'erro');
+    return;
+  }
+  if (setores.length === 0) {
+    mostrarAviso('Selecione ao menos um setor que usa este EPI.', 'erro');
+    return;
+  }
+
+  try {
+    const r = await fetchAutenticado(`/epi/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        nome,
+        tamanho,
+        descricao: desc,
+        ca,
+        validadeCa: validade,
+        categoria: parseInt(categoria),
+        setores
+      })
+    });
+    if (!r) return;
+    const d = await r.json();
+    if (r.ok) {
+      fecharModal('modal-editar-epi');
+      mostrarAviso('EPI atualizado com sucesso.', 'sucesso');
+      await carregarEpis();
+    }
+    else {
+      mostrarAviso(d.erro || 'Erro ao salvar as alterações.', 'erro');
+    }
+  }
+  catch (err) {
+    mostrarAviso('Não foi possível conectar ao servidor.', 'erro');
   }
 }
 
