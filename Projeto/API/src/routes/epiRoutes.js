@@ -11,6 +11,9 @@ router.get('/listar', autenticar, exigirEmpresa, epiController.listarEpis);
 
 router.put('/:id/inativar', autenticar, exigirEmpresa, exigirAdmin, epiController.inativarEpi);
 
+// Só o ADMIN edita EPI
+router.put('/:id', autenticar, exigirEmpresa, exigirAdmin, epiController.editarEpi);
+
 router.get('/categorias', autenticar, exigirEmpresa, epiController.listarCategorias);
 
 module.exports = router;
