@@ -47,10 +47,12 @@ create table tb_categoria (
 create table tb_epi (
     id_epi int primary key auto_increment,
     nm_epi varchar(45) not null,
+    tamanho_epi varchar(20) not null,
     desc_epi longtext,
     st_epi enum('A','I') default 'A', -- A (Ativo - EPI pronta para uso e entrega); I (Inativo - EPI descontinuado, CA vencido ou removido do sistema)
     dt_cadastro_epi date,
     ca_epi varchar(10),
+    dt_validade_ca date,
     tb_categoria_id_categoria int,
     tb_empresa_id_empresa int not null, -- para que cada empresa tenha seu próprio EPI, não deixando ser global (empresa A ver as q a B tem, ou seja, informação mútua)
     foreign key (tb_categoria_id_categoria) references tb_categoria(id_categoria),
@@ -144,7 +146,9 @@ create table tb_solicitacao (
 create table tb_entrega (
     id_entrega int primary key auto_increment,
     dt_entrega date,
+    dt_confirmacao date,
     dt_devolucao date,
+    motivo_recusa varchar(255),
     st_entrega enum('A','D') default 'A', -- A (Ativo - EPI está com o funcionário); D (Devolvido)
     tb_funcionario_id_funcionario int not null,
     tb_epi_id_epi int not null,
