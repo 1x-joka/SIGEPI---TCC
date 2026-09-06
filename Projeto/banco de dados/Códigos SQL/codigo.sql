@@ -9,9 +9,9 @@ create table tb_cidade (
 create table tb_endereco (
     id_endereco int primary key auto_increment,
     nm_endereco varchar(100) not null,
-    nm_complemento varchar(45),
-    nm_bairro varchar(45),
-    cd_cep varchar(9),
+    nm_complemento varchar(45) null, -- null: algo ainda não aconteceu, é "opcional"
+    nm_bairro varchar(45) null, -- null: algo ainda não aconteceu, é "opcional"
+    cd_cep varchar(9) null,
     tb_cidade_id_cidade int not null,
     foreign key (tb_cidade_id_cidade) references tb_cidade(id_cidade)
 );
@@ -19,16 +19,16 @@ create table tb_endereco (
 create table tb_empresa (
     id_empresa int primary key auto_increment,
     nm_empresa varchar(45) not null,
-    cnpj_empresa varchar(18),
-    codigo_empresa varchar(10) unique, -- Para o funcionário logar na empresa já cadastrada pelo ADM
+    cnpj_empresa varchar(18) not null,
+    codigo_empresa varchar(10) unique not null, -- Para o funcionário logar na empresa já cadastrada pelo ADM
     st_empresa enum('A','I') not null default 'A',
-    dt_cadastro_empresa date,
+    dt_cadastro_empresa date not null,
+    responsavel_empresa varchar(45) null, -- null: algo ainda não aconteceu, é "opcional"
+    logo_empresa varchar(45) null, -- null: algo ainda não aconteceu, é "opcional"
+    dt_contratacao date null, -- null: algo ainda não aconteceu, é "opcional"
+    email_empresa varchar(255) null, -- null: algo ainda não aconteceu, é "opcional"
+    tel_empresa varchar(20) null, -- null: algo ainda não aconteceu, é "opcional"
     tb_endereco_id_endereco int,
-    responsavel_empresa varchar(45),
-    logo_empresa varchar(45),
-    dt_contratacao date,
-    email_empresa varchar(255),
-    tel_empresa varchar(20),
     foreign key (tb_endereco_id_endereco) references tb_endereco(id_endereco)
 );
 
@@ -48,12 +48,12 @@ create table tb_epi (
     id_epi int primary key auto_increment,
     nm_epi varchar(45) not null,
     tamanho_epi varchar(20) not null,
-    desc_epi longtext,
-    st_epi enum('A','I') default 'A', -- A (Ativo - EPI pronta para uso e entrega); I (Inativo - EPI descontinuado, CA vencido ou removido do sistema)
-    dt_cadastro_epi date,
-    ca_epi varchar(10),
-    dt_validade_ca date,
-    tb_categoria_id_categoria int,
+    desc_epi longtext null, -- null: algo ainda não aconteceu, é "opcional"
+    st_epi enum('A','I') default 'A' not null, -- A (Ativo - EPI pronta para uso e entrega); I (Inativo - EPI descontinuado, CA vencido ou removido do sistema)
+    dt_cadastro_epi date not null,
+    ca_epi varchar(10) not null,
+    dt_validade_ca date not null,
+    tb_categoria_id_categoria int not null,
     tb_empresa_id_empresa int not null, -- para que cada empresa tenha seu próprio EPI, não deixando ser global (empresa A ver as q a B tem, ou seja, informação mútua)
     foreign key (tb_categoria_id_categoria) references tb_categoria(id_categoria),
     foreign key (tb_empresa_id_empresa) references tb_empresa(id_empresa)
@@ -70,7 +70,7 @@ create table tb_epi_setor (
 
 create table tb_estoque (
     id_estoque int primary key auto_increment,
-    qtd_disponivel_estoque int,
+    qtd_disponivel_estoque int not null default 0,
     qtd_minima_estoque int,
     dt_validade_estoque date,
     tb_empresa_id_empresa int not null,
@@ -81,10 +81,10 @@ create table tb_estoque (
 
 create table tb_movimentacao (
     id_movimentacao int primary key auto_increment,
-    tipo_movimentacao enum('E','S'),
-    qtd_movimentacao int,
+    tipo_movimentacao enum('E','S') not null,
+    qtd_movimentacao int not null,
     dt_movimentacao date,
-    desc_movimentacao varchar(255),
+    desc_movimentacao varchar(255) not null,
     tb_estoque_id_estoque int not null,
     foreign key (tb_estoque_id_estoque) references tb_estoque(id_estoque)
 );
@@ -97,30 +97,30 @@ create table tb_tipousuario (
 create table tb_usuario (
     id_usuario int primary key auto_increment,
     nm_usuario varchar(45) not null,
-    dt_nascimento_usuario date,
-    email_usuario varchar(255) unique,
-    senha_usuario varchar(255),
-    st_usuario enum('A','I') default 'A', -- A (Ativo - consegue logar); I (Inativo - acesso bloqueado)
-    dt_cadastro_usuario date,
-    cpf_usuario varchar(14) unique,
-    tb_empresa_id_empresa int not null,
-    tb_tipousuario_id_tipousuario int,
-    token_reset varchar(255) default null,
-    token_reset_expira datetime default null,
-    tentativas_reset int default 0,
-    reset_bloqueado_ate datetime default null,
+    dt_nascimento_usuario date null,
+    email_usuario varchar(255) unique not null,
+    senha_usuario varchar(255) not null,
+    st_usuario enum('A','I') default 'A' not null, -- A (Ativo - consegue logar); I (Inativo - acesso bloqueado)
+    dt_cadastro_usuario date not null,
+    cpf_usuario varchar(14) unique not null,
+    token_reset varchar(255) default null, -- null: considerando que ainda não teve nenhuma tentativa de esqueci minha senha
+    token_reset_expira datetime default null, -- null: considerando que ainda não teve nenhuma tentativa de esqueci minha senha
+    tentativas_reset int default 0, -- 0: considerando que ainda não teve nenhuma tentativa de esqueci minha senha 
+    reset_bloqueado_ate datetime default null, -- null: considerando que ainda não teve nenhuma tentativa de esqueci minha senha
+    tb_empresa_id_empresa int null, -- null: funcionário sem empresa ainda
+    tb_tipousuario_id_tipousuario int not null,
     foreign key (tb_empresa_id_empresa) references tb_empresa(id_empresa),
     foreign key (tb_tipousuario_id_tipousuario) references tb_tipousuario(id_tipousuario)
 );
 
 create table tb_funcionario (
     id_funcionario int primary key auto_increment,
-    nm_funcionario varchar(45) not null,
+    nm_funcionario varchar(120) not null,
     dt_nascimento_funcionario date,
-    st_funcionario enum('A','I') default 'A', -- A (Ativo - funcionário na empresa); I (Inativo - funcionário desligado/exclusão pelo admin) 
-    dt_cadastro_funcionario date,
-    motivo_inativacao_funcionario varchar(255),
-    data_inativacao date,
+    st_funcionario enum('A','I') default 'A' not null, -- A (Ativo - funcionário na empresa); I (Inativo - funcionário desligado/exclusão pelo admin) 
+    dt_cadastro_funcionario date not null,
+    motivo_inativacao_funcionario varchar(255) null, -- null: porque ocorre apenas quando inativa
+    data_inativacao date null, -- null: porque ocorre apenas quando inativa
     tb_empresa_id_empresa int not null,
     tb_setor_id_setor int,
     tb_endereco_id_endereco int,
@@ -133,9 +133,9 @@ create table tb_funcionario (
 
 create table tb_solicitacao (
     id_solicitacao int primary key auto_increment,
-    dt_solicitacao date,
-    st_solicitacao enum('P','A','R') default 'P', -- P (Pendente - aguardando aprovação do admin); A (Aprovada); R (Recusada)
-    desc_motivo_solicitacao varchar(255),
+    dt_solicitacao date not null,
+    st_solicitacao enum('P','A','R') default 'P' not null, -- P (Pendente - aguardando aprovação do admin); A (Aprovada); R (Recusada)
+    desc_motivo_solicitacao varchar(255) not null,
     dt_previsao date,
     tb_funcionario_id_funcionario int not null,
     tb_epi_id_epi int not null,
@@ -145,11 +145,11 @@ create table tb_solicitacao (
 
 create table tb_entrega (
     id_entrega int primary key auto_increment,
-    dt_entrega date,
-    dt_confirmacao date,
-    dt_devolucao date,
-    motivo_recusa varchar(255),
-    st_entrega enum('A','D') default 'A', -- A (Ativo - EPI está com o funcionário); D (Devolvido)
+    dt_entrega date not null,
+    dt_confirmacao date null, -- null: só acontece quando inativa
+    dt_devolucao date null,
+    motivo_recusa varchar(255) null,
+    st_entrega enum('P','A','D','R') default 'P' not null,
     tb_funcionario_id_funcionario int not null,
     tb_epi_id_epi int not null,
     tb_usuario_id_usuario int not null,
@@ -192,10 +192,6 @@ begin
 end$$
 delimiter ;
 
--- Permitindo "NULO" na coluna id_empresa
-alter table tb_usuario 
-modify tb_empresa_id_empresa int null;
-
 -- Declarando que existem dois tipos de usuários (admin e funcionários)
 insert into tb_tipousuario (nm_tipousuario)
 values
@@ -209,38 +205,16 @@ values
 -- ADICIONANDO A TABELA DE AUDITORIA DE LOGS PARA MÁXIMA RASTREABILIDADE
 create table tb_log (
     id_log int primary key auto_increment,
-    dt_log datetime default current_timestamp,
+    dt_log datetime default current_timestamp not null,
     tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC','SOLICITACAO_APROVADA','SOLICITACAO_RECUSADA','ENTREGA_CONFIRMADA','ENTREGA_RECUSADA','LOGIN','ATIVACAO_FUNC', 'EDICAO_EPI') not null,
-    descricao varchar(255),
-    equipamento varchar(45),
-    quantidade int,
-    motivo varchar(100),
-    responsavel varchar(120),
+    descricao varchar(255) null, -- null: pois ainda não foi preenchido
+    equipamento varchar(45) null,
+    quantidade int null,
+    motivo varchar(100) null,
+    responsavel varchar(120) null,
     tb_empresa_id_empresa int not null,
     foreign key (tb_empresa_id_empresa) references tb_empresa(id_empresa)
 );
 
--- Colocando a column "dt_validade_ca" para que, na dashboard, tenha uma contagem de quantos estão ativos, em validade, etc.
-alter table tb_epi
-add dt_validade_ca date;
-
 select * from tb_epi;
 select * from tb_estoque;
-
-alter table db_SIGEPI.tb_funcionario
-modify nm_funcionario varchar(120) not null;
-
--- Ajustando os status por conta que o funcionário precisa aceitar ou recusar a entrega para normas e segurança da empresa
-alter table db_SIGEPI.tb_entrega 
-modify st_entrega enum('P','A','D','R') default 'P';
-
-ALTER TABLE db_SIGEPI.tb_entrega 
-add column dt_confirmacao date after dt_entrega,
-add column motivo_recusa varchar(255) after dt_devolucao;
-
-alter table db_SIGEPI.tb_log
-modify tipo_acao enum('CADASTRO_EPI','ENTRADA_ESTOQUE','SAIDA_ESTOQUE','ENTREGA','DEVOLUCAO','INATIVACAO_FUNC','INATIVACAO_EPI','EDICAO_FUNC','SOLICITACAO_APROVADA','SOLICITACAO_RECUSADA','ENTREGA_CONFIRMADA','ENTREGA_RECUSADA','LOGIN','ATIVACAO_FUNC','EDICAO_EPI') not null;
-
--- Adicionando a column 'tamanho' para melhor especificação das dimensões do EPI que o funcionário precisa
-alter table db_SIGEPI.tb_epi
-add column tamanho_epi varchar(20) after nm_epi;
