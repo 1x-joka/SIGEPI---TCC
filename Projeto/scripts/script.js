@@ -7,12 +7,14 @@ const API_URL = '/api';
 // ===== AVISO / TOAST (substitui o alert nativo) =====
 function mostrarAviso(mensagem, tipo = 'info') {
   let area = document.getElementById('area-avisos');
+
   if (!area) {
     area = document.createElement('div');
     area.id = 'area-avisos';
     area.className = 'area-avisos';
     document.body.appendChild(area);
   }
+
   const aviso = document.createElement('div');
   aviso.className = 'aviso aviso--' + tipo;
   aviso.setAttribute('role', 'alert');
@@ -24,6 +26,7 @@ function mostrarAviso(mensagem, tipo = 'info') {
     aviso.classList.remove('aviso--visivel');
     aviso.addEventListener('transitionend', () => aviso.remove(), { once: true });
   };
+  
   aviso.addEventListener('click', fechar);
   setTimeout(fechar, 4500);
 }
@@ -72,7 +75,11 @@ function fecharSeOverlay(event, id) {
 
 function limparModalCadastrarEpi() {
   ['cad-nome','cad-tamanho','cad-desc','cad-ca','cad-validade','cad-qtd','cad-limite','cad-cat']
-    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; }); // a cada (forEach) campo da lista, o valor (value) fica vazio (limpo) caso essa função seja chamada
+    .forEach(id => { // a cada (forEach) campo da lista, o valor (value) fica vazio (limpo) caso essa função seja chamada
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
   document.querySelectorAll('.chk-setor-epi').forEach(c => c.checked = false);
 }
 
@@ -1989,22 +1996,24 @@ document.addEventListener('DOMContentLoaded', carregarSecaoSetores);
 
 let setorEditandoId = null; // id do setor em modo de edição inline (null = nenhum)
 
-function renderSetoresEmpresa() {
-  const lista = document.getElementById('setores-lista');
-  if (!lista) return;
-  lista.innerHTML = '';
+function renderSetoresSecao() {
+  const tbody = document.getElementById('tbody-setores');
+  if (!tbody) return;
+  tbody.innerHTML = '';
 
-  setoresEmpresa.forEach(setor => {
-    const item = document.createElement('div');
-    item.className = 'setor-item';
+  secaoSetores.forEach(setor => {
+    const tr = document.createElement('tr');
+    const tdNome = document.createElement('td');
+    const tdAcoes = document.createElement('td');
 
     // MODO EDIÇÃO: nome vira input com ✓ (salvar) e ✕ (cancelar)
     if (setor.id_setor === setorEditandoId) {
       const input = document.createElement('input');
       input.value = setor.nm_setor;
       input.maxLength = 45;
-      input.style.cssText = 'flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font:inherit;';
+      input.style.cssText = 'width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font:inherit;';
       input.onkeydown = (ev) => { if (ev.key === 'Enter') salvarEdicaoSetor(setor.id_setor, input.value.trim()); };
+      tdNome.appendChild(input);
 
       const btnOk = document.createElement('button');
       btnOk.className = 'btn-rm';
@@ -2016,33 +2025,33 @@ function renderSetoresEmpresa() {
       btnCancel.className = 'btn-rm';
       btnCancel.textContent = '✕';
       btnCancel.title = 'Cancelar';
-      btnCancel.onclick = () => { setorEditandoId = null; renderSetoresEmpresa(); };
+      btnCancel.onclick = () => { setorEditandoId = null; renderSetoresSecao(); };
 
-      item.append(input, btnOk, btnCancel);
-      lista.appendChild(item);
+      tdAcoes.append(btnOk, btnCancel);
+      tr.append(tdNome, tdAcoes);
+      tbody.appendChild(tr);
       input.focus();
       return;
     }
 
     // MODO NORMAL
-    const nome = document.createElement('span');
-    nome.className = 'nome';
-    nome.textContent = setor.nm_setor; // XSS-safe: textContent trata como texto puro
+    tdNome.textContent = setor.nm_setor; // XSS-safe: textContent trata como texto puro
 
     const btnEditar = document.createElement('button');
     btnEditar.className = 'btn-rm';
     btnEditar.textContent = '✎';
     btnEditar.title = 'Editar';
-    btnEditar.onclick = () => { setorEditandoId = setor.id_setor; renderSetoresEmpresa(); };
+    btnEditar.onclick = () => { setorEditandoId = setor.id_setor; renderSetoresSecao(); };
 
-    const btn = document.createElement('button');
-    btn.className = 'btn-rm';
-    btn.textContent = '✕';
-    btn.title = 'Excluir';
-    btn.onclick = () => removerSetor(setor.id_setor);
+    const btnRemover = document.createElement('button');
+    btnRemover.className = 'btn-rm';
+    btnRemover.textContent = '✕';
+    btnRemover.title = 'Excluir';
+    btnRemover.onclick = () => excluirSetorSecao(setor.id_setor);
 
-    item.append(nome, btnEditar, btn);
-    lista.appendChild(item);
+    tdAcoes.append(btnEditar, btnRemover);
+    tr.append(tdNome, tdAcoes);
+    tbody.appendChild(tr);
   });
 }
 
@@ -2056,12 +2065,15 @@ async function salvarEdicaoSetor(id, novoNome) {
       method: 'PUT',
       body: JSON.stringify({ nome: novoNome })
     });
+
     if (!resposta) return;
     const dados = await resposta.json();
+
     if (resposta.ok) {
       setorEditandoId = null;
-      await carregarSetores();
+      await carregarSecaoSetores();
     }
+
     else {
       mostrarAviso(dados.erro || 'Não foi possível editar o setor.', 'erro');
     }
