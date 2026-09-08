@@ -70,6 +70,7 @@
         </div>
         <div class="table-footer">
           <button class="btn btn-primary" onclick="limparModalCadastrarEpi(); abrirModal('modal-cadastrar')">Cadastrar</button>
+          <button class="btn btn-outline" onclick="abrirModal('modal-importar')">Importar Planilha</button>
           <button class="btn btn-primary" onclick="carregarEpisSelect('ret-epi'); abrirModal('modal-retirar')">Retirar do Estoque</button>
           <button class="btn btn-primary" onclick="carregarEpisSelect('add-epi'); abrirModal('modal-adicionar')">Adicionar ao Estoque</button>
         </div>
@@ -77,7 +78,7 @@
     </div>
   </div>
 
-  <!-- POPUP: CADASTRO DE EPI -->
+  <!-- MODAL: CADASTRO DE EPI -->
   <div class="modal-overlay" id="modal-cadastrar" onclick="fecharSeOverlay(event,'modal-cadastrar')">
     <div class="modal modal--epi">
       <h2>Cadastro de EPI</h2>
@@ -141,56 +142,80 @@
     </div>
   </div>
 
-    <div class="modal-overlay" id="modal-editar-epi" onclick="fecharSeOverlay(event,'modal-editar-epi')">
-    <div class="modal modal--epi">
-      <h2>Editar EPI</h2>
-      <input type="hidden" id="ed-id">
-      <div class="modal-grid-2col">
-        <div class="modal-col">
-          <div class="form-group">
-            <label for="ed-nome">Nome do EPI <span class="req">*</span></label>
-            <input type="text" id="ed-nome" placeholder="Digite o nome do EPI">
-          </div>
-          <div class="form-group">
-            <label for="ed-tamanho">Tamanho</label>
-            <input type="text" id="ed-tamanho" placeholder="Ex.: 38, M, G, 1,20m x 0,60m" maxlength="20">
-          </div>
-          <div class="form-group">
-            <label for="ed-desc">Descrição</label>
-            <textarea id="ed-desc" placeholder="Descrição" class="textarea-descricao"></textarea>
-          </div>
+    <!-- MODAL: IMPORTAR CSV DE EPI -->
+    <div class="modal-overlay" id="modal-importar" onclick="fecharSeOverlay(event,'modal-importar')">
+    <div class="modal modal--sm">
+      <h2>Importar EPIs por planilha</h2>
+      <p class="modal-dica">Monte a lista no Excel ou Google Sheets, salve como <strong>CSV</strong> e envie aqui. Baixe o modelo abaixo para não errar as colunas (nome, tamanho, ca, validade, categoria, quantidade).</p>
+      <div class="modal-form-col">
+        <div class="form-group">
+          <button type="button" class="btn btn-outline" onclick="baixarModeloEpi()">⬇ Baixar modelo (CSV)</button>
         </div>
-        <div class="modal-col">
-          <div class="form-group">
-            <label for="ed-ca">Certificado de Aprovação (CA) <span class="req">*</span></label>
-            <input type="number" id="ed-ca" placeholder="Somente números (ex.: 12345)">
-          </div>
-          <div class="form-group">
-            <label for="ed-validade">Validade <span class="req">*</span></label>
-            <input type="date" id="ed-validade">
-          </div>
-          <div class="form-group">
-            <label for="ed-cat">Categoria <span class="req">*</span></label>
-            <div class="select-wrap">
-              <select id="ed-cat">
-                <option value="">Selecione a categoria</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="ed-setores">Setores que usam este EPI <span class="req">*</span></label>
-            <div id="ed-setores" class="cad-setores-box"></div>
-          </div>
+        <div class="form-group">
+          <label for="imp-arquivo">Arquivo CSV <span class="req">*</span></label>
+          <input type="file" id="imp-arquivo" accept=".csv,text/csv">
+          <span class="error-msg" id="imp-arquivo-err">Selecione um arquivo CSV.</span>
         </div>
+        <div id="imp-resultado" class="imp-resultado"></div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-primary" onclick="salvarEdicaoEpi()">Salvar alterações</button>
-        <button class="btn btn-outline" onclick="fecharModal('modal-editar-epi')">Cancelar</button>
+        <button class="btn btn-primary" onclick="importarPlanilhaEpi()">Importar</button>
+        <button class="btn btn-outline" onclick="fecharModal('modal-importar')">Fechar</button>
       </div>
     </div>
   </div>
 
-  <!-- POPUP: ADICIONAR AO ESTOQUE -->
+  <!-- MODAL: EDITAR EPI -->
+  <div class="modal-overlay" id="modal-editar-epi" onclick="fecharSeOverlay(event,'modal-editar-epi')">
+  <div class="modal modal--epi">
+    <h2>Editar EPI</h2>
+    <input type="hidden" id="ed-id">
+    <div class="modal-grid-2col">
+      <div class="modal-col">
+        <div class="form-group">
+          <label for="ed-nome">Nome do EPI <span class="req">*</span></label>
+          <input type="text" id="ed-nome" placeholder="Digite o nome do EPI">
+        </div>
+        <div class="form-group">
+          <label for="ed-tamanho">Tamanho</label>
+          <input type="text" id="ed-tamanho" placeholder="Ex.: 38, M, G, 1,20m x 0,60m" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label for="ed-desc">Descrição</label>
+          <textarea id="ed-desc" placeholder="Descrição" class="textarea-descricao"></textarea>
+        </div>
+      </div>
+      <div class="modal-col">
+        <div class="form-group">
+          <label for="ed-ca">Certificado de Aprovação (CA) <span class="req">*</span></label>
+          <input type="number" id="ed-ca" placeholder="Somente números (ex.: 12345)">
+        </div>
+        <div class="form-group">
+          <label for="ed-validade">Validade <span class="req">*</span></label>
+          <input type="date" id="ed-validade">
+        </div>
+        <div class="form-group">
+          <label for="ed-cat">Categoria <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select id="ed-cat">
+              <option value="">Selecione a categoria</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ed-setores">Setores que usam este EPI <span class="req">*</span></label>
+          <div id="ed-setores" class="cad-setores-box"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="salvarEdicaoEpi()">Salvar alterações</button>
+      <button class="btn btn-outline" onclick="fecharModal('modal-editar-epi')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+  <!-- MODAL: ADICIONAR AO ESTOQUE -->
   <div class="modal-overlay" id="modal-adicionar" onclick="fecharSeOverlay(event,'modal-adicionar')">
     <div class="modal modal--sm">
       <h2>Adicionando ao Estoque</h2>
@@ -227,7 +252,7 @@
     </div>
   </div>
 
-  <!-- POPUP: RETIRAR DO ESTOQUE -->
+  <!-- MODAL: RETIRAR DO ESTOQUE -->
   <div class="modal-overlay" id="modal-retirar" onclick="fecharSeOverlay(event,'modal-retirar')">
     <div class="modal modal--sm">
       <h2>Retirando do Estoque</h2>
