@@ -884,6 +884,138 @@ async function carregarEpis() {
   }
 }
 
+// ===== IMPORTAR EPIs POR PLANILHA (CSV) =====
+// Gera e baixa um modelo de CSV com as colunas esperadas (NF18.3)
+function baixarModeloEpi() {
+  const cabecalho = 'nome,tamanho,ca,validade,categoria,quantidade';
+  const exemplo = 'Capacete de Segurança,M,12345,2027-12-31,Proteção da cabeça,50';
+  const conteudo = cabecalho + '\n' + exemplo + '\n';
+  // o \uFEFF (BOM) faz o Excel abrir com acentos corretos
+  const blob = new Blob(['\uFEFF' + conteudo], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'modelo-epis-sigepi.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Divide uma linha de CSV respeitando aspas (nome com vírgula dentro fica protegido)
+function dividirLinhaCsv(linha) {
+  const campos = [];
+  let atual = '';
+  let dentroAspas = false;
+  for (let i = 0; i < linha.length; i++) {
+    const c = linha[i];
+    if (c === '"') {
+      if (dentroAspas && linha[i + 1] === '"') { atual += '"'; i++; }
+      else dentroAspas = !dentroAspas;
+    }
+    else if (c === ',' && !dentroAspas) { campos.push(atual); atual = ''; }
+    else atual += c;
+  }
+  campos.push(atual);
+  return campos.map(v => v.trim());
+}
+
+// Lê o CSV e converte em objetos { nome, tamanho, ca, validade, categoria, quantidade }
+function lerCsvEpi(texto) {
+  texto = texto.replace(/^\uFEFF/, ''); // remove o BOM que o Excel coloca
+  const linhas = texto.split(/\r?\n/).filter(l => l.trim() !== '');
+  if (linhas.length < 2) return [];
+
+  const cabecalho = dividirLinhaCsv(linhas[0]).map(h => h.toLowerCase());
+  const idx = {
+    nome: cabecalho.indexOf('nome'),
+    tamanho: cabecalho.indexOf('tamanho'),
+    ca: cabecalho.indexOf('ca'),
+    validade: cabecalho.indexOf('validade'),
+    categoria: cabecalho.indexOf('categoria'),
+    quantidade: cabecalho.indexOf('quantidade')
+  };
+
+  const registros = [];
+  for (let i = 1; i < linhas.length; i++) {
+    const c = dividirLinhaCsv(linhas[i]);
+    registros.push({
+      nome: idx.nome >= 0 ? c[idx.nome] : '',
+      tamanho: idx.tamanho >= 0 ? c[idx.tamanho] : '',
+      ca: idx.ca >= 0 ? c[idx.ca] : '',
+      validade: idx.validade >= 0 ? c[idx.validade] : '',
+      categoria: idx.categoria >= 0 ? c[idx.categoria] : '',
+      quantidade: idx.quantidade >= 0 ? c[idx.quantidade] : ''
+    });
+  }
+  return registros;
+}
+
+async function importarPlanilhaEpi() {
+  const inputArquivo = document.getElementById('imp-arquivo');
+  const erroArquivo = document.getElementById('imp-arquivo-err');
+  const resultado = document.getElementById('imp-resultado');
+  if (!inputArquivo || !inputArquivo.files || inputArquivo.files.length === 0) {
+    erroArquivo?.classList.add('show');
+    return;
+  }
+  erroArquivo?.classList.remove('show');
+  resultado.innerHTML = '';
+
+  let texto;
+  try {
+    texto = await inputArquivo.files[0].text();
+  }
+  catch (err) {
+    mostrarAviso('Não foi possível ler o arquivo.', 'erro');
+    return;
+  }
+
+  const linhas = lerCsvEpi(texto);
+  if (linhas.length === 0) {
+    mostrarAviso('A planilha está vazia ou não tem dados abaixo do cabeçalho.', 'erro');
+    return;
+  }
+
+  try {
+    const resposta = await fetchAutenticado('/epi/importar', {
+      method: 'POST',
+      body: JSON.stringify({ linhas })
+    });
+    if (!resposta) return;
+    const dados = await resposta.json();
+
+    if (!resposta.ok) {
+      mostrarAviso(dados.erro || 'Erro ao importar.', 'erro');
+      return;
+    }
+
+    mostrarAviso(`${dados.importados} de ${dados.total} EPIs importados.`, dados.erros.length === 0 ? 'sucesso' : 'info');
+
+    // Relatório (montado com DOM = seguro contra XSS)
+    resultado.innerHTML = '';
+    const resumo = document.createElement('p');
+    resumo.className = 'imp-resumo';
+    resumo.textContent = `${dados.importados} importados · ${dados.erros.length} com erro (de ${dados.total}).`;
+    resultado.appendChild(resumo);
+
+    if (dados.erros.length > 0) {
+      const ul = document.createElement('ul');
+      ul.className = 'imp-erros';
+      dados.erros.forEach(e => {
+        const li = document.createElement('li');
+        li.textContent = `Linha ${e.linha}: ${e.erro}`;
+        ul.appendChild(li);
+      });
+      resultado.appendChild(ul);
+    }
+
+    inputArquivo.value = '';
+    await carregarEpis(); // atualiza a tabela com os EPIs novos
+  }
+  catch (err) {
+    mostrarAviso('Não foi possível conectar ao servidor.', 'erro');
+  }
+}
+
 async function inativarEpi(id, nome) {
   if (!confirm(`Inativar o EPI "${nome}"? Ele sairá da lista, mas o histórico é mantido.`)) return;
   const resp = await fetchAutenticado(`/epi/${id}/inativar`, { method: 'PUT' });
