@@ -6,6 +6,9 @@ const { autenticar, exigirEmpresa, exigirAdmin } = require('../middlewares/authM
 // Só o ADMIN cadastra EPI
 router.post('/cadastrar', autenticar, exigirEmpresa, exigirAdmin, epiController.cadastrarEpi);
 
+// Só o ADMIN importa EPIs em lote
+router.post('/importar', autenticar, exigirEmpresa, exigirAdmin, epiController.importarEpisCsv);
+
 // Admin E funcionário podem listar os EPIs da empresa (o funcionário precisa ver o que pode solicitar)
 router.get('/listar', autenticar, exigirEmpresa, epiController.listarEpis);
 

@@ -18,7 +18,7 @@ const logRoutes = require('./src/routes/logRoutes');
 
 const app = express();
 
-app.use(express.json());
+app.use(express.json({limit: '5mb'})); // Importar uma alta quantidade de EPIs manda um JSON muito grande, e o padrão do Express é 100kb, portanto limitamos para grandes importações CSV não dar erro "PayloadTooLargeError"
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '..')));
 
