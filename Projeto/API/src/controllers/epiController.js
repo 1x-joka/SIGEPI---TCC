@@ -1,6 +1,9 @@
 const db = require('../config/db');
 const registrarLog = require('../utils/registrarLog');
 
+// normaliza para casar categoria mesmo sem acento / com maiúsculas diferentes
+const normalizarTexto = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+
 // Cadastrar um EPI vinculado à empresa do admin logado
 async function cadastrarEpi(req, res) {
   const { nome, tamanho, descricao, ca, categoria, validadeCa, quantidade, quantidadeMinima, validade, setores } = req.body;
@@ -9,7 +12,7 @@ async function cadastrarEpi(req, res) {
     erro: 'Informe o nome do EPI.'
   });
 
-  const conexao = await db.getConnection();
+  const conexao = await db.getConnection(); // Ligando ao banco de dados de fato
   try {
    const [existe] = await conexao.execute("SELECT id_epi FROM tb_epi WHERE nm_epi = ? AND (tamanho_epi <=> ?) AND tb_empresa_id_empresa = ? AND st_epi = 'A'", [nome, tamanho || null, empresa]);
     if (existe.length > 0) {
@@ -310,4 +313,108 @@ async function obterEpi(req, res) {
   }
 }
 
-module.exports = { cadastrarEpi, listarEpis, limparModalCadastrarEpi, inativarEpi, listarCategorias, editarEpi, obterEpi };
+// ADMIN importa vários EPIs de uma vez a partir das linhas de uma planilha
+async function importarEpisCsv(req, res) {
+  const { linhas } = req.body;
+  const empresa = req.usuario.empresa;
+
+  if (!Array.isArray(linhas) || linhas.length === 0) {
+    return res.status(400).json({
+      erro: 'Nenhuma linha para importar.'
+    });
+  }
+
+  const conexao = await db.getConnection();
+  const erros = [];
+  let importados = 0;
+
+  try {
+    // Carrega as categorias da NR-6 uma vez, mapeadas por nome normalizado
+    const [cats] = await conexao.execute('SELECT id_categoria, nm_categoria FROM tb_categoria');
+    const mapaCategoria = {};
+    cats.forEach(c => { mapaCategoria[normalizarTexto(c.nm_categoria)] = c.id_categoria; });
+
+    await conexao.beginTransaction();
+
+    for (let i = 0; i < linhas.length; i++) {
+      const numeroLinha = i + 2; // +2: a linha 1 da planilha é o cabeçalho
+      const l = linhas[i] || {};
+
+      const nome = (l.nome || '').trim();
+      const tamanho = (l.tamanho || '').trim();
+      const ca = (l.ca || '').toString().trim();
+      const validade = (l.validade || '').trim();
+      const quantidade = parseInt(l.quantidade);
+
+      // --- validações da linha (mesmas regras do cadastro individual) ---
+      if (!nome) { erros.push({ linha: numeroLinha, erro: 'Nome do EPI vazio.' }); continue; }
+      if (!tamanho) { erros.push({ linha: numeroLinha, erro: 'Tamanho vazio.' }); continue; }
+      if (!ca) { erros.push({ linha: numeroLinha, erro: 'CA vazio.' }); continue; }
+      if (!validade || !/^\d{4}-\d{2}-\d{2}$/.test(validade)) {
+        erros.push({ linha: numeroLinha, erro: 'Validade inválida (use o formato AAAA-MM-DD).' });
+        continue;
+      }
+      const idCategoria = mapaCategoria[normalizarTexto(l.categoria)];
+      if (!idCategoria) {
+        erros.push({ linha: numeroLinha, erro: `Categoria "${(l.categoria || '').trim()}" não existe na NR-6.` });
+        continue;
+      }
+      if (isNaN(quantidade) || quantidade < 0) {
+        erros.push({ linha: numeroLinha, erro: 'Quantidade inválida.' });
+        continue;
+      }
+
+      // --- unicidade (inclusive contra linhas já inseridas neste mesmo lote) ---
+      const [dupNome] = await conexao.execute(
+        "SELECT id_epi FROM tb_epi WHERE nm_epi = ? AND (tamanho_epi <=> ?) AND tb_empresa_id_empresa = ? AND st_epi = 'A'",
+        [nome, tamanho, empresa]
+      );
+      if (dupNome.length > 0) { erros.push({ linha: numeroLinha, erro: 'Já existe EPI com esse nome e tamanho.' }); continue; }
+
+      const [dupCa] = await conexao.execute(
+        "SELECT id_epi FROM tb_epi WHERE ca_epi = ? AND (tamanho_epi <=> ?) AND tb_empresa_id_empresa = ? AND st_epi = 'A'",
+        [ca, tamanho, empresa]
+      );
+      if (dupCa.length > 0) { erros.push({ linha: numeroLinha, erro: 'Já existe EPI com esse CA e tamanho.' }); continue; }
+
+      // --- insere EPI + a linha de estoque com a quantidade ---
+      const [rEpi] = await conexao.execute(
+        `INSERT INTO tb_epi (nm_epi, tamanho_epi, st_epi, dt_cadastro_epi, ca_epi, dt_validade_ca, tb_categoria_id_categoria, tb_empresa_id_empresa)
+         VALUES (?, ?, 'A', CURDATE(), ?, ?, ?, ?)`,
+        [nome, tamanho, ca, validade, idCategoria, empresa]
+      );
+      await conexao.execute(
+        `INSERT INTO tb_estoque (qtd_disponivel_estoque, tb_empresa_id_empresa, tb_epi_id_epi)
+         VALUES (?, ?, ?)`,
+        [quantidade, empresa, rEpi.insertId]
+      );
+      importados++;
+    }
+
+    await conexao.commit();
+
+    await registrarLog({
+      empresa, tipo: 'CADASTRO_EPI',
+      descricao: `Importação de EPIs em lote (${importados} adicionados)`,
+      responsavel: req.usuario.id
+    });
+
+    return res.status(200).json({
+      total: linhas.length,
+      importados,
+      erros
+    });
+  }
+  catch (err) {
+    await conexao.rollback();
+    return res.status(500).json({
+      erro: 'Erro interno na importação.',
+      detalhe: err.message
+    });
+  }
+  finally {
+    conexao.release();
+  }
+}
+
+module.exports = { cadastrarEpi, listarEpis, limparModalCadastrarEpi, inativarEpi, listarCategorias, editarEpi, obterEpi, importarEpisCsv };
