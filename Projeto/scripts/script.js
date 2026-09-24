@@ -1694,10 +1694,13 @@ async function carregarMeusEquipamentos() {
     if (resp && resp.ok) {
       const itens = await resp.json();
       tbody.innerHTML = '';
+      let temVencido = false;
       itens.forEach(i => {
         const tr = document.createElement('tr');
         const status = i.st_entrega === 'D' ? 'Devolvido' : 'Com você';
-        const validade = formatarData(i.dt_devolucao);
+        const venc = i.dt_validade_ca && new Date(i.dt_validade_ca) < new Date();
+        if (venc && i.st_entrega !== 'D') temVencido = true;
+        const validade = i.dt_validade_ca ? formatarData(i.dt_validade_ca) : '—';
         [i.nm_epi, '—', '1', validade, status].forEach(v => {
           const td = document.createElement('td');
           td.textContent = v;
@@ -1705,6 +1708,8 @@ async function carregarMeusEquipamentos() {
         });
         tbody.appendChild(tr);
       });
+      const banner = document.getElementById('banner-alerta');
+      if (banner) banner.style.display = temVencido ? '' : 'none';
     }
   }
   catch (err) {
@@ -1726,14 +1731,17 @@ async function abrirSolicitar() {
   const select = document.getElementById('sol-epi');
   if (!select) return;
   try {
-    const resp = await fetchAutenticado('/epi/listar');
+    const resp = await fetchAutenticado('/entrega/meus');
     if (resp && resp.ok) {
-      const epis = await resp.json();
+      const itens = await resp.json();
       select.innerHTML = '<option value="">Selecione o EPI</option>';
-      epis.forEach(e => {
+      const vistos = new Set();
+      itens.filter(i => i.st_entrega !== 'D').forEach(i => {
+        if (vistos.has(i.id_epi)) return;
+        vistos.add(i.id_epi);
         const opt = document.createElement('option');
-        opt.value = e.id_epi;
-        opt.textContent = rotuloEpi(e); // XSS-safe
+        opt.value = i.id_epi;
+        opt.textContent = i.nm_epi; // XSS-safe
         select.appendChild(opt);
       });
     }
