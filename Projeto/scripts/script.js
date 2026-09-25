@@ -50,7 +50,7 @@ async function fetchAutenticado(endpoint, opcoes = {}) {
     headers: cabecalhos,
     credentials: 'include'
   });
-  if (resposta.status === 401 || resposta.status === 403) {
+  if (resposta.status === 401) {
     window.location.href = 'loginpage.html';
     return null;
   }
@@ -848,7 +848,7 @@ async function carregarEpis() {
       epis.forEach(e => {
         const tr = document.createElement('tr');
 
-        const baixo = Number(e.quantidade) < Number(e.limite);
+        const baixo = Number(e.quantidade) === 0 || Number(e.quantidade) <= Number(e.limite);
         const vencido = e.dt_validade_ca && new Date(e.dt_validade_ca) < new Date();
         const status = vencido ? 'VENCIDO' : (baixo ? 'BAIXO' : 'OK');
         if (vencido || baixo) {
