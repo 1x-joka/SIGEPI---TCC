@@ -57,16 +57,15 @@ async function criarSolicitacao(req, res) {
       });
     }
 
-    // O EPI precisa estar vinculado ao SETOR do funcionário
+    // O funcionário só pode pedir reposição de um EPI que ele JÁ recebeu
     const [permitido] = await db.execute(
-      `SELECT 1 FROM tb_epi_setor eps
-       JOIN tb_funcionario f ON f.tb_setor_id_setor = eps.tb_setor_id_setor
-       WHERE eps.tb_epi_id_epi = ? AND f.id_funcionario = ?`,
+      `SELECT 1 FROM tb_entrega e
+       WHERE e.tb_epi_id_epi = ? AND e.tb_funcionario_id_funcionario = ? AND e.st_entrega IN ('P','A')`,
       [epi, id_funcionario]
     );
     if (permitido.length === 0) {
-      return res.status(403).json({
-        erro: 'Este EPI não pertence ao seu setor.'
+      return res.status(400).json({
+        erro: 'Você não possui este EPI para solicitar reposição.'
       });
     }
 
