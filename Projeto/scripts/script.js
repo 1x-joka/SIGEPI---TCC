@@ -1230,6 +1230,7 @@ async function retirarEstoque() {
     if (resp.ok) {
       setErro('ret-estoque-err', false);
       fecharModal('modal-retirar');
+      await carregarEpis();
       ['ret-qtd','ret-obs'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
       await carregarEpis();   // regra "alterou → recarrega"
     }
@@ -1493,7 +1494,7 @@ async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
     const todas = await resp.json();
 
     // Só as deste funcionário
-    const minhas = todas.filter(s => s.id_funcionario === idFuncionario);
+        const minhas = todas.filter(s => Number(s.id_funcionario) === Number(idFuncionario));
 
     if (minhas.length === 0) {
       const tr = document.createElement('tr');
@@ -1536,6 +1537,7 @@ async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
         btnRec.className = 'btn btn-outline';
         btnRec.textContent = 'Recusar';
         btnRec.classList.add('btn-acao-espaco');
+        btnRec.onclick = () => responderSolicitacao(s.id_solicitacao, 'R', idFuncionario, nomeFuncionario);
 
         tdAcao.append(btnAp, btnRec);
         tr.appendChild(tdAcao);
