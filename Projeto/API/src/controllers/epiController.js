@@ -326,7 +326,9 @@ async function importarEpisCsv(req, res) {
 
   const conexao = await db.getConnection();
   const erros = [];
+  
   let importados = 0;
+  let estoqueAtualizado = 0;
 
   try {
     // Carrega as categorias da NR-6 uma vez, mapeadas por nome normalizado
@@ -364,18 +366,30 @@ async function importarEpisCsv(req, res) {
         continue;
       }
 
-      // --- unicidade (inclusive contra linhas já inseridas neste mesmo lote) ---
+      // --- EPI já existe (mesmo CA + tamanho)? Então SOMA ao estoque em vez de recusar ---
+      const [existeCa] = await conexao.execute(
+        "SELECT id_epi FROM tb_epi WHERE ca_epi = ? AND (tamanho_epi <=> ?) AND tb_empresa_id_empresa = ? AND st_epi = 'A'",
+        [ca, tamanho, empresa]
+      );
+      if (existeCa.length > 0) {
+        await conexao.execute(
+          `INSERT INTO tb_estoque (qtd_disponivel_estoque, tb_empresa_id_empresa, tb_epi_id_epi)
+           VALUES (?, ?, ?)`,
+          [quantidade, empresa, existeCa[0].id_epi]
+        );
+        estoqueAtualizado++;
+        continue;
+      }
+
+      // --- mesmo nome + tamanho, mas CA diferente = conflito real ---
       const [dupNome] = await conexao.execute(
         "SELECT id_epi FROM tb_epi WHERE nm_epi = ? AND (tamanho_epi <=> ?) AND tb_empresa_id_empresa = ? AND st_epi = 'A'",
         [nome, tamanho, empresa]
       );
-      if (dupNome.length > 0) { erros.push({ linha: numeroLinha, erro: 'Já existe EPI com esse nome e tamanho.' }); continue; }
-
-      const [dupCa] = await conexao.execute(
-        "SELECT id_epi FROM tb_epi WHERE ca_epi = ? AND (tamanho_epi <=> ?) AND tb_empresa_id_empresa = ? AND st_epi = 'A'",
-        [ca, tamanho, empresa]
-      );
-      if (dupCa.length > 0) { erros.push({ linha: numeroLinha, erro: 'Já existe EPI com esse CA e tamanho.' }); continue; }
+      if (dupNome.length > 0) {
+        erros.push({ linha: numeroLinha, erro: 'Já existe um EPI com esse nome e tamanho, mas com CA diferente.' });
+        continue;
+      }
 
       // --- insere EPI + a linha de estoque com a quantidade ---
       const [rEpi] = await conexao.execute(
@@ -395,13 +409,14 @@ async function importarEpisCsv(req, res) {
 
     await registrarLog({
       empresa, tipo: 'CADASTRO_EPI',
-      descricao: `Importação de EPIs em lote (${importados} adicionados)`,
+      descricao: `Importação de EPIs (${importados} novos, ${estoqueAtualizado} com estoque somado)`,
       responsavel: req.usuario.id
     });
 
     return res.status(200).json({
       total: linhas.length,
       importados,
+      estoqueAtualizado,
       erros
     });
   }

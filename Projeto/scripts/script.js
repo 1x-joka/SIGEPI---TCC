@@ -994,7 +994,7 @@ async function importarPlanilhaEpi() {
     resultado.innerHTML = '';
     const resumo = document.createElement('p');
     resumo.className = 'imp-resumo';
-    resumo.textContent = `${dados.importados} importados · ${dados.erros.length} com erro (de ${dados.total}).`;
+    resumo.textContent = `${dados.importados} novos · ${dados.estoqueAtualizado || 0} com estoque somado · ${dados.erros.length} com erro (de ${dados.total}).`;
     resultado.appendChild(resumo);
 
     if (dados.erros.length > 0) {
