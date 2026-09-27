@@ -824,15 +824,77 @@ async function avancarComplementar() {
 //  epis.html
 // ============================================================
 
+// ===== Paginação client-side reutilizável (20 linhas/página) =====
+const PAGINACAO = {};
+function aplicarPaginacao(chave, tbodySelector, tituloSelector, filtroFn, porPagina) {
+  porPagina = porPagina || 20;
+  const linhas = Array.from(document.querySelectorAll(tbodySelector + ' tr'));
+  const visiveis = filtroFn ? linhas.filter(filtroFn) : linhas;
+  if (!PAGINACAO[chave] || PAGINACAO[chave] < 1) {
+    PAGINACAO[chave] = 1;
+  }
+  const totalPaginas = Math.max(1, Math.ceil(visiveis.length / porPagina));
+  if (PAGINACAO[chave] > totalPaginas) {
+    PAGINACAO[chave] = totalPaginas;
+  }
+  const pag = PAGINACAO[chave];
+  const inicio = (pag - 1) * porPagina;
+  linhas.forEach(tr => { tr.style.display = 'none'; });
+  visiveis.slice(inicio, inicio + porPagina).forEach(tr => { tr.style.display = ''; });
+
+  const titulo = document.querySelector(tituloSelector);
+  if (!titulo) return;
+  let ctrl = titulo.querySelector('.paginacao');
+  if (!ctrl) {
+    ctrl = document.createElement('span');
+    ctrl.className = 'paginacao';
+    titulo.appendChild(ctrl);
+  }
+  ctrl.innerHTML = '';
+  
+  if (totalPaginas <= 1) return;
+
+  const ant = document.createElement('button');
+  ant.type = 'button'; ant.className = 'pag-btn'; ant.textContent = '‹'; ant.disabled = pag === 1;
+  ant.onclick = () => {
+    PAGINACAO[chave] = pag - 1;
+    aplicarPaginacao(chave, tbodySelector, tituloSelector, filtroFn, porPagina);
+  };
+
+  const ind = document.createElement('span');
+  ind.className = 'pag-ind'; ind.textContent = pag + ' / ' + totalPaginas;
+
+  const prox = document.createElement('button');
+  prox.type = 'button';
+  prox.className = 'pag-btn';
+  prox.textContent = '›';
+  prox.disabled = pag === totalPaginas;
+
+  prox.onclick = () => {
+    PAGINACAO[chave] = pag + 1;
+    aplicarPaginacao(chave, tbodySelector, tituloSelector, filtroFn, porPagina);
+  };
+  ctrl.append(ant, ind, prox);
+}
+function filtroFuncionario(tr){
+  const busca=(document.getElementById('busca')?.value||'').toLowerCase().trim();
+  const status=document.getElementById('filtro-status')?.value||'';
+  return (!busca || (tr.dataset.nome||'').toLowerCase().startsWith(busca)) && (!status || tr.dataset.status===status);
+}
+function filtroEpi(tr){
+  const busca=(document.getElementById('busca-epi')?.value||'').toLowerCase().trim();
+  const status=document.getElementById('filtro-status-epi')?.value||'';
+  return (!busca || (tr.cells[0]?.textContent||'').toLowerCase().startsWith(busca)) && (!status || tr.dataset.status===status);
+}
+function filtroHistorico(tr){
+  const tipo=document.getElementById('filtro-tipo')?.value||'';
+  const data=document.getElementById('filtro-inicio')?.value||'';
+  return (!tipo || tr.dataset.tipo===tipo) && (!data || tr.dataset.data===data);
+}
+
 function filtrarEpis() {
-  const busca = (document.getElementById('busca-epi')?.value || '').toLowerCase().trim();
-  const status = document.getElementById('filtro-status-epi')?.value || '';
-  document.querySelectorAll('#tabela-epis tbody tr').forEach(tr => {
-    const nome = (tr.cells[0]?.textContent || '').toLowerCase();
-    const okBusca = !busca || nome.startsWith(busca); // COMEÇA COM, não "contém"
-    const okStatus = !status || tr.dataset.status === status;
-    tr.style.display = (okBusca && okStatus) ? '' : 'none';
-  });
+  PAGINACAO['epis'] = 1;
+  aplicarPaginacao('epis', '#tabela-epis tbody', '.page-title', filtroEpi);
 }
 
 document.addEventListener('DOMContentLoaded', carregarEpis);
@@ -877,6 +939,7 @@ async function carregarEpis() {
 
         tbody.appendChild(tr);
       });
+      aplicarPaginacao('epis', '#tabela-epis tbody', '.page-title', filtroEpi);
     }
   }
   catch (err) {
@@ -994,7 +1057,7 @@ async function importarPlanilhaEpi() {
     resultado.innerHTML = '';
     const resumo = document.createElement('p');
     resumo.className = 'imp-resumo';
-    resumo.textContent = `${dados.importados} importados · ${dados.erros.length} com erro (de ${dados.total}).`;
+    resumo.textContent = `${dados.importados} novos · ${dados.estoqueAtualizado || 0} com estoque somado · ${dados.erros.length} com erro (de ${dados.total}).`;
     resultado.appendChild(resumo);
 
     if (dados.erros.length > 0) {
@@ -1315,14 +1378,8 @@ async function adicionarEstoque() {
 let funcSelecionado = null;
 
 function filtrarFuncionarios() {
-  const busca = (document.getElementById('busca')?.value || '').toLowerCase().trim();
-  const status = document.getElementById('filtro-status')?.value || '';
-  document.querySelectorAll('#tbody-func tr').forEach(tr => {
-    const nome = (tr.dataset.nome || '').toLowerCase();
-    const okB = !busca || nome.startsWith(busca); // COMEÇA COM
-    const okS = !status || tr.dataset.status === status;
-    tr.style.display = (okB && okS) ? '' : 'none';
-  });
+  PAGINACAO['func'] = 1;
+  aplicarPaginacao('func', '#tbody-func', '.page-title', filtroFuncionario);
 }
 
 function selecionarFuncionario() {
@@ -1583,15 +1640,9 @@ async function responderSolicitacao(idSolicitacao, decisao, idFuncionario, nomeF
 // ============================================================
 
 function filtrarHistorico() {
-  const tipo = document.getElementById('filtro-tipo')?.value || '';
-  const data = document.getElementById('filtro-inicio')?.value || '';
-  document.querySelectorAll('#tbody-hist tr').forEach(tr => {
-    const okTipo = !tipo || tr.dataset.tipo === tipo;
-    const okData = !data || tr.dataset.data === data;
-    tr.style.display = (okTipo && okData) ? '' : 'none';
-  });
+  PAGINACAO['hist'] = 1;
+  aplicarPaginacao('hist', '#tbody-hist', '.page-title', filtroHistorico);
 }
-
 // Histórico (admin) — todas as entregas da empresa
 async function carregarHistorico() {
   const tbody = document.getElementById('tbody-hist');
@@ -1674,6 +1725,7 @@ async function carregarHistorico() {
 
         tbody.appendChild(tr);
       });
+      aplicarPaginacao('hist', '#tbody-hist', '.page-title', filtroHistorico);
     }
   }
   catch (err) {
@@ -2415,6 +2467,7 @@ function renderFuncionarios() {
     tr.appendChild(tdAcao);
     tbody.appendChild(tr);
   });
+  aplicarPaginacao('func', '#tbody-func', '.page-title', filtroFuncionario);
 }
 
 async function abrirEditar(id) {
