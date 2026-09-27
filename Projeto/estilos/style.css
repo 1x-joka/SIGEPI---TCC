@@ -2238,6 +2238,41 @@ body:has(.hero) .header{ background:#ECEEE9; border-bottom:1px solid #D3D8D3; }
   }
 }
 
+/* ===== Paginação das tabelas de gestão ===== */
+.paginacao{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-left:16px;
+  vertical-align:middle;
+}
+.pag-btn{
+  background:#fff;
+  border:1px solid #D3D8D3;
+  border-radius:6px; width:30px;
+  height:30px;
+  font-size:18px; line-height:1;
+  cursor:pointer;
+  color:var(--ink,#17313B);
+  padding:0;
+}
+.pag-btn:hover:not(:disabled){
+  background:var(--teal-pale,#E8F1F4);
+}
+.pag-btn:disabled{
+  opacity:.4;
+  cursor:default;
+}
+.pag-ind{
+  font-size:13px;
+  font-weight:600;
+  color:var(--steel,#5B6B72);
+  min-width:42px;
+  text-align:center;
+}
+
+/* ===== Responsividade ===== */
+
 @media (max-width:560px){
   .feature-grid{
     grid-template-columns:1fr;
