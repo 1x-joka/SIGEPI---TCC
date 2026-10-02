@@ -72,7 +72,7 @@
     </div>
   </div>
 
-  <!-- POPUP: VERIFICAR -->
+  <!-- MODAL: VERIFICAR -->
   <div class="modal-overlay" id="modal-verificar" onclick="fecharSeOverlay(event,'modal-verificar')">
     <div class="modal modal--lg">
       <h2 id="titulo-verificar">Solicitações Pendentes</h2>
@@ -96,8 +96,32 @@
       </div>
     </div>
   </div>
+  
+    <!-- MODAL: MOVIMENTAÇÃO-->
+    <div class="modal-overlay" id="modal-movimentacao" onclick="fecharSeOverlay(event,'modal-movimentacao')">
+    <div class="modal modal--lg">
+      <h2 id="titulo-movimentacao">Movimentação</h2>
+      <div class="table-overflow">
+        <table>
+          <thead>
+            <tr>
+              <th>Equipamento</th>
+              <th>Entrega</th>
+              <th>Confirmação</th>
+              <th>Devolução</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-movimentacao"></tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="fecharModal('modal-movimentacao')">Fechar</button>
+      </div>
+    </div>
+  </div>
 
-  <!-- POPUP: EXCLUIR -->
+  <!-- MODAL: EXCLUIR -->
   <div class="modal-overlay" id="modal-excluir" onclick="fecharSeOverlay(event,'modal-excluir')">
     <div class="modal modal--md">
       <h2 id="titulo-excluir">Exclusão de Joaquim Pereira Lima</h2>
@@ -150,7 +174,7 @@
     </div>
   </div>
 
-  <!-- POPUP: EDITAR FUNCIONÁRIO -->
+  <!-- MODAL: EDITAR FUNCIONÁRIO -->
 <div class="modal-overlay" id="modal-editar" onclick="fecharSeOverlay(event,'modal-editar')">
   <div class="modal modal--md">
     <h2>Editar Funcionário</h2>
