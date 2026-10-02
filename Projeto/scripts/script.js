@@ -1770,9 +1770,11 @@ async function carregarMeusEquipamentos() {
     mostrarAviso('Não foi possível carregar seus equipamentos.');
   }
 }
+
 document.addEventListener('DOMContentLoaded', () => {
   carregarMeusEquipamentos();
   carregarPendentesConfirmacao();
+  carregarMinhasSolicitacoes();
 });
 
 const episSolicitacao = ['Máscara Respiratória', 'Óculos de Proteção', 'Luvas Nitrílicas (par)'];
