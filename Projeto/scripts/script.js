@@ -1382,6 +1382,50 @@ function filtrarFuncionarios() {
   aplicarPaginacao('func', '#tbody-func', '.page-title', filtroFuncionario);
 }
 
+async function abrirMovimentacao(id, nome) {
+  const titulo = document.getElementById('titulo-movimentacao');
+  const tbody = document.getElementById('tbody-movimentacao');
+  if (titulo) titulo.textContent = 'Movimentação — ' + nome;
+  if (tbody) tbody.innerHTML = '';
+  abrirModal('modal-movimentacao');
+  try {
+    const resp = await fetchAutenticado('/entrega/funcionario/' + id);
+    if (!resp || !resp.ok) return;
+    const dados = await resp.json();
+    const nomesStatus = { P: 'Pendente', A: 'Aceito', D: 'Devolvido', R: 'Recusado' };
+    if (!dados.historico || dados.historico.length === 0) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 5;
+      td.textContent = 'Nenhuma movimentação registrada para este funcionário.';
+      td.className = 'celula-vazia';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+    dados.historico.forEach(h => {
+      const tr = document.createElement('tr');
+      if (h.st_entrega === 'R') tr.className = 'row-red';
+      const status = nomesStatus[h.st_entrega] || h.st_entrega;
+      [h.nm_epi, formatarData(h.dt_entrega), h.dt_confirmacao ? formatarData(h.dt_confirmacao) : '—', h.dt_devolucao ? formatarData(h.dt_devolucao) : '—', status].forEach(v => {
+        const td = document.createElement('td');
+        td.textContent = v;
+        tr.appendChild(td); // XSS-safe
+      });
+      if (h.st_entrega === 'R' && h.motivo_recusa) {
+        const div = document.createElement('div');
+        div.textContent = 'Motivo: ' + h.motivo_recusa;
+        div.className = 'subtexto-cinza';
+        tr.lastChild.appendChild(div);
+      }
+      tbody.appendChild(tr);
+    });
+  }
+  catch (err) {
+    mostrarAviso('Não foi possível carregar a movimentação.');
+  }
+} 
+
 function selecionarFuncionario() {
   document.querySelectorAll('#tbody-func tr').forEach(tr => {
     tr.style.cursor = 'pointer';
@@ -2450,6 +2494,7 @@ function renderFuncionarios() {
         mk('Editar', 'btn-outline', () => abrirEditar(f.id_funcionario)),
         mk('Entregar EPI', 'btn-primary', () => entregarEpi(f.id_funcionario, nomeCompleto)),
         mk('Solicitações', 'btn-outline', () => abrirSolicitacoes(f.id_funcionario, nomeCompleto)),
+        mk('Movimentação', 'btn-outline', () => abrirMovimentacao(f.id_funcionario, nomeCompleto)),
         mk('Inativar', 'btn-outline', () => abrirExcluir(f.id_funcionario))
       );
     }
