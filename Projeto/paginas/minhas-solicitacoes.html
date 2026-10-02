@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minhas Solicitações — SIGEPI</title>
+  <link rel="stylesheet" href="../estilos/style.css">
+  <link rel="shortcut icon" href="../icons/favicon-capacete.png" type="image/png">
+
+  <!-- PWA -->
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#3c98bd">
+  <link rel="apple-touch-icon" href="../imagens/icone-192.png">
+  <!-- PWA -->
+
+  <script src="../scripts/script.js" defer></script>
+</head>
+<body class="layout-flex" data-protegida>
+  <header class="header">
+    <div class="logo-wrap">
+      <span class="logo-title">SIGEPI</span>
+      <span class="logo-sub">Gerenciador de EPI Online</span>
+    </div>
+    <div class="header-right">
+      Funcionário
+      <div class="avatar-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-area">
+    <div class="content-card">
+      <nav class="inner-nav">
+        <a href="meus-equipamentos.html">Meus Equipamentos</a>
+        <a href="minhas-solicitacoes.html" class="active">Minhas Solicitações</a>
+      </nav>
+
+      <h2 class="page-title">Minhas Solicitações</h2>
+      <div class="table-overflow">
+        <table>
+          <thead>
+            <tr><th>Data</th><th>Equipamento</th><th>Justificativa</th><th>Previsão</th><th>Status</th></tr>
+          </thead>
+          <tbody id="tbody-minhas-solicitacoes"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
