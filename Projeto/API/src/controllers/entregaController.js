@@ -184,7 +184,7 @@ async function historicoFuncionario(req, res) {
     }
 
     const [historico] = await db.execute(
-      `SELECT e.id_entrega, e.dt_entrega, e.dt_devolucao, e.st_entrega, epi.nm_epi
+       `SELECT e.id_entrega, e.dt_entrega, e.dt_confirmacao, e.dt_devolucao, e.motivo_recusa, e.st_entrega, epi.nm_epi
        FROM tb_entrega e
        JOIN tb_epi epi ON epi.id_epi = e.tb_epi_id_epi
        WHERE e.tb_funcionario_id_funcionario = ?
