@@ -31,6 +31,10 @@
 
   <div class="main-area">
     <div class="content-card">
+      <nav class="inner-nav">
+        <a href="meus-equipamentos.html" class="active">Meus Equipamentos</a>
+        <a href="minhas-solicitacoes.html">Minhas Solicitações</a>
+      </nav>
       <div class="meus-eq-body">
         <h2 class="meus-eq-titulo">Meus Equipamentos</h2>
 
@@ -78,15 +82,6 @@
         <button class="btn btn-primary" onclick="enviarSolicitacao()">Solicitar</button>
         <button class="btn btn-outline" onclick="fecharModal('modal-solicitar')">Cancelar</button>
       </div>
-      <h2 class="meus-eq-titulo titulo-secao-espaco">Minhas Solicitações</h2>
-        <div class="table-overflow">
-          <table>
-            <thead>
-              <tr><th>Data</th><th>Equipamento</th><th>Justificativa</th><th>Previsão</th><th>Status</th></tr>
-            </thead>
-            <tbody id="tbody-minhas-solicitacoes"></tbody>
-          </table>
-        </div>
     </div>
   </div>
 </body>
