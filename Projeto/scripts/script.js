@@ -1442,6 +1442,56 @@ function selecionarFuncionario() {
   });
 }
 
+async function abrirCadastrarFuncionario() {
+  ['cadfunc-nome','cadfunc-cpf','cadfunc-email','cadfunc-senha'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('cadfunc-error')?.classList.remove('show');
+  const select = document.getElementById('cadfunc-setor');
+  if (select) {
+    select.innerHTML = '<option value="">Selecione o setor</option>';
+    try {
+      const resp = await fetchAutenticado('/setor/listar');
+      if (resp && resp.ok) {
+        (await resp.json()).forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id_setor;
+          opt.textContent = s.nm_setor;
+          select.appendChild(opt);
+        });
+      }
+    } catch (err) {}
+  }
+  abrirModal('modal-cadastrar-func');
+}
+
+async function salvarFuncionario() {
+  const nome = document.getElementById('cadfunc-nome').value.trim();
+  const cpf = document.getElementById('cadfunc-cpf').value.trim();
+  const email = document.getElementById('cadfunc-email').value.trim();
+  const senha = document.getElementById('cadfunc-senha').value;
+  const setor = document.getElementById('cadfunc-setor').value;
+  const erro = document.getElementById('cadfunc-error');
+  if (!nome || !cpf || !email || !senha || !setor) { erro?.classList.add('show'); return; }
+  erro?.classList.remove('show');
+  try {
+    const resp = await fetchAutenticado('/funcionario/cadastrar', {
+      method: 'POST',
+      body: JSON.stringify({ nome, cpf, email, senha, setor })
+    });
+    if (!resp) return;
+    const dados = await resp.json();
+    if (!resp.ok) {
+      mostrarAviso(dados.erro || 'Não foi possível cadastrar.', 'erro');
+      return;
+    }
+    mostrarAviso('Funcionário cadastrado com sucesso.', 'sucesso');
+    fecharModal('modal-cadastrar-func');
+    carregarFuncionarios();
+  }
+  catch (err) {
+    mostrarAviso('Não foi possível conectar ao servidor.', 'erro');
+  }
+}
+
 function abrirVerificar() {
   const nome = funcSelecionado?.nome ?? 'Joaquim Pereira Lima';
   const titulo = document.getElementById('titulo-verificar');

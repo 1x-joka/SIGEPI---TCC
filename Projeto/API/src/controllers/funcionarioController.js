@@ -1,5 +1,7 @@
 const db = require('../config/db');
 const registrarLog = require('../utils/registrarLog');
+const bcrypt = require('bcrypt');
+const { validarCPF } = require('../utils/validadores');
 
 // PASSO 1: funcionário entra na empresa usando o código único recebido do admin
 async function entrarEmpresa(req, res) {
@@ -405,4 +407,59 @@ async function ativarFuncionario(req, res) {
   }
 }
 
-module.exports = { entrarEmpresa, completarCadastro, listarFuncionarios, inativarFuncionario, editarFuncionario, ativarFuncionario };
+async function cadastrarFuncionario(req, res) {
+  const { nome, email, senha, cpf, setor, dataNascimento } = req.body;
+  const empresa = req.usuario.empresa;
+  if (!nome || !email || !senha || !cpf || !setor) {
+    return res.status(400).json({ erro: 'Preencha nome, e-mail, senha, CPF e setor.' });
+  }
+  if (!validarCPF(cpf)) {
+    return res.status(400).json({ erro: 'CPF inválido.' });
+  }
+  if (String(senha).length < 8) {
+    return res.status(400).json({ erro: 'A senha deve ter ao menos 8 caracteres.' });
+  }
+  const conexao = await db.getConnection();
+  try {
+    const [setores] = await conexao.execute(
+      'SELECT id_setor FROM tb_setor WHERE id_setor = ? AND tb_empresa_id_empresa = ?',
+      [setor, empresa]
+    );
+    if (setores.length === 0) {
+      return res.status(400).json({ erro: 'Setor inválido para esta empresa.' });
+    }
+    const [existe] = await conexao.execute(
+      'SELECT email_usuario, cpf_usuario FROM tb_usuario WHERE email_usuario = ? OR cpf_usuario = ?',
+      [email, cpf]
+    );
+    if (existe.length > 0) {
+      const emailDup = existe.some(u => u.email_usuario === email);
+      return res.status(409).json({ erro: emailDup ? 'E-mail já cadastrado.' : 'CPF já cadastrado.' });
+    }
+    const hash = await bcrypt.hash(senha, 10);
+    await conexao.beginTransaction();
+    const [rUser] = await conexao.execute(
+      `INSERT INTO tb_usuario
+        (nm_usuario, email_usuario, senha_usuario, cpf_usuario, st_usuario, dt_cadastro_usuario, tb_empresa_id_empresa, tb_tipousuario_id_tipousuario)
+       VALUES (?, ?, ?, ?, 'A', CURDATE(), ?, 2)`,
+      [nome, email, hash, cpf, empresa]
+    );
+    await conexao.execute(
+      `INSERT INTO tb_funcionario
+        (nm_funcionario, dt_nascimento_funcionario, st_funcionario, dt_cadastro_funcionario, tb_empresa_id_empresa, tb_setor_id_setor, tb_usuario_id_usuario)
+       VALUES (?, ?, 'A', CURDATE(), ?, ?, ?)`,
+      [nome, dataNascimento || null, empresa, setor, rUser.insertId]
+    );
+    await conexao.commit();
+    return res.status(201).json({ mensagem: 'Funcionário cadastrado com sucesso.' });
+  }
+  catch (err) {
+    await conexao.rollback();
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+  finally {
+    conexao.release();
+  }
+}
+
+module.exports = { entrarEmpresa, completarCadastro, listarFuncionarios, inativarFuncionario, editarFuncionario, ativarFuncionario, cadastrarFuncionario };

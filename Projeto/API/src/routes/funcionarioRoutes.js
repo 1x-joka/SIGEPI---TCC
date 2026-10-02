@@ -9,6 +9,9 @@ router.post('/entrar', autenticar, funcionarioController.entrarEmpresa);
 // Passo 2: completar cadastro — exige já estar vinculado a uma empresa
 router.post('/completar', autenticar, exigirEmpresa, funcionarioController.completarCadastro);
 
+// ADMIN cadastra um funcionário direto (cria a conta de login dele)
+router.post('/cadastrar', autenticar, exigirEmpresa, exigirAdmin, funcionarioController.cadastrarFuncionario);
+
 // Listando todos os funcionários cadastrados na empresa
 router.get('/listar', autenticar, exigirEmpresa, exigirAdmin, funcionarioController.listarFuncionarios);
 
