@@ -54,6 +54,7 @@
               <option value="VENCIDO">VENCIDO</option>
               <option value="SEM EPI">SEM EPI</option>
             </select>
+            <button class="btn btn-primary" onclick="abrirCadastrarFuncionario()">Cadastrar Funcionário</button>
           </div>
         </div>
 
@@ -195,5 +196,41 @@
     </div>
   </div>
 </div>
+
+  <!-- MODAL: CADASTRAR FUNCIONÁRIO -->
+  <div class="modal-overlay" id="modal-cadastrar-func" onclick="fecharSeOverlay(event,'modal-cadastrar-func')">
+    <div class="modal modal--md">
+      <h2>Cadastrar Funcionário</h2>
+      <div class="modal-form-col">
+        <div class="form-group">
+          <label for="cadfunc-nome">Nome completo <span class="req">*</span></label>
+          <input type="text" id="cadfunc-nome" maxlength="120">
+        </div>
+        <div class="form-group">
+          <label for="cadfunc-cpf">CPF <span class="req">*</span></label>
+          <input type="text" id="cadfunc-cpf" maxlength="14" placeholder="000.000.000-00">
+        </div>
+        <div class="form-group">
+          <label for="cadfunc-email">E-mail (login) <span class="req">*</span></label>
+          <input type="email" id="cadfunc-email" maxlength="255">
+        </div>
+        <div class="form-group">
+          <label for="cadfunc-senha">Senha (login) <span class="req">*</span></label>
+          <input type="password" id="cadfunc-senha" maxlength="255" placeholder="Mínimo 8 caracteres">
+        </div>
+        <div class="form-group">
+          <label for="cadfunc-setor">Setor <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select id="cadfunc-setor"><option value="">Selecione o setor</option></select>
+          </div>
+        </div>
+        <span class="error-msg" id="cadfunc-error">Preencha todos os campos obrigatórios.</span>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="salvarFuncionario()">Cadastrar</button>
+        <button class="btn btn-outline" onclick="fecharModal('modal-cadastrar-func')">Cancelar</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
