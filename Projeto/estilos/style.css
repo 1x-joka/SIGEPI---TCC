@@ -224,6 +224,10 @@ body.layout-flex:has(.page-center) {
   padding-bottom: 2px;
 }
 
+.nav-arrow {
+  display: none;
+}
+
 /* ===== PAGE TITLE ===== */
 
 .page-title {
@@ -1978,18 +1982,38 @@ body:has(.hero) .header{ background:#ECEEE9; border-bottom:1px solid #D3D8D3; }
     right: auto;
   }
 
-  /* ===== NAV DO ADMIN — rolagem horizontal garantida (problema 3) ===== */
+    /* NAV vira setinhas que alternam entre abas (mostra só a aba ativa) */
   .inner-nav {
-    gap: 18px;
-    padding: 14px 16px;
-    overflow-x: auto;
+    gap: 12px;
+    padding: 12px 16px;
+    justify-content: center;
+    align-items: center;
     flex-wrap: nowrap;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
   }
   .inner-nav a {
-    flex: 0 0 auto; /* impede os itens de encolher/sumir */
+    display: none;
+  }
+  .inner-nav a.active {
+    display: inline-block;
+  }
+  .nav-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid #D3D8D3;
+    border-radius: 6px;
+    width: 34px;
+    height: 34px;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--ink, #17313B);
+    padding: 0;
+  }
+  /* trava o scroll lateral da página (as tabelas continuam rolando por dentro) */
+  html, body {
+    overflow-x: hidden;
   }
 
   /* ===== GRIDS em 1 COLUNA — reforçado (problemas 1 e 2) ===== */
