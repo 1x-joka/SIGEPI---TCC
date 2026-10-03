@@ -892,6 +892,28 @@ function filtroHistorico(tr){
   return (!tipo || tr.dataset.tipo===tipo) && (!data || tr.dataset.data===data);
 }
 
+// No mobile, a barra de abas vira setinhas que alternam entre as abas
+function montarNavMobile() {
+  const nav = document.querySelector('.inner-nav');
+  if (!nav || nav.querySelector('.nav-arrow')) return;
+  const links = Array.from(nav.querySelectorAll('a'));
+  if (links.length < 2) return;
+  let ativo = links.findIndex(a => a.classList.contains('active'));
+  if (ativo < 0) ativo = 0;
+  const ir = (i) => { window.location.href = links[i].getAttribute('href'); };
+  const ant = document.createElement('button');
+  ant.type = 'button'; ant.className = 'nav-arrow'; ant.textContent = '‹';
+  ant.setAttribute('aria-label', 'Aba anterior');
+  ant.onclick = () => ir((ativo - 1 + links.length) % links.length);
+  const prox = document.createElement('button');
+  prox.type = 'button'; prox.className = 'nav-arrow'; prox.textContent = '›';
+  prox.setAttribute('aria-label', 'Próxima aba');
+  prox.onclick = () => ir((ativo + 1) % links.length);
+  nav.insertBefore(ant, nav.firstChild);
+  nav.appendChild(prox);
+}
+document.addEventListener('DOMContentLoaded', montarNavMobile);
+
 function filtrarEpis() {
   PAGINACAO['epis'] = 1;
   aplicarPaginacao('epis', '#tabela-epis tbody', '.page-title', filtroEpi);
