@@ -6,80 +6,82 @@ const registrarLog = require('../utils/registrarLog');
 
 // Registrar a entrega de um EPI a um funcionário — só admin
 async function registrarEntrega(req, res) {
-  const { funcionario, epi } = req.body;
   const empresa = req.usuario.empresa;
-  const admin = req.usuario.id; // quem entregou fica registrado (auditoria). Vem do token, confiável.
+  const admin = req.usuario.id;
+  const funcionario = req.body.funcionario;
 
-  if (!funcionario || !epi) {
-    return res.status(400).json({
-      erro: 'Informe o funcionário e o EPI.'
-    });
+  // aceita o novo formato (itens: [{epi, quantidade}]) ou o antigo (epi único)
+  let itens = req.body.itens;
+  if (!Array.isArray(itens) || itens.length === 0) {
+    if (req.body.epi) itens = [{ epi: req.body.epi, quantidade: req.body.quantidade || 1 }];
+    else return res.status(400).json({ erro: 'Selecione ao menos um EPI.' });
+  }
+  if (!funcionario) {
+    return res.status(400).json({ erro: 'Informe o funcionário.' });
   }
 
+  const conexao = await db.getConnection();
   try {
-    // 1) O funcionário precisa ser DESTA empresa (segurança/isolamento)
-    const [funcs] = await db.execute(
+    const [funcs] = await conexao.execute(
       'SELECT id_funcionario FROM tb_funcionario WHERE id_funcionario = ? AND tb_empresa_id_empresa = ? AND st_funcionario = "A"',
       [funcionario, empresa]
     );
     if (funcs.length === 0) {
-      return res.status(400).json({
-        erro: 'Funcionário inválido ou inativo para esta empresa.'
-      });
+      return res.status(400).json({ erro: 'Funcionário inválido ou inativo para esta empresa.' });
     }
 
-    // 2) O EPI precisa ser DESTA empresa
-    const [epis] = await db.execute(
-      'SELECT id_epi, nm_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ?',
-      [epi, empresa]
-    );
-    if (epis.length === 0) {
-      return res.status(400).json({
-        erro: 'EPI inválido para esta empresa.'
-      });
+    // Valida cada item: EPI da empresa + estoque suficiente para a quantidade pedida
+    const validados = [];
+    for (const item of itens) {
+      const epi = parseInt(item.epi);
+      const qtd = parseInt(item.quantidade);
+      if (!epi || !qtd || qtd < 1) {
+        return res.status(400).json({ erro: 'Quantidade inválida em um dos EPIs.' });
+      }
+      const [epis] = await conexao.execute(
+        "SELECT nm_epi FROM tb_epi WHERE id_epi = ? AND tb_empresa_id_empresa = ? AND st_epi = 'A'",
+        [epi, empresa]
+      );
+      if (epis.length === 0) {
+        return res.status(400).json({ erro: 'EPI inválido para esta empresa.' });
+      }
+      const [estoque] = await conexao.execute(
+        'SELECT COALESCE(SUM(qtd_disponivel_estoque), 0) AS total FROM tb_estoque WHERE tb_epi_id_epi = ? AND tb_empresa_id_empresa = ?',
+        [epi, empresa]
+      );
+      if (Number(estoque[0].total) < qtd) {
+        return res.status(400).json({ erro: `Estoque insuficiente para "${epis[0].nm_epi}" (disponível: ${estoque[0].total}).` });
+      }
+      validados.push({ epi, qtd, nome: epis[0].nm_epi });
     }
 
-    // 3) VERIFICAÇÃO DE ESTOQUE: existe algum lote com quantidade disponível?
-    // A verificação usa SUM(...). Como cada entrada é um lote (linha) separado, um EPI pode ter vários lotes. O SUM soma a quantidade de todos os lotes daquele EPI para saber o total disponível. Se o total for < 1, recusa.
-    const [estoque] = await db.execute(
-      `SELECT SUM(qtd_disponivel_estoque) AS total
-       FROM tb_estoque
-       WHERE tb_epi_id_epi = ? AND tb_empresa_id_empresa = ?`,
-      [epi, empresa]
-    );
-    const totalDisponivel = estoque[0].total || 0;
-    if (totalDisponivel < 1) {
-      return res.status(400).json({
-        erro: 'Sem estoque disponível para este EPI.'
+    // Insere as entregas. O TRIGGER desconta a quantidade do estoque (FIFO).
+    await conexao.beginTransaction();
+    for (const v of validados) {
+      await conexao.execute(
+        `INSERT INTO tb_entrega
+          (dt_entrega, quantidade, st_entrega, tb_funcionario_id_funcionario, tb_epi_id_epi, tb_usuario_id_usuario)
+         VALUES (CURDATE(), ?, 'P', ?, ?, ?)`,
+        [v.qtd, funcionario, v.epi, admin]
+      );
+      await registrarLog({
+        empresa,
+        tipo: 'ENTREGA',
+        descricao: 'Entrega de EPI',
+        equipamento: v.nome,
+        quantidade: v.qtd,
+        responsavel: admin
       });
     }
-
-    // 4) Registra a entrega. O TRIGGER desconta 1 do estoque (FIFO) automaticamente.
-    const [result] = await db.execute(
-      `INSERT INTO tb_entrega
-        (dt_entrega, st_entrega, tb_funcionario_id_funcionario, tb_epi_id_epi, tb_usuario_id_usuario)
-       VALUES (CURDATE(), 'P', ?, ?, ?)`,
-      [funcionario, epi, admin]
-    );
-
-    await registrarLog({
-      empresa,
-      tipo: 'ENTREGA',
-      descricao: 'Entrega de EPI',
-      equipamento: epis[0]?.nm_epi,
-      quantidade: 1,
-      responsavel: req.usuario.id });
-
-    return res.status(201).json({
-      mensagem: 'Entrega registrada com sucesso.',
-      id_entrega: result.insertId
-    });
-
-  } catch (err) {
-    return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
-    });
+    await conexao.commit();
+    return res.status(201).json({ mensagem: 'Entrega registrada com sucesso.' });
+  }
+  catch (err) {
+    await conexao.rollback();
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+  finally {
+    conexao.release();
   }
 }
 

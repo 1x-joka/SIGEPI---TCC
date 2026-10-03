@@ -432,4 +432,27 @@ async function importarEpisCsv(req, res) {
   }
 }
 
-module.exports = { cadastrarEpi, listarEpis, limparModalCadastrarEpi, inativarEpi, listarCategorias, editarEpi, obterEpi, importarEpisCsv };
+async function episDoSetorDoFuncionario(req, res) {
+  const empresa = req.usuario.empresa;
+  const idFuncionario = req.params.id;
+  try {
+    const [epis] = await db.execute(
+      `SELECT e.id_epi, e.nm_epi, e.tamanho_epi,
+              COALESCE(SUM(s.qtd_disponivel_estoque), 0) AS disponivel
+       FROM tb_funcionario f
+       JOIN tb_epi_setor eps ON eps.tb_setor_id_setor = f.tb_setor_id_setor
+       JOIN tb_epi e ON e.id_epi = eps.tb_epi_id_epi AND e.st_epi = 'A'
+       LEFT JOIN tb_estoque s ON s.tb_epi_id_epi = e.id_epi
+       WHERE f.id_funcionario = ? AND f.tb_empresa_id_empresa = ?
+       GROUP BY e.id_epi
+       ORDER BY e.nm_epi`,
+      [idFuncionario, empresa]
+    );
+    return res.status(200).json(epis);
+  }
+  catch (err) {
+    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+  }
+}
+
+module.exports = { cadastrarEpi, listarEpis, limparModalCadastrarEpi, inativarEpi, listarCategorias, editarEpi, obterEpi, importarEpisCsv, episDoSetorDoFuncionario };

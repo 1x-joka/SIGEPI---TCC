@@ -9,6 +9,9 @@ router.post('/cadastrar', autenticar, exigirEmpresa, exigirAdmin, epiController.
 // Só o ADMIN importa EPIs em lote
 router.post('/importar', autenticar, exigirEmpresa, exigirAdmin, epiController.importarEpisCsv);
 
+// EPIs vinculados ao setor de um funcionário (pro modal de entrega do admin)
+router.get('/setor-funcionario/:id', autenticar, exigirEmpresa, exigirAdmin, epiController.episDoSetorDoFuncionario);
+
 // Admin E funcionário podem listar os EPIs da empresa (o funcionário precisa ver o que pode solicitar)
 router.get('/listar', autenticar, exigirEmpresa, epiController.listarEpis);
 
