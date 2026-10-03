@@ -146,6 +146,7 @@ create table tb_solicitacao (
 create table tb_entrega (
     id_entrega int primary key auto_increment,
     dt_entrega date not null,
+    quantidade int not null default 1,
     dt_confirmacao date null, -- null: só acontece quando inativa
     dt_devolucao date null,
     motivo_recusa varchar(255) null,
@@ -180,7 +181,7 @@ after insert on tb_entrega
 for each row
 begin
     update tb_estoque
-    set qtd_disponivel_estoque = qtd_disponivel_estoque - 1
+    set qtd_disponivel_estoque = qtd_disponivel_estoque - new.quantidade
     where tb_epi_id_epi = new.tb_epi_id_epi
       and tb_empresa_id_empresa = (
           select tb_empresa_id_empresa
@@ -218,3 +219,20 @@ create table tb_log (
 
 select * from tb_epi;
 select * from tb_estoque;
+
+ALTER TABLE tb_entrega ADD COLUMN quantidade int not null default 1 AFTER dt_entrega;
+DROP TRIGGER IF EXISTS trg_atualizar_estoque_apos_entrega;
+
+DELIMITER $$
+CREATE TRIGGER trg_atualizar_estoque_apos_entrega
+AFTER INSERT ON tb_entrega
+FOR EACH ROW
+BEGIN
+    UPDATE tb_estoque
+    SET qtd_disponivel_estoque = qtd_disponivel_estoque - NEW.quantidade
+    WHERE tb_epi_id_epi = NEW.tb_epi_id_epi
+      AND tb_empresa_id_empresa = (SELECT tb_empresa_id_empresa FROM tb_funcionario WHERE id_funcionario = NEW.tb_funcionario_id_funcionario)
+    ORDER BY dt_validade_estoque ASC
+    LIMIT 1;
+END$$
+DELIMITER ;
