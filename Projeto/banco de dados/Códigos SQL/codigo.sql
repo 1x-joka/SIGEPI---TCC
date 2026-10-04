@@ -216,23 +216,3 @@ create table tb_log (
     tb_empresa_id_empresa int not null,
     foreign key (tb_empresa_id_empresa) references tb_empresa(id_empresa)
 );
-
-select * from tb_epi;
-select * from tb_estoque;
-
-ALTER TABLE tb_entrega ADD COLUMN quantidade int not null default 1 AFTER dt_entrega;
-DROP TRIGGER IF EXISTS trg_atualizar_estoque_apos_entrega;
-
-DELIMITER $$
-CREATE TRIGGER trg_atualizar_estoque_apos_entrega
-AFTER INSERT ON tb_entrega
-FOR EACH ROW
-BEGIN
-    UPDATE tb_estoque
-    SET qtd_disponivel_estoque = qtd_disponivel_estoque - NEW.quantidade
-    WHERE tb_epi_id_epi = NEW.tb_epi_id_epi
-      AND tb_empresa_id_empresa = (SELECT tb_empresa_id_empresa FROM tb_funcionario WHERE id_funcionario = NEW.tb_funcionario_id_funcionario)
-    ORDER BY dt_validade_estoque ASC
-    LIMIT 1;
-END$$
-DELIMITER ;
