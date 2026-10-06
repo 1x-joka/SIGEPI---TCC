@@ -232,5 +232,20 @@
       </div>
     </div>
   </div>
+
+    <!-- MODAL: ENTREGAR VÁRIOS EPIS -->
+    <div class="modal-overlay" id="modal-entregar" onclick="fecharSeOverlay(event,'modal-entregar')">
+    <div class="modal modal--md">
+      <h2 id="titulo-entregar">Entregar EPI</h2>
+      <p class="modal-dica">Marque os EPIs e informe a quantidade de cada um.</p>
+      <div id="lista-entregar" class="lista-entregar"></div>
+      <span class="error-msg" id="entregar-error">Selecione ao menos um EPI.</span>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="confirmarEntrega()">Entregar</button>
+        <button class="btn btn-outline" onclick="fecharModal('modal-entregar')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
