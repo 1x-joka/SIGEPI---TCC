@@ -2750,38 +2750,106 @@ async function carregarDashboard() {
 document.addEventListener('DOMContentLoaded', carregarDashboard); // Rodando no front-end
 
 // ENTREGA: abre seleção de EPI e registra para o funcionário
+let entregarFuncionarioId = null;
+
+// Abre o modal de entrega com os EPIs do setor do funcionário (checkbox + quantidade)
 async function entregarEpi(idFuncionario, nomeFuncionario) {
-  // Busca os EPIs da empresa para o admin escolher
-  const respEpis = await fetchAutenticado('/epi/listar');
-  if (!respEpis || !respEpis.ok) {
-    mostrarAviso('Erro ao carregar EPIs.');
-    return;
+  entregarFuncionarioId = idFuncionario;
+  const titulo = document.getElementById('titulo-entregar');
+  const lista = document.getElementById('lista-entregar');
+  const erro = document.getElementById('entregar-error');
+  if (titulo) titulo.textContent = 'Entregar EPI — ' + nomeFuncionario;
+  if (erro) erro.classList.remove('show');
+  if (lista) lista.innerHTML = '';
+  abrirModal('modal-entregar');
+  try {
+    const resp = await fetchAutenticado('/epi/setor-funcionario/' + idFuncionario);
+    if (!resp || !resp.ok) { mostrarAviso('Não foi possível carregar os EPIs.', 'erro'); return; }
+    const epis = await resp.json();
+    if (epis.length === 0) {
+      lista.innerHTML = '<p class="celula-vazia">Nenhum EPI vinculado ao setor deste funcionário.</p>';
+      return;
+    }
+    epis.forEach(e => {
+      const row = document.createElement('div');
+      row.className = 'entregar-item';
+
+      const label = document.createElement('label');
+      label.className = 'entregar-check';
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.value = e.id_epi;
+      const txt = document.createElement('span');
+      txt.textContent = `${e.nm_epi} (${e.tamanho_epi}) — ${e.disponivel} em estoque`;
+      label.append(chk, txt);
+
+      const qtdWrap = document.createElement('div');
+      qtdWrap.className = 'entregar-qtd';
+      qtdWrap.style.display = 'none';
+      const qtdLabel = document.createElement('span');
+      qtdLabel.textContent = 'Quantidade';
+      const qtdInput = document.createElement('input');
+      qtdInput.type = 'number';
+      qtdInput.min = '1';
+      qtdInput.value = '1';
+      qtdInput.max = String(e.disponivel);
+      qtdWrap.append(qtdLabel, qtdInput);
+
+      chk.onchange = () => { qtdWrap.style.display = chk.checked ? 'flex' : 'none'; };
+
+      row.append(label, qtdWrap);
+      lista.appendChild(row);
+    });
   }
-
-  const epis = await respEpis.json();
-  if (epis.length === 0) {
-    mostrarAviso('Nenhum EPI cadastrado.');
-    return;
+  catch (err) {
+    mostrarAviso('Não foi possível conectar ao servidor.', 'erro');
   }
+}
 
-  const lista = epis.map(e => `${e.id_epi} - ${e.nm_epi} (estoque: ${e.quantidade})`).join('\n');
-  const escolha = prompt(`Entregar EPI para ${nomeFuncionario}.\nDigite o ID do EPI:\n\n${lista}`);
-  if (!escolha) return;
-
-  const resp = await fetchAutenticado('/entrega/registrar', {
-    method: 'POST',
-    body: JSON.stringify({
-      funcionario: idFuncionario,
-      epi: parseInt(escolha)
-    })
+// Coleta os EPIs marcados + quantidades e envia a entrega
+async function confirmarEntrega() {
+  const lista = document.getElementById('lista-entregar');
+  const erro = document.getElementById('entregar-error');
+  const itens = [];
+  lista.querySelectorAll('.entregar-item').forEach(row => {
+    const chk = row.querySelector('input[type="checkbox"]');
+    if (chk && chk.checked) {
+      const qtd = parseInt(row.querySelector('.entregar-qtd input').value);
+      itens.push({
+        epi: parseInt(chk.value),
+        quantidade: qtd
+      });
+    }
   });
-  const dados = await resp.json();
-  if (resp.ok) {
+  if (itens.length === 0) {
+    erro?.classList.add('show');
+    return;
+  }
+
+  for (const it of itens) {
+    if (!it.quantidade || it.quantidade < 1) {
+      mostrarAviso('Informe uma quantidade válida.', 'erro');
+      return;
+    }
+  }
+  erro?.classList.remove('show');
+  try {
+    const resp = await fetchAutenticado('/entrega/registrar', {
+      method: 'POST',
+      body: JSON.stringify({ funcionario: entregarFuncionarioId, itens })
+    });
+    if (!resp) return;
+    const dados = await resp.json();
+    if (!resp.ok) {
+      mostrarAviso(dados.erro || 'Não foi possível entregar.', 'erro');
+      return;
+    }
     mostrarAviso('Entrega registrada com sucesso!', 'sucesso');
+    fecharModal('modal-entregar');
     await carregarFuncionarios();
   }
-  else {
-    mostrarAviso(dados.erro || 'Erro ao registrar entrega.'); // ex.: "Sem estoque disponível"
+  catch (err) {
+    mostrarAviso('Não foi possível conectar ao servidor.', 'erro');
   }
 }
 
