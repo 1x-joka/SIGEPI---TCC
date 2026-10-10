@@ -253,6 +253,12 @@ async function solicitarReset(req, res) {
     const link = `${base}/paginas/redefinir-senha.html?token=${token}`;
     await enviarEmailRecuperacao(email, usuario.nm_usuario, link);
 
+    // Segurança: resposta genérica sempre. Para depurar, ligue DEBUG_RESET=1 no ambiente
+    // e o motivo real da falha de envio volta na resposta (desligue depois).
+    if (!enviado.ok && process.env.DEBUG_RESET === '1') {
+      return res.status(500).json({ erro: 'Falha ao enviar e-mail.', detalhe: enviado.erro });
+    }
+    
     return res.status(200).json(respostaGenerica);
   }
   catch (err) {

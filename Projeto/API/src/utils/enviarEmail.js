@@ -25,13 +25,19 @@ async function enviarEmailRecuperacao(destino, nome, linkReset) { // o sistema p
 
     if (error) {
       console.error('Erro ao enviar e-mail:', error);
-      return false;
+      return {
+        ok: false,
+        erro: error.message || JSON.stringify(error)
+      };
     }
-    return true;
+    return { ok: true };
   }
   catch (err) {
     console.error('Falha no serviço de e-mail:', err);
-    return false;
+    return {
+      ok: false,
+      erro: err.message
+    };
   }
 }
 
