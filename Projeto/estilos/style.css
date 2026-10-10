@@ -2339,6 +2339,17 @@ body:has(.hero) .header{ background:#ECEEE9; border-bottom:1px solid #D3D8D3; }
   font:inherit;
 }
 
+.termos-aceite{
+  font-size: 13px;
+  color: var(--steel, #5B6B72);
+  text-align: center;
+  margin: 4px 0 14px;
+}
+.termos-aceite a{
+  color: var(--btn-primary, #2196b0);
+  font-weight: 600;
+}
+
 /* ===== Responsividade ===== */
 
 @media (max-width:560px){
