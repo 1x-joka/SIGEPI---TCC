@@ -5,7 +5,7 @@ const rateLimit = require('express-rate-limit');
 // Login: no máximo 5 tentativas por IP a cada 15 min (anti força-bruta)
 const limiteLogin = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 30,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
