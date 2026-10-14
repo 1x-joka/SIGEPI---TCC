@@ -252,7 +252,7 @@ async function solicitarReset(req, res) {
     const base = process.env.APP_URL || 'http://localhost:3000';
     const link = `${base}/paginas/redefinir-senha.html?token=${token}`;
     const enviado = await enviarEmailRecuperacao(email, usuario.nm_usuario, link);
-    console.log('[reset] envio para', email, '=>', enviado ? 'OK' : 'FALHOU (veja o erro acima)');
+    console.log('[reset] envio para', email, '=>', enviado.ok ? 'OK' : ('FALHOU: ' + enviado.erro));
 
     // Segurança: resposta genérica sempre. Para depurar, ligue DEBUG_RESET=1 no ambiente
     // e o motivo real da falha de envio volta na resposta (desligue depois).
