@@ -2108,6 +2108,7 @@ body:has(.hero) .header{ background:#ECEEE9; border-bottom:1px solid #D3D8D3; }
 
   .filter-bar .input-busca,
   .filter-bar .select-wrap,
+  .filter-bar .btn,
   .filter-bar select,
   .filter-bar input {
     width: 100%;
