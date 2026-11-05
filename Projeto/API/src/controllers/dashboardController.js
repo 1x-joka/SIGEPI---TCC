@@ -18,7 +18,7 @@ async function obterDashboard(req, res) {
 
     // 1) EPI ENTREGUE (total no período) — COUNT conta linhas
     const [totalEntregas] = await db.execute(
-      `SELECT COUNT(*) AS total
+      `SELECT COALESCE(SUM(e.quantidade),0) AS total
        FROM tb_entrega e
        JOIN tb_funcionario f ON f.id_funcionario = e.tb_funcionario_id_funcionario
        WHERE f.tb_empresa_id_empresa = ? AND YEAR(e.dt_entrega) = ?${condMes}`, // Pela interpolação (${condMes}) parece que é falha de proteção contra SQL Injection, mas não é! condMes é uma string fixa escrita por mim,  o valor do mês nunca entra ali, ele vai no array. Ou seja, eu interpolo estrutura, não dado.

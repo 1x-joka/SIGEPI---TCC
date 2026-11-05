@@ -175,24 +175,6 @@ values
     -> Toda vez que um registro é inserido em tb_entrega, ela automaticamente desconta 1 unidade do estoque do EPI correto, da empresa correta, e seguindo FIFO — o lote com validade mais próxima sai primeiro
 */
 
-delimiter $$
-create trigger trg_atualizar_estoque_apos_entrega
-after insert on tb_entrega
-for each row
-begin
-    update tb_estoque
-    set qtd_disponivel_estoque = qtd_disponivel_estoque - new.quantidade
-    where tb_epi_id_epi = new.tb_epi_id_epi
-      and tb_empresa_id_empresa = (
-          select tb_empresa_id_empresa
-          from tb_funcionario
-          where id_funcionario = new.tb_funcionario_id_funcionario
-      )
-    order by dt_validade_estoque asc  -- FIFO: retira do lote mais antigo primeiro
-    limit 1;
-end$$
-delimiter ;
-
 -- Declarando que existem dois tipos de usuários (admin e funcionários)
 insert into tb_tipousuario (nm_tipousuario)
 values

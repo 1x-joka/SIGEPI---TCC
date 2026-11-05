@@ -12,6 +12,11 @@ async function registrarEntrada(req, res) {
       erro: 'Informe o EPI e a quantidade.'
     });
   }
+  if (isNaN(Number(quantidade))) {
+    return res.status(400).json({
+      erro: 'A quantidade deve ser um número.'
+    });
+  }
   if (quantidade <= 0) {
     return res.status(400).json({
     erro: 'A quantidade deve ser maior que zero.'

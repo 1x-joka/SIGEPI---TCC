@@ -1251,7 +1251,7 @@ async function cadastrarEPI() {
   const setores = Array.from(document.querySelectorAll('.chk-setor-epi:checked'))
     .map(c => parseInt(c.value));
 
-  if (!nome || !ca || !validade || !qtd || !limite || !categoria) {
+  if (!nome || !tamanho || !ca || !validade || !qtd || !limite || !categoria) {
     mostrarAviso('Preencha todos os campos.');
     return;
   }
@@ -1545,7 +1545,7 @@ function abrirExcluir(idFuncionario) {
 
   // Setor real do funcionário (o select está disabled, é só exibição)
   const selSetor = document.getElementById('excluir-setor');
-  if (selSetor) selSetor.innerHTML = `<option>${f.nm_setor || 'Sem setor'}</option>`;
+  if (selSetor) { selSetor.innerHTML = ''; const o = document.createElement('option'); o.textContent = f.nm_setor || 'Sem setor'; selSetor.appendChild(o); }
 
   // Reseta o formulário
   const motivo = document.getElementById('motivo-exclusao');

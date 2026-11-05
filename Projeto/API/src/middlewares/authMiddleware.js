@@ -32,7 +32,7 @@ async function autenticar(req, res, next) {
     next();
   }
   catch (err) {
-    return res.status(403).json({
+    return res.status(401).json({
       erro: 'Token inválido ou expirado.'
     });
   }

@@ -18,9 +18,20 @@ const logRoutes = require('./src/routes/logRoutes');
 
 const app = express();
 
-app.use(express.json({limit: '5mb'})); // Importar uma alta quantidade de EPIs manda um JSON muito grande, e o padrão do Express é 100kb, portanto limitamos para grandes importações CSV não dar erro "PayloadTooLargeError"
+app.use(helmet({ contentSecurityPolicy: false })); // CSP off: o front usa onclick inline, scripts inline, Google Fonts e reCAPTCHA
+app.use(express.json({ limit: '5mb' }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, '..')));
+
+// Bloqueia o acesso público ao código-fonte do back e ao banco (o .env já é protegido)
+app.use((req, res, next) => {
+  const p = decodeURIComponent(req.path);
+  if (/^\/(API|banco de dados)(\/|$)/i.test(p)) {
+    return res.status(403).send('Acesso negado.');
+  }
+  next();
+});
+
+app.use(express.static(path.join(__dirname, '..'), { dotfiles: 'ignore' }));
 
 // Limite geral: 300 requisições por IP a cada 15 min (uso normal nunca chega perto)
 const limiteGeral = rateLimit({

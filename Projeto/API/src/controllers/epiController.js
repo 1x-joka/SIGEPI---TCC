@@ -8,8 +8,8 @@ const normalizarTexto = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036
 async function cadastrarEpi(req, res) {
   const { nome, tamanho, descricao, ca, categoria, validadeCa, quantidade, quantidadeMinima, validade, setores } = req.body;
   const empresa = req.usuario.empresa;
-  if (!nome) return res.status(400).json({
-    erro: 'Informe o nome do EPI.'
+  if (!nome || !tamanho) return res.status(400).json({
+    erro: 'Informe o nome e o tamanho do EPI.'
   });
 
   const conexao = await db.getConnection(); // Ligando ao banco de dados de fato

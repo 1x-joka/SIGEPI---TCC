@@ -64,6 +64,25 @@ async function registrarEntrega(req, res) {
          VALUES (CURDATE(), ?, 'P', ?, ?, ?)`,
         [v.qtd, funcionario, v.epi, admin]
       );
+
+      // Baixa FIFO multi-lote (substitui o trigger — evita estoque negativo)
+      let restante = v.qtd;
+      const [lotes] = await conexao.execute(
+        `SELECT id_estoque, qtd_disponivel_estoque FROM tb_estoque
+         WHERE tb_epi_id_epi = ? AND tb_empresa_id_empresa = ? AND qtd_disponivel_estoque > 0
+         ORDER BY dt_validade_estoque ASC`,
+        [v.epi, empresa]
+      );
+      for (const lote of lotes) {
+        if (restante <= 0) break;
+        const baixa = Math.min(lote.qtd_disponivel_estoque, restante);
+        await conexao.execute(
+          'UPDATE tb_estoque SET qtd_disponivel_estoque = qtd_disponivel_estoque - ? WHERE id_estoque = ?',
+          [baixa, lote.id_estoque]
+        );
+        restante -= baixa;
+      }
+
       await registrarLog({
         empresa,
         tipo: 'ENTREGA',
@@ -343,7 +362,7 @@ async function recusarRecebimento(req, res) {
 
   try {
     const [linhas] = await db.execute(
-      `SELECT e.id_entrega, epi.nm_epi
+      `SELECT e.id_entrega, e.quantidade, e.tb_epi_id_epi, epi.nm_epi
        FROM tb_entrega e
        JOIN tb_funcionario f ON f.id_funcionario = e.tb_funcionario_id_funcionario
        JOIN tb_epi epi ON epi.id_epi = e.tb_epi_id_epi
@@ -357,10 +376,12 @@ async function recusarRecebimento(req, res) {
       });
     }
 
+    // Recusado: o item NÃO saiu de fato, então devolve a quantidade ao lote mais antigo
     await db.execute(
-      `UPDATE tb_entrega SET st_entrega = 'R', motivo_recusa = ?, dt_confirmacao = CURDATE()
-       WHERE id_entrega = ?`,
-      [motivo.trim(), id]
+      `UPDATE tb_estoque SET qtd_disponivel_estoque = qtd_disponivel_estoque + ?
+       WHERE tb_epi_id_epi = ? AND tb_empresa_id_empresa = ?
+       ORDER BY dt_validade_estoque ASC LIMIT 1`,
+      [linhas[0].quantidade, linhas[0].tb_epi_id_epi, empresa]
     );
 
     await registrarLog({

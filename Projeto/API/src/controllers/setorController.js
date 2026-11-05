@@ -91,6 +91,17 @@ async function deletarSetor(req, res) {
       });
     }
 
+    // TRAVA 2: não excluir se houver EPI vinculado ao setor (senão dá erro de FK)
+    const [vinc] = await db.execute(
+      'SELECT COUNT(*) AS total FROM tb_epi_setor WHERE tb_setor_id_setor = ?',
+      [id_setor]
+    );
+    if (vinc[0].total > 0) {
+      return res.status(409).json({
+        erro: `Não é possível excluir: há ${vinc[0].total} EPI(s) vinculado(s) a este setor. Desvincule-os primeiro (em Editar EPI).`
+      });
+    }
+
     await db.execute('DELETE FROM tb_setor WHERE id_setor = ?', [id_setor]);
     return res.status(200).json({
       mensagem: 'Setor excluído com sucesso.'
