@@ -376,6 +376,13 @@ async function recusarRecebimento(req, res) {
       });
     }
 
+    // Marca a entrega como Recusada (guarda motivo e data)
+    await db.execute(
+      `UPDATE tb_entrega SET st_entrega = 'R', motivo_recusa = ?, dt_confirmacao = CURDATE()
+       WHERE id_entrega = ?`,
+      [motivo.trim(), linhas[0].id_entrega]
+    );
+
     // Recusado: o item NÃO saiu de fato, então devolve a quantidade ao lote mais antigo
     await db.execute(
       `UPDATE tb_estoque SET qtd_disponivel_estoque = qtd_disponivel_estoque + ?

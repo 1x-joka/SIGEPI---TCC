@@ -25,7 +25,7 @@ app.use(cookieParser());
 // Bloqueia o acesso público ao código-fonte do back e ao banco (o .env já é protegido)
 app.use((req, res, next) => {
   const p = decodeURIComponent(req.path);
-  if (/^\/(API|banco de dados)(\/|$)/i.test(p)) {
+  if (/^\/(API|banco de dados)(\/|$)/.test(p)) {
     return res.status(403).send('Acesso negado.');
   }
   next();
