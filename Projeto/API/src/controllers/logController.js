@@ -15,8 +15,7 @@ async function listarLog(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message });
+      erro: 'Erro interno.'
     }
 }
 module.exports = { listarLog };

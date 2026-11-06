@@ -131,8 +131,7 @@ async function listarEntregas(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -190,8 +189,7 @@ async function registrarDevolucao(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -232,8 +230,7 @@ async function historicoFuncionario(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -305,8 +302,7 @@ async function pendentesConfirmacao(req, res) {
 
   } catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -353,8 +349,7 @@ async function confirmarRecebimento(req, res) {
 
   } catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -418,8 +413,7 @@ async function recusarRecebimento(req, res) {
 
   } catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }

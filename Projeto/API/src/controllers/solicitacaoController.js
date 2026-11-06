@@ -100,8 +100,7 @@ async function criarSolicitacao(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -138,8 +137,7 @@ async function listarMinhasSolicitacoes(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -167,8 +165,7 @@ async function listarPendentes(req, res) {
 
   } catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -237,8 +234,7 @@ async function responderSolicitacao(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }

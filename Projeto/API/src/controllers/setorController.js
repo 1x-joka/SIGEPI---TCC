@@ -13,6 +13,10 @@ async function cadastrarSetor(req, res) {
     }
     const nomeSetor = nome.trim();
 
+    if (nomeSetor.length > 45) {
+        return res.status(400).json({ erro: 'O nome do setor deve ter no máximo 45 caracteres.' });
+    }
+
     try {
         // Impede setor duplicado dentro da mesma empresa
         const [existe] = await db.execute(
@@ -38,8 +42,7 @@ async function cadastrarSetor(req, res) {
     }
     catch (err) {
         return res.status(500).json({
-          erro: 'Erro interno.',
-          detalhe: err.message
+          erro: 'Erro interno.'
         });
     }
 }
@@ -58,8 +61,7 @@ async function listarSetores(req, res) {
     }
     catch (err) {
         return res.status(500).json({
-          erro: 'Erro interno.',
-          detalhe: err.message
+          erro: 'Erro interno.'
         });
     }
 }
@@ -111,8 +113,7 @@ async function deletarSetor(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -164,8 +165,7 @@ async function editarSetor(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }

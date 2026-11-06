@@ -15,10 +15,6 @@ async function cadastrarEpi(req, res) {
     });
   }
 
-  if (nomeSetor.length > 45) {
-    return res.status(400).json({ erro: 'O nome do setor deve ter no máximo 45 caracteres.' });
-  }
-
   const conexao = await db.getConnection(); // Ligando ao banco de dados de fato
   try {
    const [existe] = await conexao.execute("SELECT id_epi FROM tb_epi WHERE nm_epi = ? AND (tamanho_epi <=> ?) AND tb_empresa_id_empresa = ? AND st_epi = 'A'", [nome, tamanho || null, empresa]);
@@ -92,8 +88,7 @@ async function cadastrarEpi(req, res) {
   catch (err) {
     await conexao.rollback();
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
   finally { conexao.release(); }
@@ -281,8 +276,7 @@ async function editarEpi(req, res) {
   catch (err) {
     await conexao.rollback();
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
   finally { conexao.release(); }
@@ -430,8 +424,7 @@ async function importarEpisCsv(req, res) {
   catch (err) {
     await conexao.rollback();
     return res.status(500).json({
-      erro: 'Erro interno na importação.',
-      detalhe: err.message
+      erro: 'Erro interno na importação.'
     });
   }
   finally {

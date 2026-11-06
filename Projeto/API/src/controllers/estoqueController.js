@@ -80,8 +80,7 @@ async function registrarEntrada(req, res) {
     // Qualquer erro no meio → desfaz TUDO (nem estoque, nem movimentação ficam)
     await conexao.rollback();
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
 
   } finally {
@@ -109,8 +108,7 @@ async function listarEstoque(req, res) {
 
   } catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -190,8 +188,7 @@ async function registrarSaida(req, res) {
   catch (err) {
     await conexao.rollback();
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
   finally {

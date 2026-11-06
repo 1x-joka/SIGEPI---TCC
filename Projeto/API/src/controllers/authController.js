@@ -60,8 +60,7 @@ async function cadastrar(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -178,8 +177,7 @@ async function login(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -320,8 +318,7 @@ async function redefinirSenha(req, res) {
   catch (err) {
     console.log('Erro SOLICITAR-RESET: ', err);
     return res.status(500).json({
-      erro: 'Erro interno.',
-      detalhe: err.message || err.sqlMessage || JSON.stringify(err)
+      erro: 'Erro interno.'
     });
   }
 }
