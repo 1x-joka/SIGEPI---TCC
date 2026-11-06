@@ -263,7 +263,7 @@ async function solicitarReset(req, res) {
     return res.status(200).json(respostaGenerica);
   }
   catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+    return res.status(500).json({ erro: 'Erro interno.'});
   }
 }
 

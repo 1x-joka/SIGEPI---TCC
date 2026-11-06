@@ -52,7 +52,7 @@ async function entrarEmpresa(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.', detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -321,7 +321,7 @@ async function editarFuncionario(req, res) {
 
   } catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.', detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -455,7 +455,7 @@ async function cadastrarFuncionario(req, res) {
   }
   catch (err) {
     await conexao.rollback();
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+    return res.status(500).json({ erro: 'Erro interno.'});
   }
   finally {
     conexao.release();

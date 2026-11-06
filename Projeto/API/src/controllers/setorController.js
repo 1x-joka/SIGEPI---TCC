@@ -6,17 +6,18 @@ async function cadastrarSetor(req, res) {
     const { nome } = req.body;
     const empresa = req.usuario.empresa; // vem do middleware (banco), nunca do cliente
 
-    if (!nome) {
-        return res.status(400).json({
-          erro: 'Informe o nome do setor.'
-        })
+    if (!nome || !nome.trim()) {
+      return res.status(400).json({
+        erro: 'Informe o nome do setor.'
+      })
     }
+    const nomeSetor = nome.trim();
 
     try {
         // Impede setor duplicado dentro da mesma empresa
         const [existe] = await db.execute(
             'SELECT id_setor FROM tb_setor WHERE nm_setor = ? AND tb_empresa_id_empresa = ?',
-            [nome, empresa]
+            [nomeSetor, empresa]
         );
         if (existe.length > 0) {
             return res.status(409).json({
@@ -26,13 +27,13 @@ async function cadastrarSetor(req, res) {
 
         const [result] = await db.execute(
             'INSERT INTO tb_setor (nm_setor, tb_empresa_id_empresa) VALUES (?, ?)',
-            [nome, empresa]
+            [nomeSetor, empresa]
         );
 
         return res.status(201).json({
             mensagem: 'Setor cadastrado com sucesso!',
             id_setor: result.insertId,
-            nm_setor: nome
+            nm_setor: nomeSetor
         });
     }
     catch (err) {
@@ -122,11 +123,12 @@ async function editarSetor(req, res) {
   const { nome } = req.body;
   const empresa = req.usuario.empresa;
 
-  if (!nome) {
-    return res.status(400).json({
-      erro: 'Informe o nome do setor.'
-    });
-  }
+    if (!nome || !nome.trim()) {
+      return res.status(400).json({
+        erro: 'Informe o nome do setor.'
+      })
+    }
+    const nomeSetor = nome.trim();
 
   try {
     // O setor precisa ser desta empresa
@@ -143,7 +145,7 @@ async function editarSetor(req, res) {
     // Impede nome duplicado na mesma empresa, excluindo o PRÓPRIO setor
     const [existe] = await db.execute(
       'SELECT id_setor FROM tb_setor WHERE nm_setor = ? AND tb_empresa_id_empresa = ? AND id_setor != ?',
-      [nome, empresa, id_setor]
+      [nomeSetor, empresa, id_setor]
     );
     if (existe.length > 0) {
       return res.status(409).json({
@@ -153,7 +155,7 @@ async function editarSetor(req, res) {
 
     await db.execute(
       'UPDATE tb_setor SET nm_setor = ? WHERE id_setor = ?',
-      [nome, id_setor]
+      [nomeSetor, id_setor]
     );
 
     return res.status(200).json({

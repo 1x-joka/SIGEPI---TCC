@@ -8,9 +8,16 @@ const normalizarTexto = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036
 async function cadastrarEpi(req, res) {
   const { nome, tamanho, descricao, ca, categoria, validadeCa, quantidade, quantidadeMinima, validade, setores } = req.body;
   const empresa = req.usuario.empresa;
-  if (!nome || !tamanho) return res.status(400).json({
-    erro: 'Informe o nome e o tamanho do EPI.'
-  });
+  
+  if (!nome || !nome.trim() || !tamanho || !tamanho.trim() || !ca || !categoria || !validadeCa) {
+    return res.status(400).json({
+      erro: 'Preencha nome, tamanho, CA, categoria e validade do CA.'
+    });
+  }
+
+  if (nomeSetor.length > 45) {
+    return res.status(400).json({ erro: 'O nome do setor deve ter no máximo 45 caracteres.' });
+  }
 
   const conexao = await db.getConnection(); // Ligando ao banco de dados de fato
   try {
@@ -133,7 +140,7 @@ async function listarEpis(req, res) {
 
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.', detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -145,7 +152,7 @@ async function listarCategorias(req, res) {
   }
   catch (err){
     return res.status(500).json({
-      erro: 'Erro interno.', detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -173,7 +180,7 @@ async function inativarEpi(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.', detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -308,7 +315,7 @@ async function obterEpi(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.', detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
@@ -451,7 +458,7 @@ async function episDoSetorDoFuncionario(req, res) {
     return res.status(200).json(epis);
   }
   catch (err) {
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+    return res.status(500).json({ erro: 'Erro interno.' });
   }
 }
 

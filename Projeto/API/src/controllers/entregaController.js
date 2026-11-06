@@ -34,8 +34,8 @@ async function registrarEntrega(req, res) {
     const validados = [];
     for (const item of itens) {
       const epi = parseInt(item.epi);
-      const qtd = parseInt(item.quantidade);
-      if (!epi || !qtd || qtd < 1) {
+      const qtd = Number(item.quantidade);
+      if (!epi || !Number.isInteger(qtd) || qtd < 1) {
         return res.status(400).json({ erro: 'Quantidade inválida em um dos EPIs.' });
       }
       const [epis] = await conexao.execute(
@@ -70,7 +70,8 @@ async function registrarEntrega(req, res) {
       const [lotes] = await conexao.execute(
         `SELECT id_estoque, qtd_disponivel_estoque FROM tb_estoque
          WHERE tb_epi_id_epi = ? AND tb_empresa_id_empresa = ? AND qtd_disponivel_estoque > 0
-         ORDER BY dt_validade_estoque ASC`,
+         ORDER BY dt_validade_estoque ASC
+         FOR UPDATE`,
         [v.epi, empresa]
       );
       for (const lote of lotes) {
@@ -81,6 +82,11 @@ async function registrarEntrega(req, res) {
           [baixa, lote.id_estoque]
         );
         restante -= baixa;
+      }
+
+      if (restante > 0) {
+        await conexao.rollback();
+        return res.status(409).json({ erro: `Estoque insuficiente para "${v.nome}".` });
       }
 
       await registrarLog({
@@ -97,7 +103,7 @@ async function registrarEntrega(req, res) {
   }
   catch (err) {
     await conexao.rollback();
-    return res.status(500).json({ erro: 'Erro interno.', detalhe: err.message });
+    return res.status(500).json({ erro: 'Erro interno.'});
   }
   finally {
     conexao.release();
@@ -154,6 +160,11 @@ async function registrarDevolucao(req, res) {
     if (entregas[0].st_entrega === 'D') {
       return res.status(409).json({
         erro: 'Este EPI já foi devolvido.'
+      });
+    }
+    if (entregas[0].st_entrega !== 'A') {
+      return res.status(409).json({
+        erro: 'Só é possível devolver uma entrega que foi aceita pelo funcionário.'
       });
     }
 
@@ -259,7 +270,7 @@ async function meusEquipamentos(req, res) {
   }
   catch (err) {
     return res.status(500).json({
-      erro: 'Erro interno.', detalhe: err.message
+      erro: 'Erro interno.'
     });
   }
 }
