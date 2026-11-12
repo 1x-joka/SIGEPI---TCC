@@ -25,6 +25,14 @@ async function cadastrar(req, res) {
     });
   }
 
+  if (senha.length < 8) {
+    return res.status(400).json({ erro: 'A senha deve ter pelo menos 8 caracteres.' });
+  }
+  
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ erro: 'E-mail inválido.' });
+  }
+
   if (!validarCPF(cpf)) {
     return res.status(400).json({
       erro: 'CPF inválido.'
@@ -209,7 +217,6 @@ async function solicitarReset(req, res) {
       'SELECT id_usuario, nm_usuario, reset_bloqueado_ate, tentativas_reset FROM tb_usuario WHERE email_usuario = ?',
       [email]
     );
-    console.log('[reset] usuarios encontrados para', email, '=>', rows.length);
 
     // Resposta genérica de propósito: não revela se o e-mail existe (evita descobrir contas)
     const respostaGenerica = {
@@ -250,7 +257,6 @@ async function solicitarReset(req, res) {
     const base = process.env.APP_URL || 'http://localhost:3000';
     const link = `${base}/paginas/redefinir-senha.html?token=${token}`;
     const enviado = await enviarEmailRecuperacao(email, usuario.nm_usuario, link);
-    console.log('[reset] envio para', email, '=>', enviado.ok ? 'OK' : ('FALHOU: ' + enviado.erro));
 
     // Segurança: resposta genérica sempre. Para depurar, ligue DEBUG_RESET=1 no ambiente
     // e o motivo real da falha de envio volta na resposta (desligue depois).
