@@ -57,7 +57,6 @@ Segundo pesquisa da plataforma Flash, 48% das empresas brasileiras ainda utiliza
 - [Node.js](https://nodejs.org/) v18 ou superior
 - [MySQL](https://www.mysql.com/) v8 ou superior
 - [Git](https://git-scm.com/)
-- Extensão [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) no VS Code
 - Chaves do [Google reCAPTCHA v2](https://www.google.com/recaptcha/admin) (site key e secret key)
 
 ### 1. Clone o repositório
@@ -81,19 +80,25 @@ npm install
 cp .env.example .env
 ```
 
-Edite o `.env` com as credenciais do seu banco, o `JWT_SECRET` e a chave secreta do reCAPTCHA. Depois:
+Edite o .env preenchendo cada variável (o .env.example já traz todas elas como guia):
+
+- **Banco de dados:** `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT` — credenciais do seu MySQL.
+- **Servidor:** `PORT` (padrão `3000`).
+- **`JWT_SECRET`:** chave para assinar os tokens de login. Gere uma com `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`.
+- **`RECAPTCHA_SECRET`:** a *secret key* do Google reCAPTCHA v2.
+- **Recuperação de senha (Resend):** `RESEND_API_KEY`, `APP_URL` (ex.: `http://localhost:3000`) e `EMAIL_REMETENTE` (e-mail remetente verificado no Resend).
+
+Depois:
 
 ```bash
 npm start
 ```
 
-A API sobe em `http://localhost:3000` — ao acessar, deve responder `{"mensagem":"API SIGEPI funcionando!"}`.
+A API sobe na porta 3000 (aparece Servidor rodando na porta 3000 no terminal) e o sistema abre em `http://localhost:3000`
 
-### 4. Inicie o front-end
+### 4. Acesse o Sistema !
 
-Com a API rodando, abra o VS Code na raiz do projeto, clique com o botão direito em `Projeto/index.html` e escolha **Open with Live Server**.
-
-O sistema abre em `http://127.0.0.1:5500/Projeto/index.html`.
+Com a API rodando (npm start), abra o navegador em `http://localhost:3000`. O próprio servidor já entrega o front-end e a API no mesmo endereço.
 
 ---
 
@@ -120,7 +125,6 @@ Protótipos desenvolvidos no Figma para os diferentes formatos de tela:
 |---------|------|
 | 🖥️ Desktop (Mac e Windows) | [Abrir no Figma](https://www.figma.com/design/DDS2raMUfaX0Cw292iuYP5/Prototipa%C3%A7%C3%A3o-do-SIGEPI---Desktop?node-id=0-1&p=f&t=PYUyYww3dqNHNQgO-0) |
 | 📱 Mobile | [Abrir no Figma](https://www.figma.com/design/UwsJ5lHa5mrJwR0BePkF0z/Prototipa%C3%A7%C3%A3o-do-SIGEPI---Mobile?t=PYUyYww3dqNHNQgO-0) |
-| 📲 Tablet (iPad) | [Abrir no Figma](COLE_AQUI_O_LINK_IPAD) |
 
 > 🔗 [Protótipo completo (todas as telas)](https://www.figma.com/design/DDS2raMUfaX0Cw292iuYP5/Prototipa%C3%A7%C3%A3o-do-SIGEPI?node-id=0-1&t=oVStPrEXnrAm0S5V-1)
 
