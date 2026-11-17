@@ -2279,9 +2279,25 @@ async function salvarAlteracoes() {
 function copiarCodigo() {
   const campo = document.getElementById('secao-codigo');
   if (!campo || !campo.value) return;
-  navigator.clipboard.writeText(campo.value)
-    .then(() => mostrarAviso('Código copiado! Envie ao funcionário para ele entrar na empresa.', 'sucesso'))
-    .catch(() => mostrarAviso('Não foi possível copiar. Selecione e copie manualmente.'));
+  const sucesso = () => mostrarAviso('Código copiado! Envie ao funcionário para ele entrar na empresa.', 'sucesso');
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(campo.value).then(sucesso).catch(() => copiarManual(campo, sucesso));
+  } else {
+    copiarManual(campo, sucesso);
+  }
+}
+
+function copiarManual(campo, sucesso) {
+  try {
+    campo.focus();
+    campo.select();
+    campo.setSelectionRange(0, campo.value.length);
+    const ok = document.execCommand('copy');
+    window.getSelection().removeAllRanges();
+    ok ? sucesso() : mostrarAviso('Não foi possível copiar. Selecione e copie manualmente.');
+  } catch (e) {
+    mostrarAviso('Não foi possível copiar. Selecione e copie manualmente.');
+  }
 }
 
 // ============================================================
