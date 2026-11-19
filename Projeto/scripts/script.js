@@ -2692,7 +2692,14 @@ async function adicionarSetorSecao() {
 }
 
 async function excluirSetorSecao(idSetor) {
-  if (!confirm('Deseja realmente excluir este setor?')) return;
+  if (!await confirmarAcao({
+    titulo: 'Excluir setor',
+    mensagem: 'Deseja realmente excluir este setor?',
+    textoConfirmar: 'Excluir',
+    perigo: true
+  }))
+    return;
+
   try {
     const resp = await fetchAutenticado(`/setor/${idSetor}`, {
       method: 'DELETE'
