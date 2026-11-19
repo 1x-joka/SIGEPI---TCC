@@ -1,6 +1,8 @@
 const db = require('../config/db');
 const registrarLog = require('../utils/registrarLog');
 
+const { enviarEmailNovaSolicitacao, enviarEmailDecisaoSolicitacao } = require('../utils/enviarEmail');
+
 // Calcula uma data somando N dias ÚTEIS a partir de hoje (pula sábado e domingo)
 function calcularPrevisao(diasUteis) {
   const data = new Date();
@@ -90,6 +92,26 @@ async function criarSolicitacao(req, res) {
        VALUES (CURDATE(), 'P', ?, ?, ?, ?)`,
       [motivo, previsao, id_funcionario, epi]
     );
+
+    // Aviso por e-mail ao(s) administrador(es) da empresa
+    try {
+      const [adms] = await db.execute(
+        "SELECT email_usuario FROM tb_usuario WHERE tb_empresa_id_empresa = ? AND tb_tipousuario_id_tipousuario = 1 AND st_usuario = 'A' AND email_usuario IS NOT NULL",
+        [empresa]);
+      const [info] = await db.execute(
+        'SELECT (SELECT nm_usuario FROM tb_usuario WHERE id_usuario = ?) AS func, (SELECT nm_epi FROM tb_epi WHERE id_epi = ?) AS epi',
+        [req.usuario.id, epi]);
+      const emails = adms.map(a => a.email_usuario).filter(Boolean);
+      if (emails.length) {
+        enviarEmailNovaSolicitacao(emails, {
+          nomeFuncionario: info[0].func, epi: info[0].epi, motivo,
+          data: new Date().toLocaleDateString('pt-BR')
+        }).catch(() => {});
+      }
+    }
+    catch (e) {
+      console.error('e-mail nova solicitacao:', e.message);
+    }
 
     return res.status(201).json({
       mensagem: 'Solicitação registrada com sucesso.',
@@ -225,6 +247,19 @@ async function responderSolicitacao(req, res) {
       motivo: alvo, // aparece na coluna Motivo: quem pediu
       responsavel: req.usuario.id
     });
+
+    // Aviso por e-mail ao funcionário sobre a decisão
+    try {
+      if (s.email_usuario) {
+        enviarEmailDecisaoSolicitacao(s.email_usuario, {
+          nomeFuncionario: s.nm_funcionario, epi: s.nm_epi,
+          decisao: decisao === 'A' ? 'aprovada' : 'recusada'
+        }).catch(() => {});
+      }
+    }
+    catch (e) {
+      console.error('e-mail decisao solicitacao:', e.message);
+    }
 
     const msg = decisao === 'A' ? 'Solicitação aprovada.' : 'Solicitação recusada.';
     return res.status(200).json({

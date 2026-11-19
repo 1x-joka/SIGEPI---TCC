@@ -41,4 +41,85 @@ async function enviarEmailRecuperacao(destino, nome, linkReset) { // o sistema p
   }
 }
 
-module.exports = { enviarEmailRecuperacao };
+// ===== Base genérica + layout (reaproveita o try/catch e o visual) =====
+async function _enviar(to, subject, html) {
+  try {
+    const { error } = await resend.emails.send({ from: `SIGEPI <${REMETENTE}>`, to, subject, html });
+    if (error) {
+      console.error('Erro ao enviar e-mail:', error);
+      return {
+        ok: false, erro: error.message || JSON.stringify(error)
+      };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error('Falha no serviço de e-mail:', err);
+    return {
+      ok: false,
+      erro: err.message
+    };
+  }
+}
+
+function _layout(titulo, corpoHtml) {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; color: #333;">
+      <h2 style="color: #1F6F8B;">${titulo}</h2>
+      ${corpoHtml}
+      <p style="font-size: 12px; color: #999; margin-top: 24px;">Mensagem automática do SIGEPI — não é necessário responder.</p>
+    </div>`;
+}
+
+// 1) Entrega de EPI -> funcionário
+async function enviarEmailEntregaEpi(destino, dados) {
+  const lista = (dados.itens || []).map(i => `<li>${i.nome}${i.qtd > 1 ? ` (x${i.qtd})` : ''}</li>`).join('');
+  return _enviar(destino, 'Novo EPI entregue a você - SIGEPI', _layout('Você recebeu um novo EPI', `
+    <p>Olá, ${dados.nomeFuncionario}.</p>
+    <p>O administrador <strong>${dados.admin}</strong> registrou a entrega do(s) seguinte(s) EPI(s) para você em <strong>${dados.data}</strong>:</p>
+    <ul>${lista}</ul>
+    <p><strong>Funcionário:</strong> ${dados.nomeFuncionario}<br>
+       <strong>CPF:</strong> ${dados.cpf || '—'}<br>
+       <strong>Setor:</strong> ${dados.setor || '—'}</p>
+    <p>Acesse o SIGEPI para <strong>confirmar</strong> ou <strong>recusar</strong> o recebimento.</p>`));
+}
+
+// 2) Aceite/Recusa de recebimento -> admin(s)
+async function enviarEmailRecebimento(destinos, dados) {
+  const extra = (dados.acao === 'recusou' && dados.motivo) ? `<p><strong>Motivo da recusa:</strong> ${dados.motivo}</p>` : '';
+  return _enviar(destinos, `Funcionário ${dados.acao} um EPI - SIGEPI`, _layout(`Recebimento ${dados.acao}`, `
+    <p>O funcionário <strong>${dados.nomeFuncionario}</strong> <strong>${dados.acao}</strong> o recebimento do EPI <strong>${dados.epi}</strong> em ${dados.data}.</p>
+    ${extra}`));
+}
+
+// 3) Nova solicitação de reposição -> admin(s)
+async function enviarEmailNovaSolicitacao(destinos, dados) {
+  return _enviar(destinos, 'Nova solicitação de reposição - SIGEPI', _layout('Nova solicitação de reposição', `
+    <p>O funcionário <strong>${dados.nomeFuncionario}</strong> solicitou a reposição do EPI <strong>${dados.epi}</strong> em ${dados.data}.</p>
+    <p><strong>Motivo:</strong> ${dados.motivo || '—'}</p>
+    <p>Acesse o SIGEPI para aprovar ou recusar.</p>`));
+}
+
+// 4) Decisão da solicitação -> funcionário
+async function enviarEmailDecisaoSolicitacao(destino, dados) {
+  return _enviar(destino, `Sua solicitação foi ${dados.decisao} - SIGEPI`, _layout(`Solicitação ${dados.decisao}`, `
+    <p>Olá, ${dados.nomeFuncionario}.</p>
+    <p>Sua solicitação de reposição do EPI <strong>${dados.epi}</strong> foi <strong>${dados.decisao}</strong> pelo administrador.</p>`));
+}
+
+// 5) Devolução registrada pelo admin -> funcionário
+async function enviarEmailDevolucao(destino, dados) {
+  return _enviar(destino, 'Devolução de EPI solicitada - SIGEPI', _layout('Devolva seu EPI', `
+    <p>Olá, ${dados.nomeFuncionario}.</p>
+    <p>O administrador registrou a <strong>devolução</strong> do EPI <strong>${dados.epi}</strong> que estava com você.</p>
+    <p style="background:#fdecea; border-left:4px solid #e53935; padding:10px 14px; border-radius:6px;">
+      <strong>Ação necessária:</strong> devolva o equipamento <strong>imediatamente</strong> ao responsável do seu setor${dados.setor ? ` (<strong>${dados.setor}</strong>)` : ''}.</p>`));
+}
+
+module.exports = {
+  enviarEmailRecuperacao,
+  enviarEmailEntregaEpi,
+  enviarEmailRecebimento,
+  enviarEmailNovaSolicitacao,
+  enviarEmailDecisaoSolicitacao,
+  enviarEmailDevolucao
+};

@@ -1,5 +1,15 @@
 const db = require('../config/db');
 const registrarLog = require('../utils/registrarLog');
+const { enviarEmailEntregaEpi, enviarEmailRecebimento, enviarEmailDevolucao } = require('../utils/enviarEmail');
+
+// Busca os e-mails dos administradores ATIVOS de uma empresa (para avisos)
+async function emailsDosAdmins(empresa) {
+  const [adms] = await db.execute(
+    "SELECT email_usuario FROM tb_usuario WHERE tb_empresa_id_empresa = ? AND tb_tipousuario_id_tipousuario = 1 AND st_usuario = 'A' AND email_usuario IS NOT NULL",
+    [empresa]
+  );
+  return adms.map(a => a.email_usuario).filter(Boolean);
+}
 
 // O controller não mexe no estoque. Ele insere em tb_entrega e para.
 // A checagem st_entrega === 'D' evita "devolver duas vezes" (409).
@@ -98,8 +108,30 @@ async function registrarEntrega(req, res) {
         responsavel: admin
       });
     }
-    await conexao.commit();
-    return res.status(201).json({ mensagem: 'Entrega registrada com sucesso.' });
+        await conexao.commit();
+
+    // Aviso por e-mail ao funcionário (não bloqueia nem derruba a resposta)
+    try {
+      const [fdados] = await conexao.execute(
+        `SELECT f.nm_funcionario, u.email_usuario, u.cpf_usuario, s.nm_setor
+         FROM tb_funcionario f
+         JOIN tb_usuario u ON u.id_usuario = f.tb_usuario_id_usuario
+         LEFT JOIN tb_setor s ON s.id_setor = f.tb_setor_id_setor
+         WHERE f.id_funcionario = ?`, [funcionario]);
+      const [adata] = await conexao.execute('SELECT nm_usuario FROM tb_usuario WHERE id_usuario = ?', [admin]);
+      if (fdados.length && fdados[0].email_usuario) {
+        enviarEmailEntregaEpi(fdados[0].email_usuario, {
+          nomeFuncionario: fdados[0].nm_funcionario,
+          cpf: fdados[0].cpf_usuario,
+          setor: fdados[0].nm_setor,
+          itens: validados.map(v => ({ nome: v.nome, qtd: v.qtd })),
+          data: new Date().toLocaleDateString('pt-BR'),
+          admin: adata.length ? adata[0].nm_usuario : 'Administrador'
+        }).catch(() => {});
+      }
+    } catch (e) { console.error('e-mail entrega:', e.message); }
+
+    return res.status(201).json({ mensagem: 'Entrega registrada com sucesso.' });;
   }
   catch (err) {
     await conexao.rollback();
@@ -181,6 +213,26 @@ async function registrarDevolucao(req, res) {
       descricao: 'Devolução de EPI',
       responsavel: req.usuario.id
     });
+
+    // Aviso por e-mail ao funcionário: deve devolver imediatamente ao responsável do setor
+    try {
+      const [dd] = await db.execute(
+        `SELECT u.email_usuario, u.nm_usuario, s.nm_setor, epi.nm_epi
+         FROM tb_entrega e
+         JOIN tb_funcionario f ON f.id_funcionario = e.tb_funcionario_id_funcionario
+         JOIN tb_usuario u ON u.id_usuario = f.tb_usuario_id_usuario
+         LEFT JOIN tb_setor s ON s.id_setor = f.tb_setor_id_setor
+         JOIN tb_epi epi ON epi.id_epi = e.tb_epi_id_epi
+         WHERE e.id_entrega = ?`, [id_entrega]);
+      if (dd.length && dd[0].email_usuario) {
+        enviarEmailDevolucao(dd[0].email_usuario, {
+          nomeFuncionario: dd[0].nm_usuario, epi: dd[0].nm_epi, setor: dd[0].nm_setor
+        }).catch(() => {});
+      }
+    }
+    catch (e) {
+      console.error('e-mail devolucao:', e.message);
+    }
 
     return res.status(200).json({
       mensagem: 'Devolução registrada com sucesso.'
@@ -343,6 +395,19 @@ async function confirmarRecebimento(req, res) {
       responsavel: req.usuario.id
     });
 
+    // Aviso ao(s) administrador(es) da empresa
+    try {
+      const emails = await emailsDosAdmins(empresa);
+      const [fn] = await db.execute('SELECT nm_usuario FROM tb_usuario WHERE id_usuario = ?', [req.usuario.id]);
+      if (emails.length) {
+        enviarEmailRecebimento(emails, {
+          nomeFuncionario: fn.length ? fn[0].nm_usuario : 'Funcionário',
+          epi: linhas[0].nm_epi, acao: 'aceitou',
+          data: new Date().toLocaleDateString('pt-BR')
+        }).catch(() => {});
+      }
+    } catch (e) { console.error('e-mail aceite:', e.message); }
+
     return res.status(200).json({
       mensagem: 'Recebimento confirmado com sucesso.'
     });
@@ -406,6 +471,19 @@ async function recusarRecebimento(req, res) {
       motivo: motivo.trim(),
       responsavel: req.usuario.id
     });
+
+    // Aviso ao(s) administrador(es) da empresa
+    try {
+      const emails = await emailsDosAdmins(empresa);
+      const [fn] = await db.execute('SELECT nm_usuario FROM tb_usuario WHERE id_usuario = ?', [req.usuario.id]);
+      if (emails.length) {
+        enviarEmailRecebimento(emails, {
+          nomeFuncionario: fn.length ? fn[0].nm_usuario : 'Funcionário',
+          epi: linhas[0].nm_epi, acao: 'recusou', motivo: motivo.trim(),
+          data: new Date().toLocaleDateString('pt-BR')
+        }).catch(() => {});
+      }
+    } catch (e) { console.error('e-mail recusa:', e.message); }
 
     return res.status(200).json({
       mensagem: 'Recebimento recusado. O administrador será notificado.'

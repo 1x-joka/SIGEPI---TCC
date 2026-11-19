@@ -31,6 +31,151 @@ function mostrarAviso(mensagem, tipo = 'info') {
   setTimeout(fechar, 4500);
 }
 
+// ===== Modais reutilizáveis (substituem alert/confirm/prompt nativos) =====
+// confirmarAcao(...) -> Promise<boolean> ; pedirTexto(...) -> Promise<string|null>
+function confirmarAcao({ titulo = 'Confirmar ação', mensagem = '', textoConfirmar = 'Confirmar', textoCancelar = 'Cancelar', perigo = false } = {}) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay active';
+    const caixa = document.createElement('div');
+    caixa.className = 'modal modal--sm';
+
+    const h = document.createElement('h2');
+    h.textContent = titulo;
+
+    const p = document.createElement('p');
+    p.className = 'modal-texto';
+    p.textContent = mensagem;
+
+    const rodape = document.createElement('div');
+    rodape.className = 'modal-footer';
+
+    const btnOk = document.createElement('button');
+    btnOk.className = 'btn ' + (perigo ? 'btn-danger' : 'btn-primary');
+    btnOk.textContent = textoConfirmar;
+
+    const btnNao = document.createElement('button');
+    btnNao.className = 'btn btn-outline';
+    btnNao.textContent = textoCancelar;
+
+    rodape.append(btnOk, btnNao);
+    caixa.append(h, p, rodape);
+    overlay.appendChild(caixa);
+    document.body.appendChild(overlay);
+
+    const fechar = (v) => {
+      overlay.remove();
+      document.removeEventListener('keydown', onKey);
+      resolve(v);
+    };
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') fechar(false);
+    };
+
+    btnOk.addEventListener('click', () => fechar(true));
+    btnNao.addEventListener('click', () => fechar(false));
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) fechar(false);
+    });
+
+    document.addEventListener('keydown', onKey);
+    btnOk.focus();
+  });
+}
+
+function pedirTexto({ titulo = 'Informe', mensagem = '', placeholder = '', textoConfirmar = 'Enviar', textoCancelar = 'Cancelar', obrigatorio = true } = {}) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay active';
+
+    const caixa = document.createElement('div');
+    caixa.className = 'modal modal--sm';
+
+    const h = document.createElement('h2');
+    h.textContent = titulo;
+
+    caixa.appendChild(h);
+
+    if (mensagem) {
+      const p = document.createElement('p');
+      p.className = 'modal-texto';
+      p.textContent = mensagem;
+      caixa.appendChild(p);
+    }
+
+    const campo = document.createElement('textarea');
+    campo.className = 'modal-textarea';
+    campo.rows = 3;
+    campo.placeholder = placeholder;
+
+    const err = document.createElement('span');
+    err.className = 'error-msg';
+    err.textContent = 'Campo obrigatório.';
+    err.style.display = 'none';
+
+    const rodape = document.createElement('div');
+    rodape.className = 'modal-footer';
+
+    const btnOk = document.createElement('button');
+    btnOk.className = 'btn btn-primary';
+    btnOk.textContent = textoConfirmar;
+
+    const btnNao = document.createElement('button');
+    btnNao.className = 'btn btn-outline';
+    btnNao.textContent = textoCancelar;
+
+    rodape.append(btnOk, btnNao);
+    caixa.append(campo, err, rodape);
+    overlay.appendChild(caixa);
+    document.body.appendChild(overlay);
+
+    const fechar = (v) => {
+      overlay.remove();
+      document.removeEventListener('keydown', onKey);
+      resolve(v);
+    };
+
+    const confirmar = () => {
+      const v = campo.value.trim(); if (obrigatorio && !v) {
+        err.style.display = 'block';
+        campo.focus();
+        return;
+      }
+      fechar(v);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') fechar(null); };
+    btnOk.addEventListener('click', confirmar);
+    btnNao.addEventListener('click', () => fechar(null));
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) fechar(null);
+    });
+
+    document.addEventListener('keydown', onKey);
+    campo.focus();
+  });
+}
+
+// ===== Rótulo de botões: emoji + texto (no celular, o CSS esconde o texto) =====
+const ICONES_BOTAO = {
+  'Editar': '✏️', 'Entregar EPI': '📦', 'Solicitações': '📋', 'Movimentação': '🔄', 'Inativar': '🚫', 'Ativar': '✅', 'Devolver': '↩️', 'Confirmar recebimento': '✅', 'Recusar': '❌'
+};
+
+function rotularBotao(btn, icone, texto) {
+  btn.textContent = '';
+  if (icone) {
+    const i = document.createElement('span');
+    i.className = 'btn-icone';
+    i.textContent = icone;
+    btn.appendChild(i);
+  }
+
+  const t = document.createElement('span'); t.className = 'btn-texto'; t.textContent = (icone ? ' ' : '') + texto; btn.appendChild(t);
+  btn.title = texto;
+  btn.setAttribute('aria-label', texto); // acessibilidade: sentido preservado mesmo só com o emoji
+}
+
 // SEGURANÇA: páginas com "data-protegida" no <body> exigem login. Sem token, volta ao login.
 document.addEventListener('DOMContentLoaded', () => {
   // A sessão é validada pela API a cada requisição (fetchAutenticado trata 401/403).
@@ -711,7 +856,14 @@ function renderSetoresEmpresa() {
 }
 
 async function removerSetor(idSetor) {
-  if (!confirm('Deseja realmente excluir este setor?')) return;
+  if (!await confirmarAcao({
+    titulo: 'Excluir setor',
+    mensagem: 'Deseja realmente excluir este setor?',
+    textoConfirmar: 'Excluir',
+    perigo: true
+  }))
+  return;
+
   try {
     const resposta = await fetchAutenticado(`/setor/${idSetor}`, { method: 'DELETE' });
     if (!resposta) return;
@@ -950,11 +1102,11 @@ async function carregarEpis() {
         const tdAcao = document.createElement('td');
         const btnEditar = document.createElement('button');
         btnEditar.className = 'btn btn-outline btn-acao-espaco';
-        btnEditar.textContent = 'Editar';
+        rotularBotao(btnEditar, '✏️', 'Editar');
         btnEditar.onclick = () => abrirEditarEpi(e.id_epi);
         const btn = document.createElement('button');
         btn.className = 'btn btn-outline';
-        btn.textContent = 'Inativar';
+        rotularBotao(btn, '🚫', 'Inativar');
         btn.onclick = () => inativarEpi(e.id_epi, rotuloEpi(e));
         tdAcao.append(btnEditar, btn);
         tr.appendChild(tdAcao);
@@ -1102,7 +1254,15 @@ async function importarPlanilhaEpi() {
 }
 
 async function inativarEpi(id, nome) {
-  if (!confirm(`Inativar o EPI "${nome}"? Ele sairá da lista, mas o histórico é mantido.`)) return;
+  if (!await confirmarAcao({
+    titulo: 'Inativar EPI',
+    mensagem: `Inativar o EPI "${nome}"? Ele sairá da lista, mas o histórico é mantido.`,
+    textoConfirmar: 'Inativar',
+    perigo: true
+  }))
+  return;
+
+
   const resp = await fetchAutenticado(`/epi/${id}/inativar`, { method: 'PUT' });
   const d = await resp.json();
   if (resp.ok) await carregarEpis();
@@ -1428,17 +1588,30 @@ async function abrirMovimentacao(id, nome) {
     dados.historico.forEach(h => {
       const tr = document.createElement('tr');
       if (h.st_entrega === 'R') tr.className = 'row-red';
+
       const status = nomesStatus[h.st_entrega] || h.st_entrega;
       [h.nm_epi, formatarData(h.dt_entrega), h.dt_confirmacao ? formatarData(h.dt_confirmacao) : '—', h.dt_devolucao ? formatarData(h.dt_devolucao) : '—', status].forEach(v => {
         const td = document.createElement('td');
         td.textContent = v;
         tr.appendChild(td); // XSS-safe
       });
+
       if (h.st_entrega === 'R' && h.motivo_recusa) {
         const div = document.createElement('div');
         div.textContent = 'Motivo: ' + h.motivo_recusa;
         div.className = 'subtexto-cinza';
         tr.lastChild.appendChild(div);
+      }
+
+      // Botão de devolução: só aparece em entregas ACEITAS (admin retira o EPI do funcionário)
+      if (h.st_entrega === 'A') {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-outline-danger btn-sm';
+        rotularBotao(btn, '↩️', 'Devolver');
+        btn.style.marginTop = '6px';
+        btn.onclick = () => devolverEpi(h.id_entrega, id, nome);
+        tr.lastChild.appendChild(document.createElement('br'));
+        tr.lastChild.appendChild(btn);
       }
       tbody.appendChild(tr);
     });
@@ -1446,7 +1619,33 @@ async function abrirMovimentacao(id, nome) {
   catch (err) {
     mostrarAviso('Não foi possível carregar a movimentação.');
   }
-} 
+}
+
+// ADMIN registra a devolução (retira o EPI do funcionário). O funcionário é avisado por tela e e-mail.
+async function devolverEpi(idEntrega, idFuncionario, nomeFuncionario) {
+  if (!await confirmarAcao({
+    titulo: 'Devolver EPI',
+    mensagem: 'Registrar a devolução deste EPI? O funcionário será avisado (na tela e por e-mail) para devolvê-lo imediatamente ao responsável do setor.',
+    textoConfirmar: 'Devolver',
+    perigo: true
+  }))
+  return;
+
+  try {
+    const resp = await fetchAutenticado(`/entrega/${idEntrega}/devolver`, { method: 'PUT' });
+    const dados = await resp.json();
+    if (resp.ok) {
+      mostrarAviso(dados.mensagem || 'Devolução registrada.', 'sucesso');
+      abrirMovimentacao(idFuncionario, nomeFuncionario); // recarrega a movimentação
+    }
+    else {
+      mostrarAviso(dados.erro || 'Não foi possível registrar a devolução.');
+    }
+  }
+  catch (e) {
+    mostrarAviso('Não foi possível registrar a devolução.');
+  }
+}
 
 function selecionarFuncionario() {
   document.querySelectorAll('#tbody-func tr').forEach(tr => {
@@ -1627,7 +1826,12 @@ async function inativarFuncionario() {
 
 // ADMIN reativa um funcionário inativo (desbloqueia o acesso dele)
 async function ativarFuncionario(id) {
-  if (!confirm('Deseja reativar este funcionário? O acesso dele será desbloqueado.')) return;
+  if (!await confirmarAcao({
+    titulo: 'Reativar funcionário',
+    mensagem: 'Deseja reativar este funcionário? O acesso dele será desbloqueado.',
+    textoConfirmar: 'Reativar'
+  }))
+    return;
 
   try {
     const resp = await fetchAutenticado(`/funcionario/${id}/ativar`, {
@@ -1728,7 +1932,13 @@ async function abrirSolicitacoes(idFuncionario, nomeFuncionario) {
 // Aprova ou recusa uma solicitação
 async function responderSolicitacao(idSolicitacao, decisao, idFuncionario, nomeFuncionario) {
   const acao = decisao === 'A' ? 'aprovar' : 'recusar';
-  if (!confirm(`Deseja ${acao} esta solicitação?`)) return;
+  if (!await confirmarAcao({
+    titulo: 'Responder solicitação',
+    mensagem: `Deseja ${acao} esta solicitação?`,
+    textoConfirmar: acao === 'aprovar' ? 'Aprovar' : 'Recusar',
+    perigo: decisao === 'R'
+  }))
+  return;
 
   try {
     const resp = await fetchAutenticado(`/solicitacao/${idSolicitacao}/responder`, {
@@ -1865,11 +2075,22 @@ async function carregarMeusEquipamentos() {
       const itens = await resp.json();
       tbody.innerHTML = '';
       let temVencido = false;
+      let temDevolucao = false;
       itens.forEach(i => {
         const tr = document.createElement('tr');
-        const status = i.st_entrega === 'D' ? 'Devolvido' : 'Com você';
+        let status;
+
+        if (i.st_entrega === 'D') {
+          status = 'Devolver ao responsável do setor';
+          tr.className = 'row-red';
+          temDevolucao = true;
+        }
+        else status = 'Com você';
+
         const venc = i.dt_validade_ca && new Date(i.dt_validade_ca) < new Date();
+
         if (venc && i.st_entrega !== 'D') temVencido = true;
+
         const validade = i.dt_validade_ca ? formatarData(i.dt_validade_ca) : '—';
         [i.nm_epi, '—', '1', validade, status].forEach(v => {
           const td = document.createElement('td');
@@ -1878,6 +2099,24 @@ async function carregarMeusEquipamentos() {
         });
         tbody.appendChild(tr);
       });
+
+      // Aviso fixo na tela quando o admin solicitou a devolução de algum EPI
+      let bd = document.getElementById('banner-devolucao');
+      if (temDevolucao) {
+        if (!bd) {
+          bd = document.createElement('div');
+          bd.id = 'banner-devolucao';
+          bd.className = 'banner-devolucao';
+          bd.textContent = '⚠️ O administrador solicitou a devolução de um ou mais EPIs. Entregue-os imediatamente ao responsável do seu setor.';
+          const tabela = tbody.closest('table');
+          if (tabela && tabela.parentNode) tabela.parentNode.insertBefore(bd, tabela);
+        }
+        bd.style.display = '';
+      }
+      else if (bd) {
+        bd.style.display = 'none';
+      }
+
       const banner = document.getElementById('banner-alerta');
       if (banner) banner.style.display = temVencido ? '' : 'none';
     }
@@ -2146,12 +2385,12 @@ async function carregarPendentesConfirmacao() {
 
       const btnOk = document.createElement('button');
       btnOk.className = 'btn btn-primary';
-      btnOk.textContent = 'Confirmar recebimento';
+      rotularBotao(btnOk, '✅', 'Confirmar recebimento');
       btnOk.onclick = () => confirmarRecebimento(i.id_entrega);
 
       const btnNao = document.createElement('button');
       btnNao.className = 'btn btn-outline-recusar';
-      btnNao.textContent = 'Recusar';
+      rotularBotao(btnNao, '❌', 'Recusar');
       btnNao.onclick = () => recusarRecebimento(i.id_entrega);
 
       acoes.append(btnOk, btnNao);
@@ -2165,7 +2404,12 @@ async function carregarPendentesConfirmacao() {
 }
 
 async function confirmarRecebimento(idEntrega) {
-  if (!confirm('Confirma que você recebeu este equipamento?')) return;
+  if (!await confirmarAcao({
+    titulo: 'Confirmar recebimento',
+    mensagem: 'Confirma que você recebeu este equipamento?',
+    textoConfirmar: 'Confirmar'
+  }))
+  return;
 
   try {
     const resp = await fetchAutenticado(`/entrega/${idEntrega}/confirmar`, { method: 'PUT' });
@@ -2186,7 +2430,13 @@ async function confirmarRecebimento(idEntrega) {
 }
 
 async function recusarRecebimento(idEntrega) {
-  const motivo = prompt('Por que você está recusando este equipamento?\n(Ex.: tamanho errado, item danificado, não recebi)');
+  const motivo = await pedirTexto({
+    titulo: 'Recusar recebimento',
+    mensagem: 'Por que você está recusando este equipamento? (Ex.: tamanho errado, item danificado, não recebi)',
+    placeholder: 'Descreva o motivo',
+    textoConfirmar: 'Recusar recebimento'
+  });
+
   if (motivo === null) return;
 
   if (motivo.trim().length < 5) {
@@ -2572,7 +2822,7 @@ function renderFuncionarios() {
       const mk = (texto, classe, acao) => {
         const b = document.createElement('button');
         b.className = 'btn ' + classe;
-        b.textContent = texto;
+        rotularBotao(b, ICONES_BOTAO[texto] || '', texto);
         b.classList.add('btn-acao-espaco');
         b.onclick = acao;
         return b;
@@ -2590,7 +2840,7 @@ function renderFuncionarios() {
       tdAcao.classList.add('acoes-nowrap');
       const btnAtivar = document.createElement('button');
       btnAtivar.className = 'btn btn-primary btn-acao-espaco';
-      btnAtivar.textContent = 'Ativar';
+      rotularBotao(btnAtivar, '✅', 'Ativar');
       btnAtivar.onclick = () => ativarFuncionario(f.id_funcionario);
       tdAcao.appendChild(btnAtivar);
     }
